@@ -1,4 +1,4 @@
-# Product Flow
+# Craft Skills
 
 Product development workflow for agentic development — from idea to production. Ships one plugin,
 **`craft`**: a lightweight SDD flow **prod → arch → spec → build**. Discovery is guided and
@@ -10,7 +10,7 @@ in durable, scannable files so build is execution against a clear spec.
 ## Installation
 
 ```claude
-/plugin marketplace add andpush/product-flow
+/plugin marketplace add andpush/craft-skills
 /plugin install craft
 ```
 
