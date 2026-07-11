@@ -1,0 +1,4 @@
+python-pptx
+markdown-it-py
+lxml
+PyYAML

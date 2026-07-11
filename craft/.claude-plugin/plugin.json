@@ -1,0 +1,10 @@
+{
+  "name": "craft",
+  "description": "Distilled engineering workflow — idea to production: prod (define the product), arch (define the architecture), spec/task (frame build-ready work into the queue), build (autonomously execute the queue).",
+  "version": "2.0.0",
+  "author": {
+    "name": "Andrei Pushkin",
+    "email": "[RESTRICTED]"
+  },
+  "license": "MIT"
+}
