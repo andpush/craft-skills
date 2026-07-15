@@ -36,18 +36,9 @@ For git repos, also check for uncommitted changes, unmerged branches, and recent
 
 ## Report
 
-Produce a glanceable HTML dashboard AND a brief chat recap.
+Produce a brief recap and show a glanceable HTML dashboard
 
-### 1. HTML dashboard
-
-Save -> `docs/whereami-YYYY-MM-DD.html`
-Overwrite if it already exists (one snapshot per day).
-
-Audience is the user reorienting at a glance, plus a non-technical stakeholder — frame it like an old JIRA status report. Use status pills (color), font hierarchy, and monospace ASCII bars so the situation lands in one glance.
-
-Keep it cheap: one self-contained file, inline CSS.
-
-### 2. Brief chat recap
+### 1. Brief recap
 
 ```
 PROJECT: <one line>
@@ -64,8 +55,12 @@ NOW:      <focus / last touched / why-stuck if any>
 ---
 NEXT:     <suggest 1-3 most useful next moves>
 ---
-Details: open <path_to_project>/docs/whereami-YYYY-MM-DD.html
 ```
 
-Make the path a clickable markdown link.
 
+### 2. HTML dashboard
+
+For the user reorienting at a glance, plus a non-technical stakeholder — frame it like a JIRA status report. Use status pills (color), font hierarchy, and monospace ASCII bars so the situation lands in one glance.
+
+Keep it cheap: one self-contained file, inline CSS.
+Save in temporary dir and prompt to open in a browser. **DO NOT put it in the repo tree**.
