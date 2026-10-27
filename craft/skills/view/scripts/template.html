@@ -127,7 +127,7 @@ const pill = (text, tone = "") => h("span", { class: `pill ${tone}` }, text);
 const card = (...kids) => h("div", { class: "card" }, ...kids);
 const diagram = (src) => src ? h("div", { class: "diagram" }, h("pre", { class: "mermaid" }, src)) : null;
 const TONE = { red: "red", yellow: "yellow", green: "green", high: "red", medium: "yellow", low: "", confirmed: "red",
-  plausible: "yellow", pass: "green", fail: "red", "not-run": "yellow", accept: "green", change: "red", discuss: "yellow",
+  plausible: "yellow", fixed: "green", pass: "green", fail: "red", "not-run": "yellow", accept: "green", change: "red", discuss: "yellow",
   draft: "yellow", ready: "green", "in-progress": "chip", blocked: "red", done: "green" };
 const tone = (v) => TONE[String(v || "").toLowerCase()] || "";
 // Contract kinds that get extra emphasis: data model and public API changes outlive the code.
@@ -317,8 +317,8 @@ function renderChange() {
   };
   const dataApi = () => h("div", {}, keyGroup("Data model", DATA_KINDS, dataFiles), keyGroup("API", API_KINDS, apiFiles));
 
-  const rank = (f) => (f.status === "confirmed" ? 0 : 3) + ({ high: 0, medium: 1, low: 2 }[f.severity] ?? 2);
-  const finding = (f) => h("div", { class: `item ${tone(f.status === "confirmed" ? "confirmed" : f.severity)}` },
+  const rank = (f) => ({ confirmed: 0, fixed: 6 }[f.status] ?? 3) + ({ high: 0, medium: 1, low: 2 }[f.severity] ?? 2);
+  const finding = (f) => h("div", { class: `item ${tone(["confirmed", "fixed"].includes(f.status) ? f.status : f.severity)}` },
     h("div", { class: "item-head" }, h("span", { class: "id" }, f.id), pill(f.severity || "?", tone(f.severity)),
       pill(f.status || "plausible", tone(f.status)), loc(f.where), verdict(f.id)),
     facts([["Invariant", f.invariant], ["Scenario", f.scenario], ["Consequence", f.consequence], ["Fix", f.fix],

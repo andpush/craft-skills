@@ -64,7 +64,7 @@ Everything that checks, diagrams and review tooling read lives in one YAML file 
 `ARCHITECTURE.md`. `ARCHITECTURE.md` explains it in prose (why this decomposition, flows,
 trade-offs, glossary) and links to it — it never restates it. `guard`'s checks read the file at
 test time where the tool allows (ArchUnit/Konsist via a YAML library, dependency-cruiser's JS
-config); generated configs (Dart, Rust, Swift) get a freshness check. `view model` renders it.
+config); where components are crates or SwiftPM targets, a check compares the manifest with the model. `view model` renders it.
 
 ```yaml
 system: shop
@@ -190,10 +190,13 @@ nothing. Agent, human and CI all call the same command; CI never has its own che
    finds that commit and flags later edits to its files.
 4. **Implement** in a subagent. It must not edit the committed AC tests; if one looks wrong, stop and report.
 5. **Simplify**, then **verify** (output in the transcript).
-6. **Review:** `review` in a fresh context. Fix findings; re-review the fix diff; at most two rounds.
+6. **Review:** `review` in a fresh context. Fix what has a clear fix (confirmed findings, failing ACs,
+   deviations); contract decisions and plausible findings go to the human. A fresh reviewer checks the
+   fix diff and marks findings `fixed`; at most two rounds.
 7. **Close in the branch:** apply the doc impact, write agreed ADRs, file ideas for deferred work and
    temporary flags, set `status: done`, `git mv` item + same-basename files to `docs/done/`, commit.
-8. **Integrate** per merge policy; open the change view; report tier and what needs the human.
+8. **Integrate** per merge policy (merge main in, never rebase — the review's refs must stay
+   reachable); open the change view; report tier and what needs the human.
 
 **Fail** → commit `status: blocked` + one-line reason on the branch (draft PR when remote), stop.
 Merging the PR lands code, docs and the item's move to `done/` in one step.
@@ -244,7 +247,7 @@ Computed by the script from triggers and the review's content; the agent never s
   "contracts":   [{"id": "C1", "kind": "dependency|schema|api|event|data-writer|data-copy|external-call|config", "what": "", "consequence": "",
                    "compat": "compatible|breaking|needs-migration|needs-versioning", "migration": "expand-only|backfill|contract|none", "where": ""}],
   "blast":       [{"id": "B1", "symbol": "", "change": "", "callers": ["path:line"], "covered_by": ["test"], "where": ""}],
-  "findings":    [{"id": "H1", "severity": "high|medium|low", "status": "confirmed|plausible", "where": "path:10-24", "invariant": "", "scenario": "", "consequence": "", "fix": "", "test": ""}],
+  "findings":    [{"id": "H1", "severity": "high|medium|low", "status": "confirmed|plausible|fixed", "where": "path:10-24", "invariant": "", "scenario": "", "consequence": "", "fix": "", "test": ""}],
   "evidence":    [{"ac": "AC1", "criterion": "", "command": "", "result": "pass|fail|not-run|manual"}],
   "not_checked": [""],
   "verdicts":    {"H1": "accept"},
@@ -283,7 +286,7 @@ One-time, idempotent; rerun after `arch` changes `architecture.yaml`.
 1. Detect the stack; check `gh` is installed and the active account can push to the remote.
 2. Create or fix `verify` (fails on empty test selection); record it in `AGENTS.md`.
 3. Write the stack adapter that reads `architecture.yaml` (ArchUnit/Konsist for JVM,
-   dependency-cruiser for TS; generated config + freshness check for Dart/Rust/Swift). See
+   dependency-cruiser for TS, grimp for Python; manifest comparison for Rust/Swift). See
    `reference/stacks.md`.
 4. A check per `MUST` rule the component map can't express, named by rule ID.
 5. Existing violations → frozen baseline (ArchUnit `FreezingArchRule`, dependency-cruiser known-violations). No new violations.

@@ -91,7 +91,11 @@ The tier sets the depth:
 
 The walk ends one of two ways:
 - **All accepted:** integrate per the merge policy in `AGENTS.md`. Ask before merging, unless `build3` called you and the policy allows it.
-- **Any "change":** produce a fix list (ID → minimal fix). After the fix, review only the fix diff (`--base <the reviewed head>`).
+- **Any "change":** produce a fix list (ID → minimal fix).
+
+## Re-review after a fix
+
+Read only the fix diff (`git diff <reviewed head>..HEAD`). Rerun each finding's test: green → `fixed`, still red → keep it and say why. Look at the fix itself with the same lenses; new problems get new IDs. Then rerun the script without `--base`, so the tier still covers the whole change.
 
 ## review.json — your fields
 
@@ -101,7 +105,7 @@ The walk ends one of two ways:
                 "what": "", "consequence": "", "compat": "compatible|breaking|needs-migration|needs-versioning",
                 "migration": "expand-only|backfill|contract|none", "where": "path:line"}],
 "blast":      [{"id": "B1", "symbol": "", "change": "", "callers": ["path:line"], "covered_by": ["test"], "where": "path:line"}],
-"findings":   [{"id": "H1", "severity": "high|medium|low", "status": "confirmed|plausible", "where": "path:10-24",
+"findings":   [{"id": "H1", "severity": "high|medium|low", "status": "confirmed|plausible|fixed", "where": "path:10-24",
                 "invariant": "", "scenario": "", "consequence": "", "fix": "", "test": ""}],
 "evidence":   [{"ac": "AC1", "criterion": "", "command": "", "result": "pass|fail|not-run|manual"}],
 "not_checked": ["what was not checked, and why"],

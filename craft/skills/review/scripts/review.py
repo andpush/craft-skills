@@ -168,7 +168,7 @@ def content_reasons(r: dict, triggered: set[str]) -> list:
         if c.get("kind") not in triggered:  # a schema trigger already says "schema"
             out.append(("red" if c.get("kind") in RED_CONTRACTS else "yellow", f"contract {c.get('id', '?')}: {c.get('kind', '?')}"))
     for f in r.get("findings", []):
-        if r.get("verdicts", {}).get(f.get("id")) == "accept" and f.get("severity") != "high":
+        if f.get("status") == "fixed" or (r.get("verdicts", {}).get(f.get("id")) == "accept" and f.get("severity") != "high"):
             continue
         high = f.get("status") == "confirmed" and f.get("severity") == "high"
         out.append(("red" if high else "yellow", f"finding {f.get('id', '?')}: {f.get('severity', '?')}, {f.get('status', '?')}"))
@@ -194,8 +194,8 @@ def incomplete(r: dict) -> list[str]:
         missing = [k for k in ("where", "invariant", "scenario", "consequence", "fix") if not f.get(k)]
         if missing:
             out.append(f"{f.get('id', '?')} lacks {', '.join(missing)}")
-        if f.get("status") == "confirmed" and not f.get("test"):
-            out.append(f"{f.get('id', '?')} is confirmed but names no test")
+        if f.get("status") in ("confirmed", "fixed") and not f.get("test"):
+            out.append(f"{f.get('id', '?')} is {f['status']} but names no test")
     out += [f"{c.get('id', '?')} ({c.get('kind')}) has no compat" for c in r.get("contracts", [])
             if c.get("kind") in ("schema", "api", "event") and not c.get("compat")]
     out += [f"{e['ac']} not run: {e.get('command') or 'manual'}" for e in r.get("evidence", []) if e.get("result") == "not-run"]
