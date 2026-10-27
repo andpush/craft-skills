@@ -9,11 +9,11 @@ During this collaborative session: understand context -> refine intent -> discov
 
 The spec is the deliverable, not code: don't implement during a spec session — it ends only at a spec the user has confirmed.
 
-Once it's ready, the implementation is a delegated execution — via `build` (craft's executor), `/goal`, a dispatched subagent, or any agent.
+Once it's ready, the implementation is a delegated execution — via `build3` (craft's executor), `/goal`, a dispatched subagent, or any agent.
 
 ## Context gates — detect, don't dead-end
 
-`spec` builds on `PRODUCT.md` and `ARCHITECTURE.md`.
+`spec` builds on `PRODUCT.md`, `ARCHITECTURE.md` and `architecture.yaml`.
 
 If either is missing or placeholder-only — offer a fork:
 - **Establish now** — run `prod`/`arch` skills in this session, then continue the spec.
@@ -42,15 +42,15 @@ Be terse, pragmatic, ask only what affects the solution, no Q&A theatre. That me
 
 ### 1. Explore the context
 Understand the ground you're building on:
-- Read `PRODUCT.md`, `ARCHITECTURE.md`.
-- Peek into dir tree, recent commit log, `docs/ideas/` and `docs/adr/` listings if warranted.
+- Read `PRODUCT.md`, `ARCHITECTURE.md`, `architecture.yaml`.
+- Peek into dir tree, recent commit log, `docs/ideas/` and `docs/adr/` listings if warranted. Before proposing an option, grep the ADRs' `## Rejected` for it.
 - Explore additional context and zoom in as needed.
 
 ### 2. Frame the problem
 
 In touch with user, turn vague requests into concrete goals. Grasp the problem, not just gather requirements. If the request is a proposed solution, establish the motivation. Verify risky assumptions. Challenge contradictions and gaps. Push for clarity on the core value and the acceptance criteria.
 
-If the request originates as an idea (picked from `docs/ideas/` or a fresh hunch), validate it before specing: does it serve `PRODUCT.md`, is it worth doing now? Recommend a verdict — **pursue**, **defer**, or **reject** — rejection is a legitimate outcome, not a failure. Record the verdict in the idea file (see Ideas below). On **pursue** you elaborate the idea itself into the build-ready item — it keeps its `idea-NNN-slug.md` name and moves into the queue; you don't mint a new `feat-`.
+If the request originates as an idea (picked from `docs/ideas/` or a fresh hunch), validate it before specing: does it serve `PRODUCT.md`, is it worth doing now? Recommend a verdict — **pursue**, **defer**, or **reject** — rejection is a legitimate outcome, not a failure. Record the verdict in the idea file (see Ideas below). On **pursue** you elaborate the idea itself into the build-ready item — it keeps its `idea-<slug>.md` name and moves into the queue; you don't mint a new `feat-`.
 
 If the request spans several independent subsystems, or assumes too many changes, confirm if the user wants to split it and suggest options.
 
@@ -67,24 +67,30 @@ As new information arises, iterate between the solution and the problem framing 
 - Be concrete, avoid prose, duplications, restatements of `PRODUCT.md`/`ARCHITECTURE.md` - link instead.
 - YAGNI: Focus on the core value, and defer non-essential ideas to `docs/ideas/`.
 - If the change path crosses code smells (oversized file, tangled responsibilities, unclear boundaries), fold targeted fixes into the spec — improve what you touch. Don't propose unrelated refactoring.
-- Flag architectural impact when the feature forces a system-level change: new component, boundary shift, data model change, or new dependency.
-- Define a feature-relevant testing approach following the testing pyramid. For UI changes, consider e2e using playwright-cli skill or similar. Gate refactoring with TDD: establish a green safety net before restructuring.
-- Acceptance criteria are the implementation agent's stop condition. Minimum: code builds and runs, no lint errors, tests green, behavior change observable. Add criteria where needed to pin down intent.
+- **Contract changes** go in the Review Brief, one per item with its consequence: a new or upgraded dependency, a schema change, a public API or event change, a new writer or copy of data, a new external call. They outlive the code, so they're what the human reviews first. Load the `sa` lens the change touches ([../sa/SKILL.md](../sa/SKILL.md) § Lenses).
+- **A schema or stored-format change needs a Migration plan:** expand → backfill → switch → contract, mixed-version behavior, roll-forward.
+- **Targets and the model:** `target:` lists component names from `architecture.yaml`. A change that needs a new component, a new `depends_on` edge, a new entity or owner, or a new rule says so in **Doc impact**, as an exact edit to `architecture.yaml`.
+- **Doc impact** lists the exact edits to `ARCHITECTURE.md`, `PRODUCT.md`, `AGENTS.md` and `architecture.yaml`. `build3` applies only these, and `review` flags any other doc edit.
+- Define a feature-relevant testing approach following the testing pyramid, with the negative cases that apply. For UI changes, consider e2e using playwright-cli skill or similar. Gate refactoring with TDD: establish a green safety net before restructuring.
+- **Acceptance is a table of commands:** `| ID | Criterion | Command |`. Each criterion names observable behavior; its command runs exactly the tests named `AC<n>_…` (the AC command form in `AGENTS.md`). `build3` has these tests written first, by an agent that sees only the spec — so a criterion must be testable from the spec alone. A criterion no test can show is marked `(manual)` with `—` as the command; the human checks it at review. `verify` exiting 0 is always implied.
 
 ### 5. Present and confirm
 
 Don't just dump a spec with the details buried in it; present the chosen solution clearly in a way easy to grasp for a human:
-- Lead the presentation with the diagram — it's the fastest way for a human to grasp and steer the solution.
-- Highlight components affected by the planned changes.
-- Obtain confirmation that the spec captures the intent and is ready to build. If not, iterate.
+- Write the item as `status: draft` and open the spec page — Review Brief first, the model's component diagram with the targets highlighted, contract changes as cards, the AC table:
+  ```bash
+  uv run --quiet <this-skill-dir>/../view/scripts/view.py spec docs/ready/<item>.md
+  ```
+- In the terminal, lead with what needs the human: open questions, contract changes, anything the page flags. Every item has an ID (`C1`, `AC3`) to discuss by.
+- Obtain confirmation that the spec captures the intent and is ready to build. If not, iterate and re-render.
 
 ### 6. Emit the spec
 
 Write the item into the execution queue `docs/ready/` using [reference/spec-template.md](reference/spec-template.md):
-- A fresh feature → `feat-NNN-slug.md`, where `NNN` is the next free number across all work items (`idea-`/`feat-`/`task-` in `docs/ideas/`, `docs/ready/`, `docs/done/`), zero-padded; `slug` = kebab feature name.
-- A pursued idea → keep its `idea-NNN-slug.md` name (and carry its images); elaborate it in place to build-ready and move it (`git mv` when tracked) from `docs/ideas/` into `docs/ready/`.
+- A fresh feature → `feat-<slug>.md`, `slug` = kebab feature name, unique across `docs/ideas/`, `docs/ready/` and `docs/done/`; `created:` = today.
+- A pursued idea → keep its `idea-<slug>.md` name (and carry its images); elaborate it in place to build-ready and move it (`git mv` when tracked) from `docs/ideas/` into `docs/ready/`.
 
-If one item splits into an ordered sequence, append a letter to the slug: `feat-NNN-a-slug.md`, `feat-NNN-b-slug.md`, … Numbers and names never change afterwards — only `status:` and folder move as `build` executes.
+If one item splits into an ordered sequence, put a letter after the type: `feat-a-<slug>.md`, `feat-b-<slug>.md`, … Names never change afterwards — only `status:` and folder move as `build3` executes.
 
 
 ## Ideas
@@ -96,14 +102,18 @@ If one item splits into an ordered sequence, append a letter to the slug: `feat-
 
 Self-review the spec with fresh eyes before declaring it ready:
 - [ ] The spec is minimal but sufficient to implement from cold (on empty context)
-- [ ] The acceptance criteria is verifiable
+- [ ] Every AC has a command, or is marked manual
+- [ ] Every contract change states its consequence; every schema change has a migration plan
+- [ ] Doc impact is exact, or "None"
 - [ ] Testing approach is defined
 - [ ] No contradictions between sections (e.g. scope vs. acceptance criteria)
 - [ ] No requirement that reads two ways
 
 ## When done
 
-- if no open blockers — set `status: ready` (the item is now claimable from the queue) and commit; otherwise `status: draft` and leave it out of the queue's live set until resolved.
-- report it's ready to execute and give the one-line next step: `/build` to have craft execute it (or `/goal <file>` / a subagent brief). A few lines, no narrative.
+- if no open blockers — set `status: ready` (the item is now claimable from the queue) and commit it to main; otherwise keep `status: draft` until resolved.
+- report it's ready to execute and give the next step: `build3 <item>`, or the goal line for a `/goal` run:
+  `/goal Item docs/ready/<item>.md built per build3: verify exited 0 with output shown, review tier reported`
+  A few lines, no narrative.
 
-Execution and archival are owned by `build`: it claims the item (`in-progress`), implements, verifies, and on success flips it to `status: done` and moves it — with any same-basename images — into `docs/done/` (name unchanged). You don't archive here.
+Execution and archival are owned by `build3`: it claims the item with a `craft/<item>` branch, builds and reviews it there, and moves it — with its same-basename files — into `docs/done/` in the same branch. You don't archive here.

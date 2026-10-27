@@ -11,12 +11,13 @@ Optional: if the first word of the args is `high` or `low`, treat it as the prio
 
 Distill the idea to one line. If it's too vague to write down, ask one clarifying question — not an interview.
 
-Write `docs/ideas/idea-NNN-slug.md` — one idea per file. `NNN` is the next free number across all work items (`idea-`/`feat-`/`task-` in `docs/ideas/`, `docs/ready/`, `docs/done/`), zero-padded; `slug` carries the idea. Filenames are the index — a directory listing is the scan. Format:
+Write `docs/ideas/idea-<slug>.md` — one idea per file. `slug` carries the idea and is unique across `docs/ideas/`, `docs/ready/` and `docs/done/`. Filenames are the index — a directory listing is the scan. Format:
 
 ```markdown
 ---
 status: open
 priority: high | low      # optional — omit when unset (untriaged)
+created: YYYY-MM-DD
 updated: YYYY-MM-DD
 target: <area>
 ---
@@ -32,14 +33,18 @@ Don't elaborate beyond what was said. Deleting an idea is just deleting its file
 
 ## Lifecycle (owned by `spec`, recorded here)
 
-An idea is born in `docs/ideas/` and stays there, `status: open`, until picked up. Names never change: an idea keeps `idea-NNN-slug.md` through every folder move. `spec` records the verdict on pickup:
+An idea is born in `docs/ideas/` and stays there, `status: open`, until picked up. Names never change: an idea keeps `idea-<slug>.md` through every folder move. `spec` records the verdict on pickup:
 
 - `status: open` — captured, unvalidated. Lives in `docs/ideas/`.
 - `status: deferred` — evaluated, not now; stays in `docs/ideas/` (the live scan pool).
-- **pursued** — `spec` elaborates the idea in place into a build-ready item and moves it (same name) to `docs/ready/`, where it adopts the queue's `status:` (`ready` → `in-progress` → `done`). The idea now flows like any queued item; `build` executes it and archives it to `docs/done/`.
+- **pursued** — `spec` elaborates the idea in place into a build-ready item and moves it (same name) to `docs/ready/`, where it adopts the queue's `status:` (`ready` → `done`). The idea now flows like any queued item; `build3` executes it and archives it to `docs/done/`.
 - `status: rejected` — move the file to `docs/done/` so the idea is archived and not re-proposed.
 
 When status leaves `open`, set `verdict:` — the one-line rationale (quote it if it contains a colon) — and bump `updated`. On any move, `git mv` when tracked so history follows, and carry same-basename images along.
+
+## Removal ideas
+
+Temporary code — a feature flag, an adapter, a dual write, a compatibility shim — gets an idea when it's introduced (`build3` files these at close): `idea-remove-<slug>.md`, `priority: high`, with the removal condition as the body's first line — `Remove when: all clients send the key`. `whereami` surfaces them; they're debt with a due date, not candidates.
 
 ## Check alignment
 
@@ -49,7 +54,7 @@ If `PRODUCT.md` doesn't exist, capture without the check and say so.
 
 ## Images
 
-If the user pastes an image, save it next to the idea as `docs/ideas/idea-NNN-slug-<picslug>.<ext>` (idea's basename + a short pic slug) and embed it from the idea file. On pursue, the item — and its images — move together into the queue.
+If the user pastes an image, save it next to the idea as `docs/ideas/idea-<slug>-<picslug>.<ext>` (idea's basename + a short pic slug) and embed it from the idea file. On pursue, the item — and its images — move together into the queue.
 
 ## Report
 

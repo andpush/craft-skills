@@ -7,7 +7,8 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 
 ## Ground
 
-- Anchor in reality: `PRODUCT.md`/`ARCHITECTURE.md` if present, the existing stack, the code as it is.
+- Anchor in reality: `PRODUCT.md`, `ARCHITECTURE.md` and `architecture.yaml` if present, the existing stack, the code as it is.
+- Read the decision history before proposing: `docs/adr/` titles, and grep `## Rejected` for each option you consider. A rejected option comes back only when its "revisit if" holds — say which.
 - Name the drivers before designing: core function, dominant quality attributes, hard constraints, scale. Design against them, not generic best practice.
 
 ## Shape
@@ -20,6 +21,14 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 - Pull expensive-to-reverse decisions forward: data ownership and source of truth, component boundaries and contracts, state and lifecycle, consistency model, sync vs. async. Cheap-to-change details can wait.
 - Surface what wasn't asked: edge cases, failure modes, cheap-now/expensive-later choices.
 
+## Lenses
+
+Load only the lens the change touches:
+- [reference/domain.md](reference/domain.md) — components, aggregates, boundaries, state
+- [reference/data.md](reference/data.md) — owners, writers, copies, stores
+- [reference/interactions.md](reference/interactions.md) — APIs, events, idempotency, externals
+- [reference/migrations.md](reference/migrations.md) — schema and contract changes, temporary code
+
 ## Verify
 
 - [ ] Boundaries: each unit graspable without reading its internals; internals can change without breaking consumers.
@@ -29,3 +38,5 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 - [ ] Complexity matches the problem's actual scale — no speculative generality.
 
 End with the chosen approach, its rationale, and any decisions still open for the user. What happens next — a spec, `ARCHITECTURE.md`, direct build — belongs to the caller.
+
+An expensive-to-reverse decision becomes an ADR only on the user's explicit yes, in the format of [reference/adr.md](reference/adr.md): written now when there's no build, or listed in the spec for `build3` to write at close.

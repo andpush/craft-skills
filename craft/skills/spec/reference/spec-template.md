@@ -1,21 +1,29 @@
 ---
-status: draft   # draft (still shaping) | ready (claimable) | in-progress | blocked | done — build owns the last three
+status: draft   # draft (still shaping) | ready (claimable) — build3 owns blocked and done
+created: YYYY-MM-DD
 updated: YYYY-MM-DD
-target: <components / area this touches>
+target: <component names from architecture.yaml, comma-separated>
+# priority: high   # optional; the queue takes high first, then by created
 ---
 
 # <Title>
 
 ## Review Brief
 
-*Terse summary for fast human-review.*
+*The decision surface a human approves from — the spec page shows it first.*
 
-- **Goal:** What to be done and why, in a line.
-- **Approach:** the solution approach in a sentence.
-- **Diagram:** a flow/sequence/component sketch a reviewer can grasp at a glance (ASCII <120 chars or Mermaid). Include for any non-trivial change.
-- **Key decisions and tradeoffs:** summary, details are below.
+- **Goal:** what is done and why, in a line.
+- **Approach:** the solution in a sentence.
+- **Diagram:** a flow/sequence/component sketch a reviewer grasps at a glance (Mermaid, or ASCII <120 chars). For any non-trivial change.
+- **Contract changes:** *[if any — one per item, nothing else nested here]*
+  - C1 schema: `<what>` — <consequence: migration, compatibility, rollback>
+  - C2 api: `<what>` — <consequence: who breaks, versioning>
+- **Key decisions:** one line each; details below.
 - **Impact:** components / data / API touched.
-- **Risks:** main risk and what's explicitly not done.
+- **Risks:** the main risk, and what's explicitly not done.
+
+*Contract kinds: `dependency` (new or upgraded), `schema`, `api`, `event`, `data-writer` (a new writer
+of an entity), `data-copy` (a new copy of another owner's data), `external-call`, `config`.*
 
 ## Goal
 
@@ -23,66 +31,53 @@ target: <components / area this touches>
 
 ### Constraints & assumptions  *[as appropriate]*
 
-*Hard constraints (tech, performance, compliance) and the assumptions the solution rests on.*
-
 ### Non-goals  *[as appropriate]*
 
-*What this explicitly does not do, and briefly why. Deferred ideas go to `docs/ideas/` on build.*
+*What this explicitly does not do, and briefly why. Deferred ideas go to `docs/ideas/` at close.*
 
 ## Solution
 
 ### Description
 
-*Describe the solution approach.*
+*The solution approach.*
 
 ### Parallelization *[if applicable]*
 
-*When the plan contains independent pieces of work, list which parts can be implemented concurrently so the implementor can parallelize execution. Note any ordering dependencies between them.*
+*Independent pieces that can be built concurrently, and any ordering between them.*
 
 ### Architecture  *[diagram expected for non-trivial changes]*
 
-*The detailed diagram(s): components, boundaries, interactions, data flow, sequence, or state — whatever the change needs. Use ASCII (<120 chars wide) or Mermaid for more complex diagrams. The Review Brief's at-a-glance sketch is the entry point; this is where depth lives.*
+*The detailed diagram(s) — only what the change needs: sequence with failures for an operation,
+state for a lifecycle, ER with owners for data.*
 
 ### Key decisions & rejected approaches *[if any]*
 
-*Brief ~ one line per decision. Rejected approaches should answer WHY?*
-
-### Architectural changes *[if any]*
-
-*Significant architecural changes that need to be remembered.*
-
-At implementation, write each as `docs/adr/YYYY-MM-DD-<slug>.md`:
-
-```markdown
----
-updated: YYYY-MM-DD
-target: <component>
----
-
-# Short title
-
-**Decision:** one sentence — what we chose.
-**Why:** one or two sentences — why it beat the alternative (and what was rejected).
-```
+*One line per decision; rejected approaches say why. Mark the ones that need an ADR —
+`ADR: <slug>` — `build3` writes them at close in the format of `sa/reference/adr.md`.*
 
 ### Affected components & files
 
-*Not an exhaustive set: the build may discover more. Group by component; tree layout.*
+*Not exhaustive: the build may discover more. Group by component.*
 
 - **<component>**
   - `<path>` — <briefly: changes>
 
 ### API contracts *[as appropriate]*
 
-*Affected/new endpoints.*
+*Affected or new endpoints and events: shape, errors, compatibility.*
 
 ### Data model & migrations *[as appropriate]*
 
-*Affected/new entities / schema changes (DDL or type shapes) / required migrations. Note the source of truth / owner when an entity is new or its ownership shifts.*
+*Affected or new entities, schema changes (DDL or type shapes), owner for each new entity.*
+
+### Migration plan *[for any schema or stored-format change]*
+
+*Steps — expand → backfill → switch → contract — and which this change contains. Mixed-version
+behavior. Roll-forward or rollback per step. See `sa/reference/migrations.md`.*
 
 ### State & lifecycle  *[as appropriate]*
 
-*State sets and transitions, who owns each transition, and lifecycle rules (creation, validity, expiry, deletion) — when the change introduces or alters them.*
+*States and transitions, the owner and trigger of each.*
 
 ### UI changes  *[as appropriate]*
 
@@ -94,25 +89,29 @@ target: <component>
 
 ### Testing approach
 
-*What to test and at which layer, and how (tools, mocks, fixtures).*
+*What to test, at which layer, and how. Negative cases where they apply: another user's or tenant's
+data, revoked rights, duplicates, reordering, concurrency, partial failure. For a refactor: the green
+safety net that locks current behavior before code moves.*
 
-*For a refactor: define green safety net that locks current behavior before any code moves.*
+### Doc impact *[if any]*
 
-### Open questions that block implementation *[if any]*
+*The exact edits this change makes to `ARCHITECTURE.md`, `PRODUCT.md`, `AGENTS.md` or
+`architecture.yaml` — the only doc edits `build3` may apply. "None" when none.*
 
-*Anything that should be resolved before building.*
+- `architecture.yaml`: <e.g. orders.depends_on += notify>
+- `ARCHITECTURE.md` § <section>: <one line>
 
-## Verification
+### Open questions *[if any]*
 
-### Acceptance criteria
+*Non-blocking ones only — a blocking question keeps the spec in `draft`.*
 
-*Append the checklist below to enforce additional criteria of Done for the implementing agent.*
+## Acceptance
 
-- [ ] Tests written and passing green
-- [ ] Code is buildable and runnable without errors
-- [ ] `simplify` or similar skill invoked: no duplications, no dead code, no unjustified complexity
-- [ ] `code-review` and `security-review` (or similar) agents spawned and finished, without pointing to any major issues
-- [ ] Code is consistent with `ARCHITECTURE.md`
-- [ ] Memory updated: inlined *Architectural changes* transcribed to `docs/adr/`; deferred ideas to `docs/ideas/`; `README.md` and `ARCHITECTURE.md` updated to stay in sync if required
-- [ ] Item flipped to `status: done`, `updated` bumped, and moved to `docs/done/` (with same-basename images) — the final act, only once every box above holds
-- [ ] Changes committed with proper message
+*The implementor's stop condition. Each test carries the AC ID in its name (`AC2_retryIsIdempotent`);
+the command selects exactly those tests and fails if it selects none. Use the AC command form from
+`AGENTS.md`. Always implied: `verify` exits 0.*
+
+| ID | Criterion | Command |
+|---|---|---|
+| AC1 | <observable behavior> | `<runner filter AC1_>` |
+| AC2 | <behavior a test can't show> (manual) | — |

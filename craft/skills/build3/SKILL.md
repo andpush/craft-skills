@@ -78,7 +78,7 @@ Fix what has a clear fix: confirmed findings, failing ACs, deviations, model vio
 ### 7. Close in the branch
 
 1. Apply the item's **Doc impact** exactly — the only doc edits this skill makes.
-2. Write the ADRs the item agreed to: `docs/adr/YYYY-MM-DD-<slug>.md`, H1 = the decision, sections Context / Decision / Rejected / Consequences, `supersedes:` only when it replaces one.
+2. Write the ADRs the item agreed to, in the format of [../sa/reference/adr.md](../sa/reference/adr.md).
 3. File an idea (`docs/ideas/idea-<slug>.md`) for each piece of deferred work and each temporary flag or adapter, with its removal condition.
 4. Commit these with the review file (`docs: <item>`), then rerun the review script without `--base` so the tier covers the docs too:
    ```bash

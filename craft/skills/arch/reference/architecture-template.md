@@ -1,5 +1,8 @@
 <!--
-The skeleton `arch` skill produces at ARCHITECTURE.md (the canonical engineering contract).
+The skeleton `arch` produces at ARCHITECTURE.md — prose that explains the model.
+The facts (components, paths, dependencies, entities and owners, flows, rules) live in
+architecture.yaml; this file says WHY and never restates them. ≤300 lines; a component
+section that outgrows that moves to docs/modules/<name>.md.
 -->
 
 # Architecture
@@ -8,50 +11,56 @@ The skeleton `arch` skill produces at ARCHITECTURE.md (the canonical engineering
 
 ## Overview
 
-One or two lines: what the system is and its shape.
-Link `PRODUCT.md` for details.
+One or two lines: what the system is and its shape. The model: [architecture.yaml](architecture.yaml)
+(`view model` renders it). Product: [PRODUCT.md](PRODUCT.md).
+
+## Why this decomposition
+
+The drivers behind the component cut — data ownership, team, scaling, failure isolation — in a few
+lines. What would make us cut differently.
 
 ## Components
 
-Components summary:
+For each component, only what the model can't say:
 
-| Location | Component | Tech Stack | Entry point or port | DB/Storage | Deployment |
-|---|---|---|---|---|---|
-| … | … | … | … | … | … |
+### <component>
 
-### [Component]
+- **Tech:** stack and the versions that matter; store; entry point or port.
+- **Boundary:** what it hides; what it must never do.
+- **Run / test / deploy:** commands and config, when they differ from the project-wide ones.
 
-For each component:
-    - specify responsibilities
-    - define trust/ownership boundaries
-    - sketch data model
-    - write dev / test / deploy commands and config
+## Data
 
-## System Architecture
+Why the owners are who they are; the copies and why each is acceptable (by entity name). Stores and
+consistency choices.
 
-Visualize components interactions and the trust/ownership boundaries.
-Prefer ASCII diagrams with <120 characters in width, mermaid for larger diagrams.
-Include diagrams that explains architecture the best:
-    - Data flow / sequence / activity view — for complex flow.
-    - Entity / ERD view — for modules with persistent data.
-    - State view — when state machine is central.
+## Flows
 
-## Data model
-
-The key entities and their relationships at a high level — not a full schema.
-Use diagram or table view per schema.
+What the main flows in the model don't show: failure paths, retries, compensation.
+A diagram only where it explains something the `view model` page can't.
 
 ## Architecture drivers / risks
 
-Only constraints, risks, NFR that shape architecture: performance, security, compliance, deployment, scalability, observability, caching, reliability.
+Only constraints, risks and NFRs that shape the architecture: performance, security, compliance,
+deployment, scalability, observability, reliability.
 
-## Key decisions
+## Decisions
 
-Major tech choices with a one-line rationale each (and the alternative rejected, when it was a real fork). Longer-lived decisions go to `docs/adr/` — link, don't restate.
+Major decisions live in `docs/adr/` — list them by title with a link, one line each. Small choices
+get one line here, with the rejected alternative when it was a real fork.
 
 ## Testing strategy
 
-The test pyramid for this system: what's covered at unit / integration / e2e, mocking approach, tools, and how to run them.
+The test pyramid for this system: what's covered at unit / integration / e2e, mocking approach,
+tools. Commands are in `AGENTS.md`.
+
+## Glossary
+
+Only terms that are non-obvious or mean different things in different contexts.
+
+| Term | Meaning |
+|---|---|
+| … | … |
 
 ## Open questions
 
@@ -59,4 +68,7 @@ The test pyramid for this system: what's covered at unit / integration / e2e, mo
 
 ## Rules and Conventions
 
-The coding conventions that aren't obvious or that this project deviates on — per stack if several, a subsection each. Keep only what matters for this system. If there are other files already define rules - do not duplicate, slim them to pointers to them.
+Rules with IDs are in `architecture.yaml`; give the reason for each here in one clause, by ID
+("R2 — orders data has one writer so totals can't diverge"). Then the coding conventions that aren't
+obvious or that this project deviates on — per stack if several. If other files already define
+rules, point to them instead of restating.
