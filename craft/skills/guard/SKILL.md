@@ -37,13 +37,15 @@ Write the stack adapter that reads `architecture.yaml` at test time (or generate
 
 Name each failure after the model: `orders -> notify: not in depends_on`, `catalog: persistence import, but owns no entity`.
 
+Add the check's libraries at their current stable release, looked up in the registry — not a version from memory or the local cache.
+
 ### 4. Rule checks
 
 For each `MUST` rule the component check doesn't already cover, write one test named after the rule ID (`R2_onlyOrdersWritesOrdersTable`) and set its `checked_by` to that test. A rule no tool can express stays `SHOULD` with `checked_by: manual` — ask the user rather than writing a check that only looks like one.
 
 ### 5. Baseline
 
-Existing violations go into a frozen baseline (ArchUnit `FreezingArchRule`, dependency-cruiser known-violations, or a list file the check reads). New violations fail; fixed ones leave the baseline. Mark the rule `exceptions: baseline`. Report the baseline size — it's debt, and `audit` tracks it.
+Existing violations go into a frozen baseline (ArchUnit `FreezingArchRule`, dependency-cruiser known-violations, or a list file the check reads). New violations fail; fixed ones leave the baseline. Mark the rule `exceptions: baseline` only when the baseline has entries for it. Report the baseline size — it's debt, and `audit` tracks it.
 
 ### 6. Prove each check
 

@@ -318,6 +318,12 @@ a forbidden dependency, an unauthorized writer, a consumer without dedupe.
 Pass: `guard`/`verify` catch the first two mechanically; `review` produces a failing test for the
 third. Compare with v2 on context read, clarification count, review effort, change radius.
 
+**Run 1 (2026-10-28, stopped halfway; Kotlin/Gradle fixture, feat-idempotent-submit).**
+- `guard`: 5 min, no questions; model-driven ArchitectureTest, R1 test, `verify`, CI, empty baseline; every check proven red.
+- `build3` + `review`: AC tests red first; review found a spec gap (order stranded in SUBMITTED when payment throws) and proved it with a failing test; two fix rounds and re-reviews; a red change was not merged. v2 saw the same gap, noted it in an ADR, and merged.
+- Fixed in the skills since: model problems exit non-zero; partial-failure prompt in spec and the interactions lens; guard picks current library versions and Gradle test inputs; a decided contract change amends the spec; close only on green `verify`; re-review runs the automated reviewers on the fix diff; finding IDs by severity.
+- Not yet run: the three planted defects (the actual pass/fail), blocked → resume, a green merge, and the v2 numbers.
+
 ## Order of work
 
 1. `view`  2. `review`  3. `build3`  4. `guard` + `reference/stacks.md`

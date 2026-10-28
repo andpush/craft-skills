@@ -42,4 +42,6 @@ Load when a change adds or changes an API, an event, a message consumer, or a ca
 
 - What happens if this message arrives twice? Out of order? Never?
 - What does the caller do when the callee times out after succeeding?
+- In a multi-step operation, if one step succeeds and the next fails, what state is left, and
+  what does a retry with the same input do?
 - Which consumers break if this field changes, and how will we find out before they do?

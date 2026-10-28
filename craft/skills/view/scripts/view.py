@@ -618,6 +618,8 @@ def main() -> None:
     print(out)
     if not args.no_open:
         webbrowser.open(out.as_uri())
+    if args.kind == "model" and payload["problems"]:
+        sys.exit("model problems:\n" + "\n".join(f"- {p}" for p in payload["problems"]))
 
 
 if __name__ == "__main__":

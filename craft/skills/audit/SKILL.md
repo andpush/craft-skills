@@ -23,7 +23,7 @@ Make sure the architecture is consistent within repo and with docs. Flag inconsi
 
 Deterministic first; these findings need no judgment:
 - **Model vs code:** run `verify` (or the architecture checks alone). Then look for what the checks can't see: imports between components outside `depends_on` in code the checks skip, production files no component `path` covers, writes to an entity outside its owner.
-- **Model validity:** `uv run --quiet <this-skill-dir>/../view/scripts/view.py model --no-open` lists model problems.
+- **Model validity:** `uv run --quiet <this-skill-dir>/../view/scripts/view.py model --no-open` prints model problems and exits non-zero when there are any.
 - **Rule coverage:** every `MUST` rule has a `checked_by` that exists and that went red at least once (`guard` proves it). Rules marked `manual` that a tool could check are findings.
 - **Baseline:** its size and trend (`git log` on the baseline file). A growing baseline is a finding.
 - **Doc drift:** `ARCHITECTURE.md`, `AGENTS.md`, `PRODUCT.md` claims that the code or the model contradicts. Say which side is wrong; never rewrite intent to match code.

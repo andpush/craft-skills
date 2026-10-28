@@ -85,7 +85,9 @@ behavior. Roll-forward or rollback per step. See `sa/reference/migrations.md`.*
 
 ### Error handling  *[as appropriate]*
 
-*Failure modes and how they're handled — validation, retries, fallbacks, user-facing messages.*
+*Failure modes and how they're handled — validation, retries, fallbacks, user-facing messages. For each
+multi-step operation: if a step succeeds and the next fails or times out, what state is left, and
+what does a retry with the same input do?*
 
 ### Testing approach
 

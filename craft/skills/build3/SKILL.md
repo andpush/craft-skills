@@ -73,7 +73,7 @@ Run the `simplify` skill on `main...HEAD` and commit its fixes. Then run `verify
 
 Spawn a fresh subagent with: "Run the `review` skill for item `docs/ready/<item>.md` on branch `craft/<item>`, base `<merge-base>`, head `<sha>`. Report the tier, the red reasons and a fix list." It writes `docs/ready/<item>.review.json` and commits its counterexample tests.
 
-Fix what has a clear fix: confirmed findings, failing ACs, deviations, model violations. Leave to the human: contract decisions, plausible findings, anything that changes the spec. The implementer gets the fix list (ID → fix) and makes the counterexample tests green without editing them. Verify, then spawn a fresh reviewer for the fix: "Re-review item `<item>`: the reviewed head was `<sha>`." At most two fix rounds; whatever remains stays in the review for the human.
+Fix what has a clear fix: confirmed findings, failing ACs, deviations, model violations. Leave to the human: contract decisions, plausible findings, anything that changes the spec. When the human decides one, amend the item in the branch first — Review Brief contracts, an AC row for the new behavior — and commit (`spec: <item> — <decision>`); then it's a fix like the others. The implementer gets the fix list (ID → fix) and makes the counterexample tests green without editing them. Verify, then spawn a fresh reviewer for the fix: "Re-review item `<item>`: the reviewed head was `<sha>`." At most two fix rounds; whatever remains stays in the review for the human. Close only on a green `verify`: a confirmed finding still open after the rounds is a Fail with `blocked: <IDs> open — review walk`.
 
 ### 7. Close in the branch
 

@@ -80,5 +80,5 @@ endpoints and secondary flows stay in code and tests.
 uv run --quiet <arch-skill-dir>/../view/scripts/view.py model
 ```
 
-Model problems show on top of the page: unknown names, components without a path, `has` across
+Model problems show on top of the page and are printed, with a non-zero exit: unknown names, components without a path, `has` across
 owners, flow calls `depends_on` doesn't allow, `MUST` rules without a checker. Fix them all.

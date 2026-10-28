@@ -56,6 +56,9 @@ class ArchitectureTest {
 - **Baseline:** `FreezingArchRule.freeze(...)`; `src/test/resources/archunit.properties` sets
   `freeze.store.default.path=archunit_store`. Allow store creation only for the first run, then set
   `freeze.store.default.allowStoreCreation=false` and commit `archunit_store/`.
+- **Gradle:** declare `architecture.yaml` and `src/main` as inputs of the test task, or a model-only
+  change leaves the check up to date and skipped. Set `testLogging { exceptionFormat = FULL }` so a
+  failure prints the model-named message; `-q` hides it, so don't prove checks with `-q`.
 - **Kotlin-only alternative:** Konsist, which works on source files, so components map by path, not package.
 
 ## TypeScript / JavaScript: dependency-cruiser

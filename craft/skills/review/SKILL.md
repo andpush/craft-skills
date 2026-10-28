@@ -39,7 +39,7 @@ Run the `code-review` skill on base..head (effort `high` when red, `medium` othe
 - **Manual rules:** check each `manual` rule in `not_checked` against the diff, then remove it. A violation becomes a finding.
 - **Change cost:** if this change makes the next ordinary change harder (new coupling, duplicated logic), record it as one low finding.
 
-Finding = `where` → `invariant` → `scenario` → `consequence` → minimal `fix`.
+Finding = `where` → `invariant` → `scenario` → `consequence` → minimal `fix`. IDs are `H`/`M`/`L` by severity plus a number that's never reused across rounds (`H1`, `M2`, `L3`).
 
 ### 4. Counterexamples
 
@@ -95,7 +95,7 @@ The walk ends one of two ways:
 
 ## Re-review after a fix
 
-Read only the fix diff (`git diff <reviewed head>..HEAD`). Rerun each finding's test: green → `fixed`, still red → keep it and say why. Look at the fix itself with the same lenses; new problems get new IDs. Then rerun the script without `--base`, so the tier still covers the whole change.
+Read only the fix diff (`git diff <reviewed head>..HEAD`). Rerun each finding's test: green → `fixed`, still red → keep it and say why. Run step 2's reviewers (effort `medium`) and step 3's lenses on the fix diff; new problems get new IDs. Then rerun the script without `--base`, so the tier still covers the whole change.
 
 ## review.json — your fields
 
