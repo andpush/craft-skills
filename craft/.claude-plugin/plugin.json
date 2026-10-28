@@ -6,6 +6,5 @@
     "name": "Andrei Pushkin",
     "email": "[RESTRICTED]"
   },
-  "license": "MIT",
-  "types": "./types/index.d.ts"
+  "license": "MIT"
 }

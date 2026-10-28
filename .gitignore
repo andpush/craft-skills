@@ -12,6 +12,3 @@ __pycache__/
 
 # Output
 *.pptx
-
-# Generated plugin types
-craft/.claude-plugin/types/
