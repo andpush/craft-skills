@@ -13,21 +13,21 @@ Goal: cleanup, improve maintainability, remove duplications and dead code. It is
 Look at different angles and levels:
 
 ### 1. Architectural
-Start with `ARCHITECTURE.md`, readmes, config, dir tree. Explore the major components, their boundaries and interaction. Their API contracts and boundaries should be adequate to minimize tangling, ensure clear responsibilities, consider security and scalability challenges. Watch dependencies: flag circular and avoidable ones.
+Start with `docs/ARCHITECTURE.md`, readmes, config, dir tree. Explore the major components, their boundaries and interaction. Their API contracts and boundaries should be adequate to minimize tangling, ensure clear responsibilities, consider security and scalability challenges. Watch dependencies: flag circular and avoidable ones.
 
 Ensure tech stack is adequate, external dependencies and indirection layers are justified. Flag reinventing the wheel, promote reuse of existing proven solutions, grep/skim for repeated patterns, collect duplication suspects, identify areas of focus for the detailed review.
 
 Make sure the architecture is consistent within repo and with docs. Flag inconsistencies, note whether it is the code or doc to be updated.
 
-### 2. Conformance — when `architecture.yaml` exists
+### 2. Conformance — when `docs/architecture.yaml` exists
 
 Deterministic first; these findings need no judgment:
 - **Model vs code:** run `verify` (or the architecture checks alone). Then look for what the checks can't see: imports between components outside `depends_on` in code the checks skip, production files no component `path` covers, writes to an entity outside its owner.
 - **Model validity:** `uv run --quiet <this-skill-dir>/../view/scripts/view.py model --no-open` prints model problems and exits non-zero when there are any.
 - **Rule coverage:** every `MUST` rule has a `checked_by` that exists and that went red at least once (`guard` proves it). Rules marked `manual` that a tool could check are findings.
 - **Baseline:** its size and trend (`git log` on the baseline file). A growing baseline is a finding.
-- **Doc drift:** `ARCHITECTURE.md`, `AGENTS.md`, `PRODUCT.md` claims that the code or the model contradicts. Say which side is wrong; never rewrite intent to match code.
-- **Budgets:** `AGENTS.md` ≤60 lines, `PRODUCT.md` ≤150, `ARCHITECTURE.md` ≤300.
+- **Doc drift:** `docs/ARCHITECTURE.md`, `AGENTS.md`, `docs/PRODUCT.md` claims that the code or the model contradicts. Say which side is wrong; never rewrite intent to match code.
+- **Budgets:** `AGENTS.md` ≤60 lines, `docs/PRODUCT.md` ≤150, `docs/ARCHITECTURE.md` ≤300.
 - **Hotspots:** churn × size. Files changed most in the last six months (`git log --since=6.months --format= --name-only | sort | uniq -c | sort -rn | head -20`), weighed by length or complexity. A big file that changes often is where the next bug is.
 
 ### 3. Detailed Analysis

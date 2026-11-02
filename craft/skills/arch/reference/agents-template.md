@@ -6,7 +6,7 @@ CLAUDE.md contains a single line: @AGENTS.md
 
 # <system>
 
-<One line: what it is and for whom. Details: PRODUCT.md.>
+<One line: what it is and for whom. Details: docs/PRODUCT.md.>
 
 ## Commands
 
@@ -30,6 +30,6 @@ CLAUDE.md contains a single line: @AGENTS.md
 
 ## Pointers
 
-- Product: PRODUCT.md
-- Architecture: ARCHITECTURE.md (prose, glossary) · architecture.yaml (the model) · docs/adr/
-- Conventions: ARCHITECTURE.md § Rules and Conventions
+- Product: docs/PRODUCT.md
+- Architecture: docs/ARCHITECTURE.md (prose, glossary) · docs/architecture.yaml (the model) · docs/adr/
+- Conventions: docs/ARCHITECTURE.md § Rules and Conventions

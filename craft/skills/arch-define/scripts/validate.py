@@ -2,9 +2,9 @@
 # requires-python = ">=3.10"
 # dependencies = ["jsonschema>=4.18", "pyyaml>=6"]
 # ///
-"""Validate architecture.yaml: schema, references, flows, states, ownership.
+"""Validate docs/architecture.yaml: schema, references, flows, states, ownership.
 
-Usage: uv run validate.py [architecture.yaml] [--skip-paths]
+Usage: uv run validate.py [docs/architecture.yaml] [--skip-paths]
 Exit 1 on errors; warnings are printed but pass.
 """
 import json
@@ -17,6 +17,9 @@ import yaml
 
 SCHEMA = Path(__file__).resolve().parent.parent / "reference" / "architecture.schema.json"
 RELATIONS = ("uses", "calls", "produces", "consumes", "reads", "writes")
+CLIENT_TYPES = {"web-app", "mobile-app", "desktop-app", "console-app"}  # run outside our network
+NOT_ON_NETWORK = {"native", "cli", "schedule"}
+MAX_NOTES = 10
 errors, warnings = [], []
 
 
@@ -46,6 +49,8 @@ def check(path, skip_paths=False):
     model = yaml.safe_load(Path(path).read_text())
     path = Path(path)
     root = path.resolve().parent
+    if root.name == "docs":  # the model lives in docs/; its paths are relative to the repo root
+        root = root.parent
 
     schema_errors = list(jsonschema.Draft202012Validator(json.loads(SCHEMA.read_text())).iter_errors(model))
     for e in schema_errors:
@@ -183,6 +188,55 @@ def check(path, skip_paths=False):
                 if (target in components or target in externals) and target not in callers | coarse:
                     warn(f"endpoint {ref}: for lists {target}, which doesn't call it")
 
+    # security: exposure, identity and authz against auth and audience
+    for name, c in components.items():
+        for kind in ("endpoints", "ui_endpoints"):
+            for ep, spec in (c.get(kind) or {}).items():
+                if spec.get("protocol") in NOT_ON_NETWORK:
+                    continue
+                ref, auth, audience = f"{name}.{ep}", spec.get("auth"), as_list(spec.get("for"))
+                exposure = spec.get("exposure", c.get("exposure"))
+                is_open = auth == "none" or any(p.endswith("-optional") for p in auth or {})
+                if not exposure:
+                    warn(f"endpoint {ref}: no exposure")
+                if kind == "endpoints" and auth != "none" and not spec.get("identity"):
+                    warn(f"endpoint {ref}: no identity")
+                if auth == "none" and spec.get("identity") not in (None, "none"):
+                    warn(f"endpoint {ref}: identity {spec['identity']}, but auth is none")
+                if is_open and spec.get("authz"):
+                    warn(f"endpoint {ref}: authz needs an identity, but anonymous calls are allowed; split the route")
+                if exposure != "internet":
+                    continue
+                if audience == ["unused"]:
+                    warn(f"endpoint {ref}: on the internet with no consumer")
+                elif audience and all(a in components and components[a].get("type") not in CLIENT_TYPES for a in audience):
+                    warn(f"endpoint {ref}: on the internet, but only our own services consume it")
+    logins = {}
+    for s in stores.values():
+        logins.setdefault(s.get("credential"), set()).add(s.get("schema_owner") or s["datastore"])
+    for c in components.values():
+        for d in c.get("datastores") or []:
+            logins.setdefault(d.get("credential"), set()).add(c["component"])
+    for login, owners in logins.items():
+        if login and len(owners) > 1:
+            warn(f"credential {login}: shared by {', '.join(sorted(owners))}")
+
+    # notes
+    known = set(top_ids) | set(entities)
+    for c in components.values():
+        for field in ("endpoints", "ui_endpoints"):
+            known |= {f"{c['component']}.{e}" for e in c.get(field) or {}}
+        known |= {f"{c['component']}.{m['module']}" for m in c.get("modules") or []}
+    for ent, fields in entities.items():
+        known |= {f"{ent}.{f.split(' ')[0]}" for f in fields}
+    notes = model.get("notes") or []
+    for n in notes:
+        for a in n["about"]:
+            if a not in known:
+                err(f"note about '{a}': no such thing in the model — {n['note'][:50]}")
+    if len(notes) > MAX_NOTES:
+        warn(f"notes: {len(notes)}, keep at most {MAX_NOTES}: only what a reader would get wrong")
+
     # entity references and ownership
     for name, fields in entities.items():
         for f in fields:
@@ -288,7 +342,7 @@ def report():
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    check(args[0] if args else "architecture.yaml", "--skip-paths" in sys.argv)
+    check(args[0] if args else "docs/architecture.yaml", "--skip-paths" in sys.argv)
     return report()
 
 

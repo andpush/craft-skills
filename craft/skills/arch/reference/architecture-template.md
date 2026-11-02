@@ -1,7 +1,7 @@
 <!--
-The skeleton `arch` produces at ARCHITECTURE.md — prose that explains the model.
+The skeleton `arch` produces at docs/ARCHITECTURE.md — prose that explains the model.
 The facts (components, paths, dependencies, entities and owners, flows, rules) live in
-architecture.yaml; this file says WHY and never restates them. ≤300 lines; a component
+docs/architecture.yaml; this file says WHY and never restates them. ≤300 lines; a component
 section that outgrows that moves to docs/modules/<name>.md.
 -->
 
@@ -68,7 +68,7 @@ Only terms that are non-obvious or mean different things in different contexts.
 
 ## Rules and Conventions
 
-Rules with IDs are in `architecture.yaml`; give the reason for each here in one clause, by ID
+Rules with IDs are in `docs/architecture.yaml`; give the reason for each here in one clause, by ID
 ("R2 — orders data has one writer so totals can't diverge"). Then the coding conventions that aren't
 obvious or that this project deviates on — per stack if several. If other files already define
 rules, point to them instead of restating.

@@ -29,7 +29,7 @@ TEST_FILE = re.compile(r"(^|/)(tests?|__tests__|spec)/|[._-](test|spec)\.\w+$|Te
 SKIP_MARK = re.compile(r"@Disabled|@Ignore\b|\.skip\(|\bx(it|describe|test)\(|\.only\(|@pytest\.mark\.skip"
                        r"|\bt\.Skip\(|#\[ignore\]")
 LOCKFILE = re.compile(r"(\.lock|-lock\.(json|yaml)|\.sum)$")
-DOC_FILES = {"PRODUCT.md", "ARCHITECTURE.md", "AGENTS.md", "CLAUDE.md", m.MODEL_FILE}
+DOC_FILES = {"PRODUCT.md", "ARCHITECTURE.md", "AGENTS.md", "CLAUDE.md", Path(m.MODEL_FILE).name}
 CONTRACT_TRIGGERS = ("dependency", "schema", "api", "event")
 RED_CONTRACTS = {"dependency", "schema", "api", "event", "data-writer", "data-copy", "external-call"}
 AC_COMMIT_SUBJECT = "test: acceptance tests"

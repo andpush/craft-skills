@@ -13,7 +13,7 @@ Once it's ready, the implementation is a delegated execution — via `build3` (c
 
 ## Context gates — detect, don't dead-end
 
-`spec` builds on `PRODUCT.md`, `ARCHITECTURE.md` and `architecture.yaml`.
+`spec` builds on `docs/PRODUCT.md`, `docs/ARCHITECTURE.md` and `docs/architecture.yaml`.
 
 If either is missing or placeholder-only — offer a fork:
 - **Establish now** — run `prod`/`arch` skills in this session, then continue the spec.
@@ -42,7 +42,7 @@ Be terse, pragmatic, ask only what affects the solution, no Q&A theatre. That me
 
 ### 1. Explore the context
 Understand the ground you're building on:
-- Read `PRODUCT.md`, `ARCHITECTURE.md`, `architecture.yaml`.
+- Read `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/architecture.yaml`, including its `notes` about what the change touches.
 - Peek into dir tree, recent commit log, `docs/ideas/` and `docs/adr/` listings if warranted. Before proposing an option, grep the ADRs' `## Rejected` for it.
 - Explore additional context and zoom in as needed.
 
@@ -50,7 +50,7 @@ Understand the ground you're building on:
 
 In touch with user, turn vague requests into concrete goals. Grasp the problem, not just gather requirements. If the request is a proposed solution, establish the motivation. Verify risky assumptions. Challenge contradictions and gaps. Push for clarity on the core value and the acceptance criteria.
 
-If the request originates as an idea (picked from `docs/ideas/` or a fresh hunch), validate it before specing: does it serve `PRODUCT.md`, is it worth doing now? Recommend a verdict — **pursue**, **defer**, or **reject** — rejection is a legitimate outcome, not a failure. Record the verdict in the idea file (see Ideas below). On **pursue** you elaborate the idea itself into the build-ready item — it keeps its `idea-<slug>.md` name and moves into the queue; you don't mint a new `feat-`.
+If the request originates as an idea (picked from `docs/ideas/` or a fresh hunch), validate it before specing: does it serve `docs/PRODUCT.md`, is it worth doing now? Recommend a verdict — **pursue**, **defer**, or **reject** — rejection is a legitimate outcome, not a failure. Record the verdict in the idea file (see Ideas below). On **pursue** you elaborate the idea itself into the build-ready item — it keeps its `idea-<slug>.md` name and moves into the queue; you don't mint a new `feat-`.
 
 If the request spans several independent subsystems, or assumes too many changes, confirm if the user wants to split it and suggest options.
 
@@ -64,13 +64,13 @@ As new information arises, iterate between the solution and the problem framing 
 
 - Use template [reference/spec-template.md](reference/spec-template.md).
 - Lead with the **Review Brief**: the scannable decision surface a human approves from. Keep execution detail below it, and only where it's needed.
-- Be concrete, avoid prose, duplications, restatements of `PRODUCT.md`/`ARCHITECTURE.md` - link instead.
+- Be concrete, avoid prose, duplications, restatements of `docs/PRODUCT.md`/`docs/ARCHITECTURE.md` - link instead.
 - YAGNI: Focus on the core value, and defer non-essential ideas to `docs/ideas/`.
 - If the change path crosses code smells (oversized file, tangled responsibilities, unclear boundaries), fold targeted fixes into the spec — improve what you touch. Don't propose unrelated refactoring.
 - **Contract changes** go in the Review Brief, one per item with its consequence: a new or upgraded dependency, a schema change, a public API or event change, a new writer or copy of data, a new external call. They outlive the code, so they're what the human reviews first. Load the `sa` lens the change touches ([../sa/SKILL.md](../sa/SKILL.md) § Lenses).
 - **A schema or stored-format change needs a Migration plan:** expand → backfill → switch → contract, mixed-version behavior, roll-forward.
-- **Targets and the model:** `target:` lists component names from `architecture.yaml`. A change that needs a new component, a new `depends_on` edge, a new entity or owner, or a new rule says so in **Doc impact**, as an exact edit to `architecture.yaml`.
-- **Doc impact** lists the exact edits to `ARCHITECTURE.md`, `PRODUCT.md`, `AGENTS.md` and `architecture.yaml`. `build3` applies only these, and `review` flags any other doc edit.
+- **Targets and the model:** `target:` lists component names from `docs/architecture.yaml`. A change that needs a new component, a new `depends_on` edge, a new entity or owner, or a new rule says so in **Doc impact**, as an exact edit to `docs/architecture.yaml`.
+- **Doc impact** lists the exact edits to `docs/ARCHITECTURE.md`, `docs/PRODUCT.md`, `AGENTS.md` and `docs/architecture.yaml`. `build3` applies only these, and `review` flags any other doc edit.
 - Define a feature-relevant testing approach following the testing pyramid, with the negative cases that apply. For UI changes, consider e2e using playwright-cli skill or similar. Gate refactoring with TDD: establish a green safety net before restructuring.
 - **Acceptance is a table of commands:** `| ID | Criterion | Command |`. Each criterion names observable behavior; its command runs exactly the tests named `AC<n>_…` (the AC command form in `AGENTS.md`). `build3` has these tests written first, by an agent that sees only the spec — so a criterion must be testable from the spec alone. A criterion no test can show is marked `(manual)` with `—` as the command; the human checks it at review. `verify` exiting 0 is always implied.
 

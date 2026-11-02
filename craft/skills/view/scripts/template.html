@@ -248,7 +248,7 @@ function renderSpec() {
   }
   if (P.diagram) {
     app.append(section("Affected components", null,
-      card(diagram(P.diagram), h("p", { class: "muted small" }, "Highlighted: the spec's target components. Arrows: allowed dependencies from ARCHITECTURE.md."))));
+      card(diagram(P.diagram), h("p", { class: "muted small" }, "Highlighted: the spec's target components. Arrows: allowed dependencies from docs/ARCHITECTURE.md."))));
   }
   for (const s of P.sections.filter((x) => x !== brief)) {
     const key = /verification|acceptance|open question|contract|migration/i.test(s.title);
@@ -346,7 +346,7 @@ function renderChange() {
     const edges = r.new_edges || [];
     app.append(section("Architecture impact", edges.length ? `${edges.length} new edge${edges.length > 1 ? "s" : ""}` : null,
       card(diagram(P.diagram), h("p", { class: "muted small" },
-        "Highlighted: components this diff touches. Red dashed: dependencies not allowed by ARCHITECTURE.md today."))));
+        "Highlighted: components this diff touches. Red dashed: dependencies not allowed by docs/ARCHITECTURE.md today."))));
   }
 
   if ((r.evidence || []).length) {

@@ -2,7 +2,7 @@
 status: draft   # draft (still shaping) | ready (claimable) — build3 owns blocked and done
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-target: <component names from architecture.yaml, comma-separated>
+target: <component names from docs/architecture.yaml, comma-separated>
 # priority: high   # optional; the queue takes high first, then by created
 ---
 
@@ -97,11 +97,11 @@ safety net that locks current behavior before code moves.*
 
 ### Doc impact *[if any]*
 
-*The exact edits this change makes to `ARCHITECTURE.md`, `PRODUCT.md`, `AGENTS.md` or
-`architecture.yaml` — the only doc edits `build3` may apply. "None" when none.*
+*The exact edits this change makes to `docs/ARCHITECTURE.md`, `docs/PRODUCT.md`, `AGENTS.md` or
+`docs/architecture.yaml` — the only doc edits `build3` may apply. "None" when none.*
 
-- `architecture.yaml`: <e.g. orders.depends_on += notify>
-- `ARCHITECTURE.md` § <section>: <one line>
+- `docs/architecture.yaml`: <e.g. orders.depends_on += notify>
+- `docs/ARCHITECTURE.md` § <section>: <one line>
 
 ### Open questions *[if any]*
 

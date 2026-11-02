@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Use to capture a user idea into docs/ideas/ — one small file with a quick alignment check against PRODUCT.md. Capture, not elaboration; specing happens later via `spec`.
+description: Use to capture a user idea into docs/ideas/ — one small file with a quick alignment check against docs/PRODUCT.md. Capture, not elaboration; specing happens later via `spec`.
 ---
 
 Capture the idea fast and move on. Ideas are candidates, not commitments — `spec` validates lazily on pickup (pursue / defer / reject). This skill only records and sanity-checks; it never opens a spec.
@@ -48,9 +48,9 @@ Temporary code — a feature flag, an adapter, a dual write, a compatibility shi
 
 ## Check alignment
 
-Skim `PRODUCT.md`. If the idea conflicts with it or falls outside scope, tell the user in one line and record the tension in the file — still capture it. No verdict: pursue/defer/reject belongs to `spec` on pickup.
+Skim `docs/PRODUCT.md`. If the idea conflicts with it or falls outside scope, tell the user in one line and record the tension in the file — still capture it. No verdict: pursue/defer/reject belongs to `spec` on pickup.
 
-If `PRODUCT.md` doesn't exist, capture without the check and say so.
+If `docs/PRODUCT.md` doesn't exist, capture without the check and say so.
 
 ## Images
 

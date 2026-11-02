@@ -5,9 +5,9 @@
 # ///
 """Render a craft review page — spec, change or model — into one HTML file and open it.
 
-  view.py spec   <item.md>              [--model architecture.yaml]
+  view.py spec   <item.md>              [--model docs/architecture.yaml]
   view.py change <item.review.json>     [--spec item.md] [--repo DIR]
-  view.py model  [architecture.yaml]
+  view.py model  [docs/architecture.yaml]
 
 Run with `uv run view.py …`. Markdown and mermaid render in the browser; output goes to a temp
 dir, never the repo.
@@ -28,7 +28,7 @@ from pathlib import Path
 import yaml
 
 TEMPLATE = Path(__file__).with_name("template.html")
-MODEL_FILE = "architecture.yaml"
+MODEL_FILE = "docs/architecture.yaml"
 EXCERPT_WINDOW = 15  # lines kept around the focus range when a hunk is long
 SNIPPET_CONTEXT = 3
 
@@ -109,7 +109,7 @@ def promote_subsections(sections: list[dict]) -> list[dict]:
     return sections[:at] + lifted + [s for s in sections[at:] if s["md"]]
 
 
-# ---------- model (architecture.yaml) ----------
+# ---------- model (docs/architecture.yaml) ----------
 
 def as_list(v) -> list[str]:
     if v is None:
@@ -142,8 +142,57 @@ def arrows(items, where: str, problems: list[str]) -> list[dict]:
     return steps
 
 
+def from_arch_define(raw: dict) -> dict:
+    """Convert the arch-define format (components as a list) to the shape load_model reads."""
+    def text(v) -> str:
+        return "; ".join(as_list(v))
+
+    def heads(refs) -> list[str]:
+        """'payments.payments-api' -> payments; 'shared-kernel test' -> shared-kernel."""
+        return list(dict.fromkeys(str(r).split()[0].split(".")[0] for r in refs or []))
+
+    def dep_refs(unit: dict) -> list:
+        return [*(unit.get("uses") or []), *(unit.get("calls") or [])]
+
+    comps, entities = {}, {}
+
+    def add_entities(store: dict, owner: str) -> None:
+        for name, fields in (store.get("entities") or {}).items():
+            refs = [m[1].split(".")[0] for m in (re.search(r"->\s*(\S+)", str(f)) for f in fields or []) if m]
+            entities[str(name)] = {"owner": owner, "refs": list(dict.fromkeys(refs)), "states": []}
+
+    for c in raw["components"]:
+        if not (isinstance(c, dict) and c.get("component")):
+            continue
+        name, modules = str(c["component"]), c.get("modules") or []
+        own = {str(m.get("module")) for m in modules} | {name}
+        refs = dep_refs(c) + [r for m in modules for r in dep_refs(m)]
+        comps[name] = {"does": text(c.get("does")), "path": c.get("source_path"),
+                       "depends_on": [d for d in heads(refs) if d not in own]}
+        for store in c.get("datastores") or []:
+            add_entities(store, name)
+    for m in raw.get("modules") or []:   # root modules: shared libraries; only directory globs map to files
+        comps[str(m.get("module"))] = {"does": text(m.get("does")), "depends_on": heads(dep_refs(m)),
+                                       "path": [p for p in as_list(m.get("packages")) if "/" in p]}
+    for store in raw.get("datastores") or []:
+        add_entities(store, str(store.get("schema_owner") or ""))
+    for key, steps in (raw.get("states") or {}).items():
+        if str(key).split(".")[0] in entities:
+            entities[str(key).split(".")[0]]["states"] += steps or []
+
+    outside = {str(k): {"does": text(a.get("does")), "calls": heads(a.get("uses"))}
+               for k, a in (raw.get("actors") or {}).items()}
+    outside |= {str(k): {"does": text(e.get("does")), "calls": heads(e.get("calls"))}
+                for k, e in (raw.get("external") or {}).items()}
+    rules = [{"id": r.get("rule"), "level": r.get("level", "must"), "rule": r.get("statement", ""),
+              "scope": [f"{k}: {text(v)}" for k, v in (r.get("applies_to") or {}).items()],
+              "checked_by": r.get("check") or "manual"} for r in raw.get("rules") or []]
+    return {"system": raw.get("system"), "does": raw.get("summary"), "external": outside, "components": comps,
+            "entities": entities, "flows": raw.get("flows"), "rules": rules}
+
+
 def load_model(path: Path | None) -> dict:
-    """Normalize architecture.yaml; collect problems instead of failing so the page still renders."""
+    """Normalize docs/architecture.yaml; collect problems instead of failing so the page still renders."""
     empty = {"system": "", "does": "", "external": [], "components": [], "entities": [], "flows": [], "rules": [],
              "triggers": DEFAULT_TRIGGERS, "problems": [], "file": None}
     if not path or not path.exists():
@@ -153,6 +202,9 @@ def load_model(path: Path | None) -> dict:
     except yaml.YAMLError as e:
         return {**empty, "file": str(path), "problems": [f"{path.name} is not valid YAML: {e}"]}
     problems = []
+    arch_define = isinstance(raw.get("components"), list)
+    if arch_define:
+        raw = from_arch_define(raw)
 
     ext = []
     for name, e in (raw.get("external") or {}).items():
@@ -216,6 +268,8 @@ def load_model(path: Path | None) -> dict:
     triggers = {k: list(v) for k, v in DEFAULT_TRIGGERS.items()}
     for kind, globs in (raw.get("review_triggers") or {}).items():
         triggers.setdefault(str(kind), []).extend(g for g in as_list(globs) if g not in triggers.get(str(kind), []))
+    if arch_define:   # its rules differ (a must rule without a check goes to review); validate.py checks this format
+        problems = []
     return {"system": str(raw.get("system") or ""), "does": str(raw.get("does") or ""), "external": ext,
             "components": comps, "entities": ents, "flows": flows, "rules": rules, "triggers": triggers,
             "problems": problems, "file": str(path)}
@@ -579,7 +633,7 @@ def model_page(args) -> tuple[str, dict]:
     if not path or not path.exists():
         sys.exit(f"{MODEL_FILE} not found")
     m = load_model(path)
-    root = repo_root(path.parent) or path.parent
+    root = repo_root(path.parent) or (path.parent.parent if path.parent.name == "docs" else path.parent)
     return "model", {
         "kind": "model", "title": m["system"] or "Architecture", **m, "repo": str(root),
         "context": context_mermaid(m), "diagram": mermaid(m["components"]), "entity_diagram": entities_mermaid(m),

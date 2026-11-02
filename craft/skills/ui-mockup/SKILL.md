@@ -7,7 +7,7 @@ Create a clickable UI prototype that opens directly in a browser, from the requi
 
 ## Inputs
 
-The calling context supplies the requirements, expected functionality, UI references, and the `[output path]` and `[name]`. Read `PRODUCT.md` as the main source; follow a Design System / UI-UX guide and reference designs in `docs/` when present.
+The calling context supplies the requirements, expected functionality, UI references, and the `[output path]` and `[name]`. Read `docs/PRODUCT.md` as the main source; follow a Design System / UI-UX guide and reference designs in `docs/` when present.
 
 ## Output
 

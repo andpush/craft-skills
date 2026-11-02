@@ -35,6 +35,7 @@ components:
       - Serve storefront and admin APIs
       - Manage catalog and order lifecycle
     source_path: core/
+    exposure: internet             # network reach; an endpoint can override it
     tech:
       language: java 21
       build: gradle 8
@@ -47,9 +48,10 @@ components:
         protocol: http
         for: [storefront-web, partner-apps]
         auth: { oauth2: [google, apple, keycloak] }   # protocol -> providers; 'none' = open
+        identity: user             # whose identity arrives: user, service, none
         address: /api
         spec: core/src/main/resources/openapi.yaml
-      admin-api: { protocol: http, for: [storefront-web, admin-cli], auth: { oauth2: [keycloak] }, address: /admin }
+      admin-api: { protocol: http, for: [storefront-web, admin-cli], auth: { oauth2: [keycloak] }, identity: user, authz: [support-role], address: /admin }
     uses: [shared-kernel]          # component-level: every module may do this
     modules:
       - module: catalog
@@ -70,6 +72,7 @@ components:
     type: web-app
     does: Web store and support back office
     source_path: web/
+    exposure: internet
     ui_endpoints:                  # for people and agents; for = actors
       store: { protocol: http, for: [customer], auth: { oauth2: [google, apple] }, address: /home }
       back-office: { protocol: http, for: [support], auth: { oauth2: [keycloak] }, address: /admin }
@@ -83,17 +86,19 @@ components:
     type: service
     does: Authorize, capture and refund payments
     source_path: payments/
+    exposure: private
     tech:
       language: kotlin 2
       frameworks: [spring-boot 3.3]
       deploy: cloud-run
     endpoints:
-      payments-api: { protocol: grpc, for: [core], auth: { mtls: [internal-ca] }, idempotent: true, spec: contracts/proto/payments.proto }
-      stripe-webhooks: { protocol: http, for: [stripe], auth: { webhook-signature: [stripe] }, address: /webhooks/stripe }
+      payments-api: { protocol: grpc, for: [core], auth: { mtls: [internal-ca] }, identity: service, idempotent: true, spec: contracts/proto/payments.proto }
+      stripe-webhooks: { protocol: http, for: [stripe], auth: { webhook-signature: [stripe] }, identity: service, exposure: internet, address: /webhooks/stripe }
     datastores:                    # nested = private, access implicit
       - datastore: payments-db
         engine: postgresql 16
         deploy: cloud-sql
+        credential: payments-sql-login   # the login's name, never the secret
         entities:
           payments: [id pk, order_id uk -> orders, status, amount, idempotency_key uk]   # logical: other store
           refunds: [id pk, payment_id -> payments, amount, reason]
@@ -129,6 +134,7 @@ datastores:                        # root datastores = shared, every reads/write
   - datastore: shop-db
     engine: postgresql 16
     deploy: cloud-sql
+    credential: shop-sql-login
     schema_owner: core
     source_path: db/migrations/
     entities:                      # pk, uk = unique, -> = reference; other fields optional
@@ -175,6 +181,12 @@ flows:                             # main success paths; -> sync call, ~> async 
     - core.orders ~> payments: order-cancelled
     - payments -> stripe: cancel payment intent
     - payments -> payments-db: release hold
+
+notes:                             # what a competent reader of model and code would still get wrong
+  - about: [core.catalog, payments]
+    note: Prices are read in core and re-sent to payments on purpose, so a later price change can't alter an order in flight. Don't "simplify" it to a lookup.
+  - about: [orders]
+    note: Deleting an order cascades to order-lines, and support can trigger it from the back office.
 
 rules:                             # only what relations can't express; level defaults to must
   - rule: idempotent-consumers

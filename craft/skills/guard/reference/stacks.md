@@ -1,6 +1,6 @@
 # Stack adapters
 
-Load only the section for the detected stack. Each adapter reads `architecture.yaml` itself where
+Load only the section for the detected stack. Each adapter reads `docs/architecture.yaml` itself where
 the tool can, so the model stays the one place to change. Sketches show the shape — adapt names,
 paths and packages to the project, and keep the check one file.
 
@@ -29,7 +29,7 @@ below the source root (`src/main/kotlin/com/shop/orders` → `com.shop.orders`).
 
 ```kotlin
 class ArchitectureTest {
-    private val model: Map<String, Any> = Yaml().load(File("architecture.yaml").readText())
+    private val model: Map<String, Any> = Yaml().load(File("docs/architecture.yaml").readText())
     private val classes = ClassFileImporter().withImportOption(DoNotIncludeTests()).importPackages(ROOT)
 
     @Suppress("UNCHECKED_CAST")
@@ -56,7 +56,7 @@ class ArchitectureTest {
 - **Baseline:** `FreezingArchRule.freeze(...)`; `src/test/resources/archunit.properties` sets
   `freeze.store.default.path=archunit_store`. Allow store creation only for the first run, then set
   `freeze.store.default.allowStoreCreation=false` and commit `archunit_store/`.
-- **Gradle:** declare `architecture.yaml` and `src/main` as inputs of the test task, or a model-only
+- **Gradle:** declare `docs/architecture.yaml` and `src/main` as inputs of the test task, or a model-only
   change leaves the check up to date and skipped. Set `testLogging { exceptionFormat = FULL }` so a
   failure prints the model-named message; `-q` hides it, so don't prove checks with `-q`.
 - **Kotlin-only alternative:** Konsist, which works on source files, so components map by path, not package.
@@ -69,7 +69,7 @@ class ArchitectureTest {
 ```js
 // .dependency-cruiser.cjs — reads the model on every run
 const { parse } = require("yaml");
-const model = parse(require("fs").readFileSync("architecture.yaml", "utf8"));
+const model = parse(require("fs").readFileSync("docs/architecture.yaml", "utf8"));
 const comps = Object.entries(model.components);
 const paths = (c) => [].concat(c.path);
 const re = (ps) => `^(${ps.map((p) => p.replace(/[.]/g, "\\.")).join("|")})/`;
@@ -101,7 +101,7 @@ source root, slashes → dots.
 # tests/test_architecture.py
 import grimp, pathlib, yaml
 
-MODEL = yaml.safe_load(pathlib.Path("architecture.yaml").read_text())
+MODEL = yaml.safe_load(pathlib.Path("docs/architecture.yaml").read_text())
 COMPS = {n: c["path"].removeprefix("src/").replace("/", ".") for n, c in MODEL["components"].items()}
 GRAPH = grimp.build_graph(next(iter(COMPS.values())).split(".")[0])
 BASE_FILE = pathlib.Path("tests/architecture-baseline.txt")   # known violations, one per line

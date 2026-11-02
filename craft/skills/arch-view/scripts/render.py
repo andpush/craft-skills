@@ -2,9 +2,9 @@
 # requires-python = ">=3.10"
 # dependencies = ["jsonschema>=4.18", "pyyaml>=6"]
 # ///
-"""Render architecture.yaml and its ADRs as one HTML page in a temp folder.
+"""Render docs/architecture.yaml and its ADRs as one HTML page in a temp folder.
 
-Usage: uv run render.py [architecture.yaml] [--no-open] [--out FILE]
+Usage: uv run render.py [docs/architecture.yaml] [--no-open] [--out FILE]
 Prints the page path and the number of model problems.
 """
 import html
@@ -20,6 +20,7 @@ import yaml
 HERE = Path(__file__).resolve().parent
 VALIDATOR = HERE.parent.parent / "arch-define" / "scripts" / "validate.py"
 APP_TYPES = {"web-app", "mobile-app", "desktop-app"}
+NOT_ON_NETWORK = {"native", "cli", "schedule"}
 
 
 def esc(v):
@@ -64,6 +65,7 @@ class Model:
         self.externals = data.get("external") or {}
         self.components = {c["component"]: c for c in data.get("components") or []}
         self.root_modules = {m["module"]: m for m in data.get("modules") or []}
+        self.notes = data.get("notes") or []
         self.stores = {s["datastore"]: s for s in data.get("datastores") or []}
         self.queues = {q["queue"]: q for q in data.get("queues") or []}
         self.private = {}  # store id -> (component, store)
@@ -404,6 +406,46 @@ def kv(rows):
     return '<dl class="kv">' + "".join(f"<dt>{esc(k)}</dt><dd>{v}</dd>" for k, v in rows) + "</dl>"
 
 
+def callouts(notes, ids):
+    """Notes about any of these model ids."""
+    return "".join(f'<div class="note">{esc(n["note"])}</div>' for n in notes if set(n["about"]) & set(ids))
+
+
+def notes_section(notes):
+    return "".join(f'<div class="note">{esc(n["note"])}<div class="about">{esc(joined(n["about"]))}</div></div>'
+                   for n in notes)
+
+
+def auth_text(auth):
+    return "none" if auth == "none" else "; ".join(f"{p}: {joined(v)}" for p, v in (auth or {}).items())
+
+
+def security_section(m):
+    """One row per network endpoint, most exposed first."""
+    rows = []
+    for name, c in m.components.items():
+        for field in ("endpoints", "ui_endpoints"):
+            for ep, spec in (c.get(field) or {}).items():
+                if spec.get("protocol") in NOT_ON_NETWORK:
+                    continue
+                auth, exposure = spec.get("auth"), spec.get("exposure", c.get("exposure"))
+                is_open = auth == "none" or any(p.endswith("-optional") for p in auth or {})
+                rank = (0 if is_open else 1) if exposure == "internet" else {None: 2, "private": 3, "local": 4}[exposure]
+                rows.append((rank, name, ep, spec, exposure, is_open))
+    if not rows:
+        return ""
+    badge = {0: "must", 1: "should", 2: "should"}
+    html = []
+    for rank, name, ep, spec, exposure, is_open in sorted(rows, key=lambda r: r[0]):
+        access = f"<span class='badge {badge.get(rank, 'current')}'>{esc(exposure or 'not set')}</span>"
+        auth = auth_text(spec.get("auth")) + (" (open)" if is_open and spec.get("auth") != "none" else "")
+        html.append(f"<tr><td><b>{esc(name)}.{esc(ep)}</b><div class='muted mono'>{esc(spec.get('address', ''))}</div></td>"
+                    f"<td>{access}</td><td>{esc(auth)}</td><td>{esc(spec.get('identity', '—'))}</td>"
+                    f"<td>{esc(joined(spec.get('authz')) or '—')}</td><td>{esc(joined(spec.get('for')))}</td></tr>")
+    return ("<table><tr><th>endpoint</th><th>exposure</th><th>auth</th><th>identity</th><th>authz</th><th>for</th></tr>"
+            + "".join(html) + "</table>")
+
+
 def component_card(m, name, c):
     does = as_list(c.get("does"))
     rows = []
@@ -412,7 +454,9 @@ def component_card(m, name, c):
             auth = spec.get("auth")
             bits = [spec.get("protocol"), spec.get("address"), "idempotent" if spec.get("idempotent") else None,
                     f"for {joined(spec['for'])}" if spec.get("for") else None,
-                    "no auth" if auth == "none" else "; ".join(f"{p}: {joined(v)}" for p, v in (auth or {}).items())]
+                    "no auth" if auth == "none" else auth_text(auth), spec.get("exposure", c.get("exposure")),
+                    f"identity {spec['identity']}" if spec.get("identity") else None,
+                    f"needs {joined(spec['authz'])}" if spec.get("authz") else None]
             spec_link = f' <span class="muted mono">{esc(spec["spec"])}</span>' if spec.get("spec") else ""
             rows.append((label, f"<b>{esc(ep)}</b> <span class='muted'>{esc(' · '.join(str(b) for b in bits if b))}</span>{spec_link}"))
     for s in c.get("datastores") or []:
@@ -432,10 +476,17 @@ def component_card(m, name, c):
         mod_html = (f'<div class="modules"><h3>Modules</h3>{mermaid(module_map(m, name))}{legend}'
                     f'{"".join(items)}</div>')
     path = f'<span class="muted mono">{esc(c["source_path"])}</span>' if c.get("source_path") else ""
+    ids = [name, *(f"{name}.{x['module']}" for x in mods), *(f"{name}.{e}" for e in c.get("endpoints") or {}),
+           *(f"{name}.{e}" for e in c.get("ui_endpoints") or {})]
     return (f'<div class="card" id="c-{esc(name)}"><div class="head"><h3>{esc(name)}</h3>'
             f'<span class="badge">{esc(c.get("type", ""))}</span>{path}</div>'
-            f'<ul class="does">{"".join(f"<li>{esc(d)}</li>" for d in does)}</ul>'
+            f'<ul class="does">{"".join(f"<li>{esc(d)}</li>" for d in does)}</ul>{callouts(m.notes, ids)}'
             f'<div class="chips">{chips(c.get("tech"))}</div>{kv(rows)}{mod_html}</div>')
+
+
+def store_ids(sid, s):
+    ents = s.get("entities") or {}
+    return [sid, *ents, *(f"{e}.{str(f).split(' ')[0]}" for e, fields in ents.items() for f in fields or [])]
 
 
 def data_section(m):
@@ -448,19 +499,20 @@ def data_section(m):
     for sid, s in m.stores.items():
         meta = " · ".join(x for x in [s.get("engine"), s.get("deploy"), "shared",
                                        f"schema owner {s['schema_owner']}" if s.get("schema_owner") else None,
-                                       s.get("source_path")] if x)
+                                       s.get("source_path"), f"login {s['credential']}" if s.get("credential") else None] if x)
         rows = "".join(
             f"<tr><td><b>{esc(e)}</b></td><td class='mono'>{esc(', '.join(fields or []))}</td>"
             f"<td>{esc(', '.join(m.who('writes', sid, e)) or '—')}</td>"
             f"<td>{esc(', '.join(m.who('reads', sid, e)) or '—')}</td></tr>"
             for e, fields in (s.get("entities") or {}).items())
-        parts.append(f'<div class="store"><h3>{esc(sid)}</h3><p class="meta">{esc(meta)}</p>'
+        parts.append(f'<div class="store"><h3>{esc(sid)}</h3><p class="meta">{esc(meta)}</p>{callouts(m.notes, store_ids(sid, s))}'
                      f"<table><tr><th>entity</th><th>fields</th><th>written by</th><th>read by</th></tr>{rows}</table></div>")
     for sid, (owner, s) in m.private.items():
-        meta = " · ".join(x for x in [s.get("engine"), s.get("deploy"), f"private to {owner}"] if x)
+        meta = " · ".join(x for x in [s.get("engine"), s.get("deploy"), f"private to {owner}",
+                                       f"login {s['credential']}" if s.get("credential") else None] if x)
         rows = "".join(f"<tr><td><b>{esc(e)}</b></td><td class='mono'>{esc(', '.join(fields or []))}</td></tr>"
                        for e, fields in (s.get("entities") or {}).items())
-        parts.append(f'<div class="store"><h3>{esc(sid)}</h3><p class="meta">{esc(meta)}</p>'
+        parts.append(f'<div class="store"><h3>{esc(sid)}</h3><p class="meta">{esc(meta)}</p>{callouts(m.notes, store_ids(sid, s))}'
                      f"<table><tr><th>entity</th><th>fields</th></tr>{rows}</table></div>")
     for qid, q in m.queues.items():
         meta = " · ".join(x for x in [q.get("engine"), q.get("deploy"), q.get("address"),
@@ -566,20 +618,28 @@ def render(path):
     data = yaml.safe_load(path.read_text())
     errors, warnings = problems(path)
     m = Model(data)
-    adrs = load_adrs(path.resolve().parent / (data.get("decisions") or "docs/adr"))
+    root = path.resolve().parent
+    if root.name == "docs":  # the model lives in docs/; its paths are relative to the repo root
+        root = root.parent
+    adrs = load_adrs(root / (data.get("decisions") or "docs/adr"))
 
     sections = []  # (anchor, title, html)
     if m.components:
         legend = ("Solid arrow: sync call (label = endpoint) · dashed: message via queue · thick: writes · "
                   "cylinder: datastore (dashed border = private) · flag: queue · dashed box: external system")
         sections.append(("map", "System map", mermaid(system_map(m), wide=True) + f'<div class="legend">{esc(legend)}</div>'))
+        if m.notes:
+            sections.append(("notes", "Read before changing", notes_section(m.notes)))
         cards = "".join(component_card(m, n, c) for n, c in m.components.items())
         libs = "".join(
             f'<div class="card"><div class="head"><h3>{esc(n)}</h3><span class="badge">library</span>'
             f'<span class="muted mono">{esc(x.get("artifact", ""))}</span></div>'
-            f'<ul class="does"><li>{esc(joined(x.get("does")))}</li></ul>{kv([(k, esc(v)) for k, v in rel_rows(x)])}</div>'
+            f'<ul class="does"><li>{esc(joined(x.get("does")))}</li></ul>{callouts(m.notes, [n])}{kv([(k, esc(v)) for k, v in rel_rows(x)])}</div>'
             for n, x in m.root_modules.items())
         sections.append(("components", "Components", f'<div class="grid">{cards}{libs}</div>'))
+        surface = security_section(m)
+        if surface:
+            sections.append(("exposure", "Exposure", surface))
     if m.stores or m.private or m.queues:
         sections.append(("data", "Data", data_section(m)))
     if data.get("states"):
@@ -629,7 +689,7 @@ def main():
         out = Path(args[i + 1])
         del args[i:i + 2]
     files = [a for a in args if not a.startswith("--")]
-    path = Path(files[0] if files else "architecture.yaml")
+    path = Path(files[0] if files else "docs/architecture.yaml")
     if not path.exists():
         print(f"{path} not found — create it with the arch-define skill")
         return 2

@@ -31,7 +31,7 @@ This is the core value: an implementor should be able to execute from the doc co
 status: ready       # ready | blocked | done — build3 owns the last two
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-target: <component name from architecture.yaml>
+target: <component name from docs/architecture.yaml>
 ---
 
 # <Task in one line>

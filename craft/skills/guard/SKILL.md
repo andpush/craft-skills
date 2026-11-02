@@ -1,15 +1,15 @@
 ---
 name: guard
-description: Use to set up the project's gate — one `verify` command, architecture checks generated from `architecture.yaml`, a baseline for existing violations, a CI workflow that runs `verify`, and branch protection. Run once after `arch`, and again whenever `architecture.yaml` or its rules change. Idempotent.
+description: Use to set up the project's gate — one `verify` command, architecture checks generated from `docs/architecture.yaml`, a baseline for existing violations, a CI workflow that runs `verify`, and branch protection. Run once after `arch`, and again whenever `docs/architecture.yaml` or its rules change. Idempotent.
 ---
 
-Make the rules in `architecture.yaml` executable, and put one command between the agent and main. The agent, the human and CI all run the same `verify`; CI never has checks of its own. A rule nobody checks is not a rule — it's `manual`, and `review` checks it by hand.
+Make the rules in `docs/architecture.yaml` executable, and put one command between the agent and main. The agent, the human and CI all run the same `verify`; CI never has checks of its own. A rule nobody checks is not a rule — it's `manual`, and `review` checks it by hand.
 
 Idempotent: on a rerun, fix what drifted and leave what's right alone.
 
 ## Inputs
 
-`architecture.yaml` (components, `depends_on`, entities, rules) and `AGENTS.md`. No model → offer `arch` first. Load [reference/stacks.md](reference/stacks.md) for the detected stack only.
+`docs/architecture.yaml` (components, `depends_on`, entities, rules) and `AGENTS.md`. No model → offer `arch` first. Load [reference/stacks.md](reference/stacks.md) for the detected stack only.
 
 ## Process
 
@@ -26,7 +26,7 @@ Prove the empty-selection rule: run an AC-style filter that matches nothing and 
 
 ### 3. Component check from the model
 
-Write the stack adapter that reads `architecture.yaml` at test time (or generates config with a freshness check, where the tool can't read YAML). One check, three parts:
+Write the stack adapter that reads `docs/architecture.yaml` at test time (or generates config with a freshness check, where the tool can't read YAML). One check, three parts:
 
 - **Dependencies:** code in a component imports only itself, its `depends_on` components, and third-party code.
 - **I/O placement,** derived, never declared:
@@ -73,7 +73,7 @@ Offer to allow auto-merge on the repo too (`gh repo edit --enable-auto-merge`), 
 
 ### 9. Review triggers
 
-Add the gate's own paths to `review_triggers` in `architecture.yaml` (under `arch-check` and `ci`): the `verify` wiring, the check sources and config, the baseline. A change that weakens the gate must turn the review red.
+Add the gate's own paths to `review_triggers` in `docs/architecture.yaml` (under `arch-check` and `ci`): the `verify` wiring, the check sources and config, the baseline. A change that weakens the gate must turn the review red.
 
 ## Report
 

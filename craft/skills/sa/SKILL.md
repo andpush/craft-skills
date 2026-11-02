@@ -7,7 +7,7 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 
 ## Ground
 
-- Anchor in reality: `PRODUCT.md`, `ARCHITECTURE.md` and `architecture.yaml` if present, the existing stack, the code as it is.
+- Anchor in reality: `docs/PRODUCT.md`, `docs/ARCHITECTURE.md` and `docs/architecture.yaml` if present, the existing stack, the code as it is.
 - Read the decision history before proposing: `docs/adr/` titles, and grep `## Rejected` for each option you consider. A rejected option comes back only when its "revisit if" holds — say which.
 - Name the drivers before designing: core function, dominant quality attributes, hard constraints, scale. Design against them, not generic best practice.
 
@@ -37,6 +37,6 @@ Load only the lens the change touches:
 - [ ] Security, deployment, testing, observability addressed where the drivers demand them.
 - [ ] Complexity matches the problem's actual scale — no speculative generality.
 
-End with the chosen approach, its rationale, and any decisions still open for the user. What happens next — a spec, `ARCHITECTURE.md`, direct build — belongs to the caller.
+End with the chosen approach, its rationale, and any decisions still open for the user. What happens next — a spec, `docs/ARCHITECTURE.md`, direct build — belongs to the caller.
 
 An expensive-to-reverse decision becomes an ADR only on the user's explicit yes, in the format of [reference/adr.md](reference/adr.md): written now when there's no build, or listed in the spec for `build3` to write at close.

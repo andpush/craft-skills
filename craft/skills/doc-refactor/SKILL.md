@@ -16,7 +16,7 @@ Inspired by ML concept of feature extraction, applied to human knowledge. In ML 
 
 User specifies input documents, an output document or indicate `dryrun`, and optionally a goal. The goal defines relevance; without a goal or clear contextual intent, run losslessly and treat all input knowledge as relevant.
 
-Example: `/doc-refactor PRODUCT.md, README.md -> PRODUCT.md for Product Manager review`.
+Example: `/doc-refactor docs/PRODUCT.md, README.md -> docs/PRODUCT.md for Product Manager review`.
 
 How it works:
 - decompose the inputs into claims,

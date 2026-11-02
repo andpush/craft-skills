@@ -1,7 +1,7 @@
 <!--
 Seed menu for the `arch` skill's `Rules and Conventions` step — consulted, not emitted.
 Pick the sections that fit the chosen stack, adapt with the user, keep only what isn't
-obvious to a competent engineer, and fold the result into ARCHITECTURE.md. Do NOT copy
+obvious to a competent engineer, and fold the result into docs/ARCHITECTURE.md. Do NOT copy
 sections for stacks the project doesn't use.
 -->
 

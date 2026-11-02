@@ -1,7 +1,7 @@
-# architecture.yaml — the model
+# docs/architecture.yaml — the model
 
-One file at the repo root that checks (`guard`), pages (`view`) and review tooling (`review`) read.
-`ARCHITECTURE.md` explains it in prose and links to it; it never restates it.
+One file that checks (`guard`), pages (`view`) and review tooling (`review`) read.
+`docs/ARCHITECTURE.md` explains it in prose and links to it; it never restates it.
 
 ```yaml
 system: shop
@@ -65,7 +65,7 @@ endpoints and secondary flows stay in code and tests.
   `depends_on` or `calls`; async (`~>`) don't.
 - **Rules** have stable IDs. `MUST` needs a `checked_by` that `guard` wrote; a rule no tool can
   check is `SHOULD` with `checked_by: manual`. The reason for a rule is one clause in
-  `ARCHITECTURE.md` or an ADR link, by rule ID.
+  `docs/ARCHITECTURE.md` or an ADR link, by rule ID.
 - **Review triggers** extend built-in defaults (dependency manifests, migrations, OpenAPI/proto/
   GraphQL, auth paths, CI config, arch-check files). Add the project's own schema and API paths.
 

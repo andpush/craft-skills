@@ -21,9 +21,9 @@ Recommended companion skills: `simplify`, `code-review`, `playwright-cli`.
 `prod → arch → spec → build`; each skill works greenfield (define with you) or brownfield (derive
 from code, then confirm), adopting existing files rather than clobbering them.
 
-1. **`prod`** → `PRODUCT.md`, **`arch`** → `ARCHITECTURE.md`. Required for later steps; one-time, so use bigger models (Opus/high). Or write them by hand / via `/impeccable teach`.
+1. **`prod`** → `docs/PRODUCT.md`, **`arch`** → `docs/ARCHITECTURE.md`. Required for later steps; one-time, so use bigger models (Opus/high). Or write them by hand / via `/impeccable teach`.
 2. **`spec`** → a build-ready item in the queue `docs/ready/` (small tasks go straight there via `task`). Medium efforts (Opus/medium, GPT-5.5).
-3. **`guard`** (once, after `arch`) → one `verify` command, architecture checks generated from `architecture.yaml`, CI that runs `verify`, branch protection.
+3. **`guard`** (once, after `arch`) → one `verify` command, architecture checks generated from `docs/architecture.yaml`, CI that runs `verify`, branch protection.
 4. **`build3`** → per item, on a `craft/<item>` branch: acceptance tests first, implement, verify, an independent `review`, docs closed in the branch, then a PR or merge per the policy in `AGENTS.md`. Faster/cheaper models, unattended once permissions are granted. (`/goal` or any agent still works too.)
 5. **`review`** → computes a risk tier, describes contract changes (data model, API, dependencies) and turns suspicions into failing tests; `review walk` guides you through what matters in the terminal, with the change page open in the browser.
 
@@ -35,8 +35,8 @@ Invoke by name in your agent host (`/prod`, `/spec <feature>`, …).
 
 | Skill | Does |
 | --- | --- |
-| `prod` | define the product → `PRODUCT.md` |
-| `arch` | define architecture → `architecture.yaml` (the model), `ARCHITECTURE.md` (prose), `AGENTS.md` |
+| `prod` | define the product → `docs/PRODUCT.md` |
+| `arch` | define architecture → `docs/architecture.yaml` (the model), `docs/ARCHITECTURE.md` (prose), `AGENTS.md` |
 | `guard` | make the model executable: `verify`, architecture checks, baseline, CI, branch protection |
 | `spec <feature>` | frame a feature into a build-ready item (`feat-<slug>`) in `docs/ready/`: contract changes, AC as commands, doc impact |
 | `task <task>` | terse handoff for a small task (`task-<slug>`, one component, no contract changes) into `docs/ready/` |
@@ -44,7 +44,7 @@ Invoke by name in your agent host (`/prod`, `/spec <feature>`, …).
 | `review [<item>\|PR#\|walk]` | risk tier, contracts, counterexample tests → `<item>.review.json`; guided walk |
 | `view spec\|change\|model` | render a spec, a change review or the architecture model as an HTML page |
 | `build [all\|<file>]` | v2 executor, kept until `build3` is proven |
-| `idea <hunch>` | one-file capture + `PRODUCT.md` alignment check |
+| `idea <hunch>` | one-file capture + `docs/PRODUCT.md` alignment check |
 | `audit` | deep repo health check: structure, maintainability, security |
 | `doc-refactor <in> -> <out> [goal]` | merge, dedupe, restructure docs, preserving knowledge |
 | `whereami` | reorient after a break: focus, parked ideas, next step |
@@ -67,9 +67,9 @@ One file per work item / decision — filenames are the index, content is scanna
 
 | File | Holds | By |
 | --- | --- | --- |
-| `PRODUCT.md` | purpose, users, value, constraints, MVP scope | `prod` |
-| `architecture.yaml` | the model: context, components, entities, main flows, rules, review triggers | `arch` |
-| `ARCHITECTURE.md` | prose that explains the model: why, stack, flows, glossary, conventions | `arch` |
+| `docs/PRODUCT.md` | purpose, users, value, constraints, MVP scope | `prod` |
+| `docs/architecture.yaml` | the model: context, components, entities, main flows, rules, review triggers | `arch` |
+| `docs/ARCHITECTURE.md` | prose that explains the model: why, stack, flows, glossary, conventions | `arch` |
 | `docs/ideas/idea-*.md` | idea backlog (images beside); unvalidated; optional `priority: high\|low` steers `whereami`; `spec` validates on pickup (pursue/defer/reject) | `idea` |
 | `docs/ready/*.md` | the execution queue — build-ready `feat-`/`task-`/promoted `idea-` items; `status:` = `draft`\|`ready`\|`blocked`; the claim is a `craft/<item>` branch | `spec`, `task` |
 | `docs/done/*.md` | archive of shipped (`done`) and rejected items, with `<item>.review.json` | `build3`, `spec` |

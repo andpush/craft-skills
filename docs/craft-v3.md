@@ -14,7 +14,7 @@ fewer regressions, smaller change radius — not LOC, test or finding counts.
 - **Markdown is the source of truth.** HTML views are rendered by a script, never committed.
 - **One fact, one place.** Link, don't restate. Stable IDs (`R3`, `AC2`, ADR slug, component name) tie docs to code and tests.
 - **Intent is never silently rewritten to match code.** Drift → fix code, fix a stale doc, or an explicit decision.
-- **One model feeds checks, diagrams and agents** — `architecture.yaml`.
+- **One model feeds checks, diagrams and agents** — `docs/architecture.yaml`.
 - **Deterministic where possible:** checks, triggers, diagrams, views. AI writes the implementation and is verified separately.
 - **Not checked ≠ passed.** Skipped, unsupported, or empty selection is a failure or an explicit "not checked".
 - **Existing formats first** — markdown, ArchUnit, dependency-cruiser, OpenAPI. No custom DSL.
@@ -25,7 +25,7 @@ fewer regressions, smaller change radius — not LOC, test or finding counts.
 | Skill | v3 change |
 |---|---|
 | `prod` | budgets only |
-| `arch` | writes `architecture.yaml` (context, components, entities, main flows, rules, triggers); `ARCHITECTURE.md` becomes prose + glossary; writes `AGENTS.md`; next step `guard` |
+| `arch` | writes `docs/architecture.yaml` (context, components, entities, main flows, rules, triggers); `docs/ARCHITECTURE.md` becomes prose + glossary; writes `AGENTS.md`; next step `guard` |
 | `sa` | grep prior ADRs before proposing; ADR on explicit yes; lenses in `reference/` loaded by topic |
 | `spec` | contract changes, AC as commands, doc impact, migration plan, opens spec view, emits `/goal` line |
 | `task` | AC as commands; slug naming |
@@ -44,9 +44,9 @@ fewer regressions, smaller change radius — not LOC, test or finding counts.
 ```
 AGENTS.md              ≤60 lines, always loaded: product line, commands (incl. verify), invariants, merge policy, pointers
 CLAUDE.md              @AGENTS.md
-PRODUCT.md             ≤150 lines
-ARCHITECTURE.md        ≤300 lines of prose; a component section moves to docs/modules/<name>.md when it outgrows that
-architecture.yaml      the model: context, components, entities, main flows, rules, review triggers
+docs/PRODUCT.md        ≤150 lines
+docs/ARCHITECTURE.md   ≤300 lines of prose; a component section moves to docs/modules/<name>.md when it outgrows that
+docs/architecture.yaml the model: context, components, entities, main flows, rules, review triggers
 docs/ideas/            <type>-<slug>.md            candidates
 docs/ready/            <type>-<slug>.md            build-ready queue (on main = unclaimed)
 docs/done/             <type>-<slug>.md + <type>-<slug>.review.json
@@ -58,10 +58,10 @@ slug is unique across all folders and never changes. Queue order: `priority: hig
 `created`. A split sequence uses `-a-`, `-b-` after the type. Same-basename files (images, review
 JSON) move with the item.
 
-## architecture.yaml — the model
+## docs/architecture.yaml — the model
 
 Everything that checks, diagrams and review tooling read lives in one YAML file next to
-`ARCHITECTURE.md`. `ARCHITECTURE.md` explains it in prose (why this decomposition, flows,
+`docs/ARCHITECTURE.md`. `docs/ARCHITECTURE.md` explains it in prose (why this decomposition, flows,
 trade-offs, glossary) and links to it — it never restates it. `guard`'s checks read the file at
 test time where the tool allows (ArchUnit/Konsist via a YAML library, dependency-cruiser's JS
 config); where components are crates or SwiftPM targets, a check compares the manifest with the model. `view model` renders it.
@@ -120,7 +120,7 @@ and secondary flows stay in code and tests.
   the stack adapter: persistence only in entity owners, HTTP clients only in components that depend on
   an external, server/controller code only in components an external `calls`. Anything rarer (clock,
   filesystem, queues) is a rule line when a project cares.
-- Rationale for a rule: one clause in `ARCHITECTURE.md` or an ADR link, by rule ID.
+- Rationale for a rule: one clause in `docs/ARCHITECTURE.md` or an ADR link, by rule ID.
 - `review_triggers` extend built-in defaults (dependency manifests, migrations, OpenAPI/proto/GraphQL,
   auth/security paths, CI config, arch-check files). `view` uses the `schema` and `api`/`event` ones to
   show data-model and API changes even when a review misses them.
@@ -128,7 +128,7 @@ and secondary flows stay in code and tests.
   across owners, flow calls not allowed by `depends_on` or `calls`, MUST rules without a checker.
 - Arrow items (`a -> b: label`) need quotes only when the label contains `: `. Globs starting with `*` need quotes.
 
-**Glossary** (in `ARCHITECTURE.md`): only terms that are non-obvious or mean different things in
+**Glossary** (in `docs/ARCHITECTURE.md`): only terms that are non-obvious or mean different things in
 different contexts.
 
 ## ADR
@@ -171,7 +171,7 @@ struck through.
   Always implied: `verify` exits 0. Manual criteria are declared up front; green tests don't cover them.
 - **Testing approach** prompts negative cases where relevant: another user's or tenant's resource,
   revoked rights, duplicates, reordering, concurrency, partial failure.
-- **Doc impact:** the exact edits to `ARCHITECTURE.md` / `PRODUCT.md` / `AGENTS.md` this change makes.
+- **Doc impact:** the exact edits to `docs/ARCHITECTURE.md` / `docs/PRODUCT.md` / `AGENTS.md` this change makes.
   The only doc edits `build3` may apply.
 - **Goal line:** `/goal Item docs/ready/<item>.md built per build3: verify exited 0 with output shown, review tier reported`.
 
@@ -281,11 +281,11 @@ Every item carries an ID (`C2`, `H3`); discussion happens in the terminal ("H3 �
 
 ## guard
 
-One-time, idempotent; rerun after `arch` changes `architecture.yaml`.
+One-time, idempotent; rerun after `arch` changes `docs/architecture.yaml`.
 
 1. Detect the stack; check `gh` is installed and the active account can push to the remote.
 2. Create or fix `verify` (fails on empty test selection); record it in `AGENTS.md`.
-3. Write the stack adapter that reads `architecture.yaml` (ArchUnit/Konsist for JVM,
+3. Write the stack adapter that reads `docs/architecture.yaml` (ArchUnit/Konsist for JVM,
    dependency-cruiser for TS, grimp for Python; manifest comparison for Rust/Swift). See
    `reference/stacks.md`.
 4. A check per `MUST` rule the component map can't express, named by rule ID.
@@ -294,7 +294,7 @@ One-time, idempotent; rerun after `arch` changes `architecture.yaml`.
 7. CI workflow that only runs `verify`.
 8. With the user's confirmation: branch protection requiring the CI check. Solo repos: no
    required approvals — GitHub doesn't let you approve your own PR.
-9. Add project paths to `review_triggers` in `architecture.yaml` (the `verify` script, check config, baselines).
+9. Add project paths to `review_triggers` in `docs/architecture.yaml` (the `verify` script, check config, baselines).
 
 ## Merge policy
 

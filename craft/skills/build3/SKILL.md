@@ -58,9 +58,10 @@ git commit -m "test: acceptance tests for <item>"
 ### 4. Implement
 
 A subagent gets the item path, `AGENTS.md`, the AC commit's file list, and these rules:
-- Stay inside the `target` components and their `depends_on` in `architecture.yaml`.
+- Stay inside the `target` components and their `depends_on` in `docs/architecture.yaml`.
+- Read the model's `notes` about what you touch. If the change would make one false, stop and raise it.
 - Don't edit the AC test files. If one looks wrong, stop and report it — that's a spec question, not a code one.
-- Don't edit `ARCHITECTURE.md`, `PRODUCT.md` or `AGENTS.md`: you apply the doc impact at close.
+- Don't edit `docs/ARCHITECTURE.md`, `docs/PRODUCT.md` or `AGENTS.md`: you apply the doc impact at close.
 - Commit in small commits; report what changed and anything done differently from the spec, with the reason.
 
 A small `task` item may be done inline.

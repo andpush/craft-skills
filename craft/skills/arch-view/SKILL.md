@@ -1,17 +1,17 @@
 ---
 name: arch-view
-description: Use to show the project's architecture as one HTML page in the browser — system map, components, data ownership, lifecycles, main flows, rules and the ADR decision timeline — rendered from `architecture.yaml` for a quick human review.
+description: Use to show the project's architecture as one HTML page in the browser — system map, notes, components, endpoint exposure, data ownership, lifecycles, main flows, rules and the ADR decision timeline — rendered from `docs/architecture.yaml` for a quick human review.
 ---
 
-A script renders the page deterministically from `architecture.yaml` and `docs/adr/`. Run it and
+A script renders the page deterministically from `docs/architecture.yaml` and `docs/adr/`. Run it and
 report; leave reading the model and writing HTML to the script.
 
 ```bash
-uv run --quiet <this-skill-dir>/scripts/render.py [architecture.yaml]
+uv run --quiet <this-skill-dir>/scripts/render.py [docs/architecture.yaml]
 ```
 
 It writes `<tmp>/craft-views/arch-<system>.html`, prints the path and the count of model problems,
-and opens the browser. Flags: `--no-open`, `--out <file>`. No `architecture.yaml` → offer the
+and opens the browser. Flags: `--no-open`, `--out <file>`. No `docs/architecture.yaml` → offer the
 `arch-define` skill.
 
 The page, top to bottom:
