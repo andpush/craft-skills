@@ -45,8 +45,8 @@ dimensions below with `file:line`. Small repo: one pass yourself.
 |---|---|
 | build files, Dockerfiles, deploy manifests, entry points | components, `type`, `source_path`, `tech` |
 | packages, their size and the imports between them, contract and entity definitions | `modules`, `uses` |
-| routes, OpenAPI/proto/GraphQL, schedulers | `endpoints` |
-| UI routes, CLI commands, agent tools | `ui_endpoints` |
+| routes, OpenAPI/proto/GraphQL, schedulers | `endpoints`, and `serves` from the package of each handler |
+| UI routes, CLI commands, agent tools | `ui_endpoints`, `serves` |
 | HTTP/gRPC clients, SDKs, configured URLs | `calls`, `external`, endpoint `for` |
 | migrations, ORM mappings, repositories — who writes which table | `datastores`, entities, `reads`, `writes` |
 | topics, producers, listeners | `queues`, `produces`, `consumes` |
@@ -95,7 +95,8 @@ catch it drifting?
 - **Components** are deployables.
 - **Modules** are only the code units with a structural or functional role: they provide distinct
   business value, hold API or SPI contracts, define entities, contain a lot of code, or have many
-  dependencies in or out. Leave out the rest, however cleanly they are packaged.
+  dependencies in or out. Leave out the rest, however cleanly they are packaged. A module lists the
+  endpoints it handles in `serves`.
 - **Endpoints** are API surfaces. Each has `for`: the services and clients expected to consume it, as
   model ids, or a short name for consumers outside the model (`partner-apps`). Each also has `auth`:
   protocol and providers, or `none` when it is deliberately open. Schedule endpoints have neither:
@@ -103,11 +104,13 @@ catch it drifting?
 - **UI endpoints** have the same structure, for people and agents: `for` lists actors, and `protocol`
   is the real one (`http` for a web UI). Nothing `calls` them.
 - **Relations** list everything allowed. A missing one becomes a violation later, so the list is
-  complete. Relations of code outside the listed modules go on its component, and `uses` names only
-  listed modules.
+  complete. A relation a listed module has goes on that module, so the model shows who works with
+  each store, queue and outside system. The component keeps only what applies to all its code or
+  comes from code outside the listed modules. `uses` names only listed modules.
 - **Entities:** keys and references at minimum; other fields where the location of data matters (money, personal data).
 - **States:** only lifecycles where an illegal transition costs money or trust.
-- **Flows:** one to three main success paths.
+- **Flows:** one to three main success paths, with the reads and writes that matter: they show when
+  data is saved.
 - **Rules:** only what relations can't express. `must` blocks a merge, `should` needs a stated reason;
   `check` names a file that exists.
 - **Tech:** names with major versions. **Glossary:** non-obvious terms only.
@@ -116,7 +119,7 @@ catch it drifting?
 
 1. `uv run --quiet <this-skill-dir>/scripts/validate.py architecture.yaml` exits 0. It checks the
    schema, every reference, flows against relations, states against entity fields, endpoint `for`
-   against callers, and paths.
+   against callers, `serves` against endpoints, and paths.
    Warnings are findings.
 2. Run the `sa` skill's Verify checklist against the model.
 3. Walk the user through the draft: components and their jobs, data ownership, flows, rules,

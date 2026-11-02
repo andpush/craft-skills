@@ -19,11 +19,12 @@ The page, top to bottom:
 - **System map:** actors, components, datastores, queues and external systems, with calls (labelled
   by endpoint), messages, writes and reads.
 - **Components:** one full-width card each, with jobs, tech, endpoints, ui endpoints, relations, and
-  a module diagram: what each module does, and labelled arrows to what it uses, calls, stores and
-  publishes.
+  a module diagram: what each module does, who calls the endpoints it serves, and labelled arrows to
+  what it uses, calls, stores and publishes.
 - **Data:** a keys-and-references map across stores; per store, every entity with who writes and
   reads it; per queue, who produces and consumes each message.
-- **Lifecycles** as state diagrams, **main flows** as sequence diagrams, **rules**, **glossary**.
+- **Lifecycles** as state diagrams, **main flows** as sequence diagrams with one lifeline per
+  component and modules on the arrow labels, **rules**, **glossary**.
 - **Decisions:** ADRs as a timeline, with current vs superseded status and rejected options drawn as
   abandoned side branches, each with its "revisit if".
 

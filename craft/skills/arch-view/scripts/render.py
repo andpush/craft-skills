@@ -215,6 +215,22 @@ def module_map(m, comp):
         if label not in labels:
             labels.append(label)
 
+    def peer(name):
+        """Node for something outside this component: a name not in the model draws as external."""
+        if name in m.components:
+            node, cls = nid("c_", name), "comp"
+        elif name in m.actors:
+            node = nid("a_", name)
+            nodes[node] = f'(["{ml(name)}"]):::actor'
+            return node
+        else:
+            node, cls = nid("x_", name), "ext"
+        nodes[node] = f'["{ml(name)}"]:::{cls}'
+        return node
+
+    def serving(ep):
+        return [nid("m_", x["module"]) for x in mods if ep in as_list(x.get("serves"))] or [border]
+
     def store(sid):
         engine = (m.stores.get(sid) or (m.private.get(sid) or (None, {}))[1]).get("engine", "")
         cls = "store" if sid in m.stores else "private"
@@ -239,11 +255,8 @@ def module_map(m, comp):
             head, _, ep = ref.partition(".")
             if head == comp:
                 continue
-            kind = "comp" if head in m.components else "ext" if head in m.externals else None
-            if kind:
-                dst = nid("c_" if kind == "comp" else "x_", head)
-                nodes[dst] = f'["{ml(head)}"]:::{kind}'
-                edge(src, "-->", dst, ml(ep) if ep else "calls")
+            if head in m.components or head in m.externals:
+                edge(src, "-->", peer(head), ml(ep) if ep else "calls")
         for s, ents in (h.get("writes") or {}).items():
             edge(src, "==>", store(s), entity_label("writes", ents))
         for s, ents in (h.get("reads") or {}).items():
@@ -254,6 +267,23 @@ def module_map(m, comp):
             edge(queue(q), "-.->", src, entity_label("consumes", ents))
     for s in c.get("datastores") or []:
         edge(border, "===", store(s["datastore"]), "owns")
+
+    others = [n for n in m.components if n != comp]
+    for ep, spec in (c.get("endpoints") or {}).items():
+        ref = f"{comp}.{ep}"
+        callers = [n for n in others if any(ref in as_list(h.get("calls")) for _, h in m.holders(n))]
+        callers += [x for x, s in m.externals.items() if ref in as_list(s.get("calls"))]
+        callers += [a for a in as_list(spec.get("for")) if a not in m.components and a not in m.externals]
+        for name in callers:
+            for dst in serving(ep):
+                edge(peer(name), "-->", dst, ml(ep))
+    for n in others:
+        if any(comp in as_list(h.get("calls")) for _, h in m.holders(n)):
+            edge(peer(n), "-->", border, "calls")
+    for ep, spec in (c.get("ui_endpoints") or {}).items():
+        for actor in as_list(spec.get("for")):
+            for dst in serving(ep):
+                edge(peer(actor), "-->", dst, ml(ep))
 
     L += [f"  {node}{shape}" for node, shape in nodes.items()]
     L += [f'  {src} {style}|"{"<br/>".join(labels)}"| {dst}' for (src, style, dst), labels in edges.items()]
@@ -327,11 +357,16 @@ def state_diagram(transitions):
 
 
 def sequence(m, steps):
+    """One lifeline per component; modules appear on the arrow labels."""
+    def lifeline(p):
+        head, _, mod = p.partition(".")
+        return (head, mod) if mod and head in m.components else (p, None)
+
     L = ["sequenceDiagram", "  autonumber"]
     order = []
     for step in steps:
         a, _, b, _ = arrow(step)
-        for p in (a, b):
+        for p in (lifeline(a)[0], lifeline(b)[0]):
             if p not in order:
                 order.append(p)
     pid = {p: f"p{i}" for i, p in enumerate(order)}
@@ -340,7 +375,9 @@ def sequence(m, steps):
         L.append(f'  {kind} {pid[p]} as {ml(p)}')
     for step in steps:
         a, op, b, label = arrow(step)
-        L.append(f"  {pid[a]} {'->>' if op == '->' else '--)'} {pid[b]}: {ml(label or '')}")
+        (src, src_mod), (dst, dst_mod) = lifeline(a), lifeline(b)
+        text = " → ".join(x for x in (src_mod, label, dst_mod) if x)
+        L.append(f"  {pid[src]} {'->>' if op == '->' else '--)'} {pid[dst]}: {ml(text)}")
     return "\n".join(L)
 
 
@@ -349,6 +386,8 @@ def sequence(m, steps):
 def rel_rows(h):
     """kv rows for a relation holder."""
     rows = []
+    if h.get("serves"):
+        rows.append(("serves", joined(h["serves"])))
     if h.get("uses"):
         rows.append(("uses", joined(h["uses"])))
     if h.get("calls"):
@@ -388,7 +427,8 @@ def component_card(m, name, c):
             items.append(f'<div class="module"><b>{esc(x["module"])}</b> — {esc(joined(x.get("does")))}{pk}'
                          f'{kv([(k, esc(v)) for k, v in rel_rows(x)])}</div>')
         legend = ('<div class="legend">Solid arrow: uses, calls (label = endpoint) or reads · thick: writes · dashed: '
-                  'message via queue · from the border: applies to every module.</div>')
+                  'message via queue · at the border: the component as a whole or code outside the listed '
+                  'modules.</div>')
         mod_html = (f'<div class="modules"><h3>Modules</h3>{mermaid(module_map(m, name))}{legend}'
                     f'{"".join(items)}</div>')
     path = f'<span class="muted mono">{esc(c["source_path"])}</span>' if c.get("source_path") else ""

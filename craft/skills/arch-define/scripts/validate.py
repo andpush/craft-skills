@@ -131,8 +131,17 @@ def check(path, skip_paths=False):
     for c in components.values():
         name = c["component"]
         check_relations(c, f"component {name}", name)
+        surfaces = {**(c.get("endpoints") or {}), **(c.get("ui_endpoints") or {})}
+        served = set()
         for m in c.get("modules") or []:
             check_relations(m, f"module {name}.{m['module']}", name)
+            for ep in as_list(m.get("serves")):
+                served.add(ep)
+                if ep not in surfaces:
+                    err(f"module {name}.{m['module']}: serves '{ep}' — no such endpoint in {name}")
+        if c.get("modules"):
+            for ep in sorted(set(surfaces) - served):
+                warn(f"endpoint {name}.{ep}: served by no listed module")
         if not skip_paths and c.get("source_path") and not (root / c["source_path"]).exists():
             err(f"component {name}: source_path '{c['source_path']}' does not exist")
         for ep, spec in (c.get("ui_endpoints") or {}).items():
@@ -143,6 +152,8 @@ def check(path, skip_paths=False):
                     warn(f"ui endpoint {name}.{ep}: for lists '{actor}', but actor's uses doesn't list {name}")
     for m in root_modules.values():
         check_relations(m, f"module {m['module']}", None)
+        if m.get("serves"):
+            err(f"module {m['module']}: serves — a root module has no endpoints")
 
     for a, spec in actors.items():
         for u in as_list(spec.get("uses")):
@@ -217,7 +228,7 @@ def check(path, skip_paths=False):
     for flow, steps in (model.get("flows") or {}).items():
         for step in steps:
             a, op, b, label = arrow(step)
-            (ka, ca, ma), (kb, cb, _) = participant(a), participant(b)
+            (ka, ca, ma), (kb, cb, mb) = participant(a), participant(b)
             where = f"flow '{flow}': {a} {op} {b}"
             if ka is None or kb is None:
                 err(f"{where} — unknown participant '{a if ka is None else b}'")
@@ -240,6 +251,10 @@ def check(path, skip_paths=False):
             elif ka == "component" and kb == "datastore":
                 rel = allowed(ca, ma)
                 ok = private_stores.get(cb) == ca or any(t == cb for t, _ in rel["reads"] | rel["writes"])
+            elif ka == "component" and ca == cb and ma and mb:
+                source = next(x for x in components[ca]["modules"] if x["module"] == ma)
+                used = as_list(components[ca].get("uses")) + as_list(source.get("uses"))
+                ok = any(u.split(" ")[0].removeprefix(f"{ca}.") == mb for u in used)
             elif ka == "component":
                 calls = allowed(ca, ma)["calls"]
                 ok = any(r == cb or r.split(".")[0] == cb for r in calls) if kb == "component" else b in calls

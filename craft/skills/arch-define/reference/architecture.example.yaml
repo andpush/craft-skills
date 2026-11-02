@@ -55,10 +55,12 @@ components:
       - module: catalog
         does: Products, prices and availability
         packages: [com.shop.catalog.**]
+        serves: [storefront-api]
         writes: { shop-db: [products, prices] }
       - module: orders
         does: Order lifecycle from cart to fulfilment
         packages: [com.shop.orders.**]
+        serves: [storefront-api, admin-api]
         uses: [catalog]            # module-level: only orders may do these
         calls: [payments.payments-api]                  # authorize at checkout
         writes: { shop-db: [orders, order-lines] }
@@ -161,13 +163,18 @@ flows:                             # main success paths; -> sync call, ~> async 
   checkout:
     - customer -> storefront-web: place order
     - storefront-web -> core.orders: POST /api/orders
+    - core.orders -> core.catalog: check availability
     - core.orders -> payments: Authorize(order_id, idempotency_key)
     - payments -> stripe: create payment intent (manual capture)
+    - payments -> payments-db: save payment, hold
+    - core.orders -> shop-db: save orders, order-lines
   cancel order:
     - support -> admin-cli: cancel <order-id>
     - admin-cli -> core.orders: POST /admin/orders/{id}/cancel
+    - core.orders -> shop-db: set orders.status cancelled
     - core.orders ~> payments: order-cancelled
     - payments -> stripe: cancel payment intent
+    - payments -> payments-db: release hold
 
 rules:                             # only what relations can't express; level defaults to must
   - rule: idempotent-consumers

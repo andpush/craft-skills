@@ -120,7 +120,7 @@
     },
     "flows": {
       "type": "object",
-      "description": "One to three main success paths, keyed by name. Steps in order. Participants: actor, external, component, '<component>.<module>', datastore, queue. 'a -> b: label' is a sync call, allowed by a's calls (b, b's component or one of its endpoints), an actor's uses, or reads/writes for a datastore. 'a ~> b: message' is async; message is an entity of a queue that a produces and b consumes.",
+      "description": "One to three main success paths, keyed by name. Steps in order. Participants: actor, external, component, '<component>.<module>', datastore, queue. 'a -> b: label' is a sync call, allowed by a's calls (b, b's component or one of its endpoints), an actor's uses, reads/writes for a datastore, or uses between two modules of one component. 'a ~> b: message' is async; message is an entity of a queue that a produces and b consumes.",
       "additionalProperties": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/arrow" } }
     },
     "rules": {
@@ -227,6 +227,11 @@
       "properties": {
         "module": { "$ref": "#/$defs/id" },
         "does": { "$ref": "#/$defs/strings" },
+        "serves": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "description": "Endpoints and ui_endpoints of its component that this module handles. Nested modules only; one endpoint can be served by several modules."
+        },
         "packages": {
           "$ref": "#/$defs/strings",
           "description": "Package patterns ('com.shop.orders.**') or directory globs."
