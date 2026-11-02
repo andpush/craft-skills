@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --quiet --script
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["pyyaml>=6"]
+# dependencies = ["jsonschema>=4.18", "pyyaml>=6"]
 # ///
 """The deterministic half of a craft review: triggers, model diff, skeleton, tier.
 
@@ -24,13 +24,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "view" / "scripts"))
 import view as m  # noqa: E402 — shared model, git and markdown helpers
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch-define" / "scripts"))
+import validate  # noqa: E402 — architecture findings
+
 TEST_FILE = re.compile(r"(^|/)(tests?|__tests__|spec)/|[._-](test|spec)\.\w+$|Tests?\.(kt|java|scala|cs)$"
                        r"|_test\.(go|py)$|(^|/)test_[^/]*\.py$")
 SKIP_MARK = re.compile(r"@Disabled|@Ignore\b|\.skip\(|\bx(it|describe|test)\(|\.only\(|@pytest\.mark\.skip"
                        r"|\bt\.Skip\(|#\[ignore\]")
 LOCKFILE = re.compile(r"(\.lock|-lock\.(json|yaml)|\.sum)$")
 REACH = {"local": 0, "private": 1, "internet": 2}
-DOC_FILES = {"PRODUCT.md", "ARCHITECTURE.md", "AGENTS.md", "CLAUDE.md", Path(m.MODEL_FILE).name}
+DOC_FILES = {"PRODUCT.md", "AGENTS.md", "CLAUDE.md", Path(m.MODEL_FILE).name}
 CONTRACT_TRIGGERS = ("dependency", "schema", "api", "event")
 RED_CONTRACTS = {"dependency", "schema", "api", "event", "data-writer", "data-copy", "external-call"}
 AC_COMMIT_SUBJECT = "test: acceptance tests"
@@ -142,10 +145,17 @@ def surface(raw: dict) -> dict:
 
 def data_access(raw: dict) -> set:
     """(component, relation, target, entity) over each component and its modules."""
-    return {(c["component"], rel, target, e)
-            for c in raw["components"] for h in [c, *(c.get("modules") or [])]
-            for rel in ("reads", "writes", "produces", "consumes")
-            for target, ents in (h.get(rel) or {}).items() for e in ents or [None]}
+    holders = [(c["component"], h) for c in raw["components"] for h in [c, *(c.get("modules") or [])]]
+    return {(comp, rel, target, e) for comp, h in holders for rel in ("reads", "writes", "produces", "consumes")
+            for target, ents in (h.get(rel) or {}).items() for e in ents or [None]} | {
+        (comp, "uses", u, None) for comp, h in holders for u in h.get("uses") or []}
+
+
+def deficiencies_of(raw: dict) -> set:
+    with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False, encoding="utf-8") as f:
+        m.yaml.safe_dump(raw, f)
+    validate.check(f.name, skip_paths=True)
+    return set(validate.deficiencies)
 
 
 def logins(raw: dict) -> set:
@@ -187,6 +197,7 @@ def define_changes(old: dict | None, new: dict | None) -> list:
     for comp, rel, target, entity in sorted(data_access(new) - data_access(old), key=str):
         what = f"{comp} {rel} {target}" + (f".{entity}" if entity else "")
         out.append(("red", f"data-writer: {what}") if rel == "writes" else ("yellow", f"model: {what}"))
+    out += [("red", f"arch-check: new deficiency: {d}") for d in sorted(deficiencies_of(new) - deficiencies_of(old))]
     kept = {n["note"] for n in new.get("notes") or []}
     out += [("yellow", f"model: note changed or removed: {n['note'][:60]}") for n in old.get("notes") or [] if n["note"] not in kept]
     return out

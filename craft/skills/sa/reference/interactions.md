@@ -33,7 +33,7 @@ Load when a change adds or changes an API, an event, a message consumer, or a ca
 
 ## Externals
 
-- Each external sits behind one component (`depends_on` in the model). Its client never leaks into
+- Each external sits behind one component (`calls` in the model). Its client never leaks into
   other components.
 - Decide the failure behavior up front: fail, degrade, or queue and retry. Partial failure — the
   external did the work but the response was lost — needs reconciliation or an idempotent retry.

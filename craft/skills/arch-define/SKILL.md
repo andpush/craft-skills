@@ -54,7 +54,7 @@ dimensions below with `file:line`. Small repo: one pass yourself.
 | status enums and the code that changes them | `states` |
 | architecture tests, lint configs | `rules` with `check` |
 
-Record the relations the code actually has: the model is a true baseline, and `guard` freezes
+Record the relations the code actually has: the model is a true baseline, and `guard3` freezes
 existing violations. Then ask the user, in batches, only what code can't tell: actors, the purpose
 of components and externals, endpoint consumers outside the repo, which flows are the main ones,
 which lifecycles matter, which rules they intend.
@@ -75,7 +75,7 @@ Structure shows what exists, not what is meant. From the user, prose docs and co
 what a competent reader would still get wrong: deliberate oddities, false boundaries, effects wider
 than they look, hidden reasons. Check each against the code; a contradiction is a finding. What must
 keep holding becomes a rule, the rest a one- or two-sentence note. How-to-work content goes to
-`AGENTS.md` or `README.md`.
+`AGENTS.md`.
 
 ## 4. Findings
 
@@ -122,7 +122,11 @@ catch it drifting?
   `check` names a file that exists.
 - **Tech:** names with major versions. **Glossary:** non-obvious terms only.
 
-## 6. Verify and confirm
+## 6. `AGENTS.md`
+
+Create it from [reference/agents-template.md](reference/agents-template.md), or fill what's missing in an existing one, and make `CLAUDE.md` the single line `@AGENTS.md`. At most 60 lines: commands, invariants, merge policy, pointers. Ask the user for the merge policy.
+
+## 7. Verify and confirm
 
 1. `uv run --quiet <this-skill-dir>/scripts/validate.py docs/architecture.yaml` exits 0. It checks the
    schema, every reference, flows against relations, states against entity fields, endpoint `for`
@@ -135,4 +139,4 @@ catch it drifting?
 Done when the validator exits 0 and the user has approved the model.
 
 Report in a few lines: the file written, findings and their outcomes, open questions, and the next
-step — `guard`, to turn relations and rules into checks.
+step — `guard3`, to turn relations and rules into checks.

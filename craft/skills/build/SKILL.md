@@ -29,7 +29,7 @@ Read the queue: unclaimed items are `status: ready`. Order by `priority: high` f
 Stamp the item `status: in-progress`, `owner: <this session/agent id>`, `started: <ISO ts>` and save it. This is the lock: it's why two executors (or a human and an agent) can work the same queue without both grabbing one item, and why a crashed run is visible rather than silently lost. If an item is already `in-progress` but its owner is clearly gone (process ended, timestamp long stale), reclaim it — overwrite owner/started and continue.
 
 ### 3. Build
-Implement the item following `docs/ARCHITECTURE.md` conventions and the item's own approach/acceptance. For a substantial `feat`, prefer dispatching a subagent to do the implementation so this executor's context stays clean and it can keep driving the queue; a small `task` is fine inline. The item is the brief — don't re-litigate its decisions.
+Implement the item following `AGENTS.md`, `docs/architecture.yaml` and the item's own approach/acceptance. For a substantial `feat`, prefer dispatching a subagent to do the implementation so this executor's context stays clean and it can keep driving the queue; a small `task` is fine inline. The item is the brief — don't re-litigate its decisions.
 
 ### 4. Review pass
 Before verifying, run a review/simplify pass (the `code-review` and `simplify` skills, or equivalents) and fold in the safe fixes — no duplications, no dead code, no unjustified complexity. Catching this now, in the same context that wrote the code, is cheaper than a later cleanup round.
@@ -38,7 +38,7 @@ Before verifying, run a review/simplify pass (the `code-review` and `simplify` s
 The item carries its own acceptance criteria — they're the contract, and meeting them is the only gate. Judge honestly against what the item asked for; don't wave it through. (Criteria always bottom out in: builds, runs, lint clean, tests green, behavior observable — the item may add more.)
 
 ### 6. Close
-- **Pass:** set `status: done`, bump `updated`, `git mv` the item and any same-basename images (`<item>-*.png`) into `docs/done/`. Commit with a message naming the item. Transcribe any inlined architectural decisions to `docs/adr/`; keep `README.md`/`docs/ARCHITECTURE.md` in sync if the change touched them.
+- **Pass:** set `status: done`, bump `updated`, `git mv` the item and any same-basename images (`<item>-*.png`) into `docs/done/`. Commit with a message naming the item. Transcribe any inlined architectural decisions to `docs/adr/`; keep `README.md`/`docs/architecture.yaml` in sync if the change touched them.
 - **Fail:** set `status: blocked` with a one-line reason, leave the item in `docs/ready/`, and stop (`/build all` halts here too — don't skip past a failure silently). Report what blocked it.
 
 ### 7. Report

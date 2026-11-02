@@ -124,6 +124,11 @@
       "description": "One to three main success paths, keyed by name. Steps in order. Participants: actor, external, component, '<component>.<module>', datastore, queue. 'a -> b: label' is a sync call, allowed by a's calls (b, b's component or one of its endpoints), an actor's uses, reads/writes for a datastore, or uses between two modules of one component. 'a ~> b: message' is async; message is an entity of a queue that a produces and b consumes.",
       "additionalProperties": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/arrow" } }
     },
+    "review_triggers": {
+      "type": "object",
+      "description": "Kind (security, ci, ...) -> extra path globs that turn a review red, such as deploy and auth config. Specs, migrations and rule checks are derived.",
+      "additionalProperties": { "$ref": "#/$defs/strings" }
+    },
     "notes": {
       "type": "array",
       "description": "What a competent reader of the model and the code would still get wrong: deliberate oddities, false boundaries, effects wider than they look, shapes with a hidden reason. What must keep holding is a rule, not a note.",

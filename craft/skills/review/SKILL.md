@@ -33,7 +33,7 @@ Run the `code-review` skill on base..head (effort `high` when red, `medium` othe
 - **Contracts** → `contracts`, one per dependency/schema/api/event trigger and per model change to externals or data. Each needs `what`, `consequence`, `compat` and `migration`.
   - **Schema:** read the migration whole. Check for destructive steps, NOT NULL without a default, locking index builds, backfill, and whether old code runs against the new schema.
   - **API and events:** check for removed, renamed or newly required fields, changed semantics, versioning, and consumers' idempotency and ordering.
-- **Model:** code that imports another component outside `depends_on` is a deviation. A write to an entity from a component other than its owner is a high finding.
+- **Model:** code that imports what the model's `uses` doesn't list is a deviation. A write the model's `writes` doesn't list is a high finding.
 - **Blast radius** → `blast`: for each changed public symbol, list the callers outside the diff (LSP references, or grep) and the tests that cover them. Stop after the five symbols with the most callers.
 - **Negative cases:** check the spec's testing approach, then the usual suspects: another user's or tenant's data, revoked rights, duplicates, reordering, concurrency, partial failure. An untested one is a suspicion.
 - **Manual rules:** check each `manual` rule in `not_checked` against the diff, then remove it. A violation becomes a finding.

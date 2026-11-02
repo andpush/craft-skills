@@ -42,7 +42,7 @@ DEFAULT_TRIGGERS = {
     "api": ["**/openapi*.yaml", "**/openapi*.yml", "**/openapi*.json", "**/*.proto", "**/*.graphql"],
     "security": ["**/auth/**", "**/security/**", "**/*crypto*", "**/*secret*", "**/.env*"],
     "ci": [".github/workflows/**", ".gitlab-ci.yml", "Jenkinsfile", ".circleci/**"],
-    "arch-check": ["**/archunit_store/**", "**/.dependency-cruiser*", "**/ArchitectureTest*"],
+    "arch-check": ["**/architecture.gate.json", "**/architecture.baseline", "**/archunit_store/**", "**/.dependency-cruiser*", "**/ArchitectureTest*"],
 }
 
 
@@ -187,8 +187,14 @@ def from_arch_define(raw: dict) -> dict:
     rules = [{"id": r.get("rule"), "level": r.get("level", "must"), "rule": r.get("statement", ""),
               "scope": [f"{k}: {text(v)}" for k, v in (r.get("applies_to") or {}).items()],
               "checked_by": r.get("check") or "manual"} for r in raw.get("rules") or []]
+    stores = [*(raw.get("datastores") or []), *(s for c in raw["components"] for s in c.get("datastores") or [])]
+    surfaces = [s for c in raw["components"] for f in ("endpoints", "ui_endpoints") for s in (c.get(f) or {}).values()]
+    triggers = {str(k): as_list(v) for k, v in (raw.get("review_triggers") or {}).items()}
+    triggers.setdefault("api", []).extend(s["spec"] for s in surfaces if s.get("spec"))
+    triggers.setdefault("schema", []).extend(f"{s['source_path'].rstrip('/')}/**" for s in stores if s.get("source_path"))
+    triggers.setdefault("arch-check", []).extend(r["check"] for r in raw.get("rules") or [] if r.get("check"))
     return {"system": raw.get("system"), "does": raw.get("summary"), "external": outside, "components": comps,
-            "entities": entities, "flows": raw.get("flows"), "rules": rules}
+            "entities": entities, "flows": raw.get("flows"), "rules": rules, "review_triggers": triggers}
 
 
 def load_model(path: Path | None) -> dict:

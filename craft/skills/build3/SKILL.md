@@ -9,7 +9,7 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 
 ## Before the first item
 
-- `AGENTS.md` names the `verify` command. No `verify` → stop and offer `guard`; without it there is no gate.
+- `AGENTS.md` names the `verify` command. No `verify` → stop and offer `guard3`; without it there is no gate.
 - The worktree is clean, you're on main, and main is current (`git pull --ff-only` when a remote exists).
 - Read the merge policy in `AGENTS.md`: `Merge: pr | local`, `Auto-merge: off | green`. Missing: `pr` when a remote exists, else `local`; auto-merge `off`.
 
@@ -58,10 +58,10 @@ git commit -m "test: acceptance tests for <item>"
 ### 4. Implement
 
 A subagent gets the item path, `AGENTS.md`, the AC commit's file list, and these rules:
-- Stay inside the `target` components and their `depends_on` in `docs/architecture.yaml`.
+- Stay inside the `target` components and the relations `docs/architecture.yaml` lists for them.
 - Read the model's `notes` about what you touch. If the change would make one false, stop and raise it.
 - Don't edit the AC test files. If one looks wrong, stop and report it — that's a spec question, not a code one.
-- Don't edit `docs/ARCHITECTURE.md`, `docs/PRODUCT.md` or `AGENTS.md`: you apply the doc impact at close.
+- Don't edit `docs/architecture.yaml`, `docs/PRODUCT.md` or `AGENTS.md`: you apply the doc impact at close.
 - Commit in small commits; report what changed and anything done differently from the spec, with the reason.
 
 A small `task` item may be done inline.
@@ -79,6 +79,7 @@ Fix what has a clear fix: confirmed findings, failing ACs, deviations, model vio
 ### 7. Close in the branch
 
 1. Apply the item's **Doc impact** exactly — the only doc edits this skill makes.
+   If that changed `docs/architecture.yaml`, re-run `gate.py` (see `guard3`). If it refuses a new deficiency, stop and ask the user; never pass `--accept` yourself.
 2. Write the ADRs the item agreed to, in the format of [../sa/reference/adr.md](../sa/reference/adr.md).
 3. File an idea (`docs/ideas/idea-<slug>.md`) for each piece of deferred work and each temporary flag or adapter, with its removal condition.
 4. Commit these with the review file (`docs: <item>`), then rerun the review script without `--base` so the tier covers the docs too:

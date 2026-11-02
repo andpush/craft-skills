@@ -7,7 +7,7 @@ Load when a change adds an entity, a store, a copy of data, or a second writer.
 - Every entity has exactly one owner — the only component that writes it (`owner` in the model).
   Others read through the owner's interface, or hold a copy.
 - A second writer is a design change, not an implementation detail. If it's truly needed, move the
-  entity, or split it so each part has one writer. `guard` and `review` treat it as red.
+  entity, or split it so each part has one writer. `validate.py` reports it, and `review` treats a new one as red.
 - Shared tables between components are a second writer in disguise. A view or read replica is
   fine; a shared write path is not.
 

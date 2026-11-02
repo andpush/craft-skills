@@ -1,6 +1,6 @@
 {
   "name": "craft",
-  "description": "Distilled engineering workflow — idea to production: prod (define the product), arch (the architecture model), guard (the verify gate and architecture checks), spec/task (frame build-ready work into the queue), build3 (execute on a branch), review (risk-tiered, guided change review).",
+  "description": "Distilled engineering workflow — idea to production: prod (define the product), arch-define (the architecture model), guard3 (the verify gate and architecture checks), spec/task (frame build-ready work into the queue), build3 (execute on a branch), review (risk-tiered, guided change review).",
   "version": "2.1.0",
   "author": {
     "name": "Andrei Pushkin",

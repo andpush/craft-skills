@@ -97,11 +97,10 @@ safety net that locks current behavior before code moves.*
 
 ### Doc impact *[if any]*
 
-*The exact edits this change makes to `docs/ARCHITECTURE.md`, `docs/PRODUCT.md`, `AGENTS.md` or
+*The exact edits this change makes to `docs/PRODUCT.md`, `AGENTS.md` or
 `docs/architecture.yaml` — the only doc edits `build3` may apply. "None" when none.*
 
-- `docs/architecture.yaml`: <e.g. orders.depends_on += notify>
-- `docs/ARCHITECTURE.md` § <section>: <one line>
+- `docs/architecture.yaml`: <e.g. orders.uses += notify>
 
 ### Open questions *[if any]*
 

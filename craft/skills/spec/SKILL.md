@@ -13,10 +13,10 @@ Once it's ready, the implementation is a delegated execution — via `build3` (c
 
 ## Context gates — detect, don't dead-end
 
-`spec` builds on `docs/PRODUCT.md`, `docs/ARCHITECTURE.md` and `docs/architecture.yaml`.
+`spec` builds on `docs/PRODUCT.md` and `docs/architecture.yaml`.
 
 If either is missing or placeholder-only — offer a fork:
-- **Establish now** — run `prod`/`arch` skills in this session, then continue the spec.
+- **Establish now** — run `prod`/`arch-define` skills in this session, then continue the spec.
 - **Defer** — name what's missing and why it matters, then stop so the user runs `/init` separately.
 
 ## Core Principles
@@ -42,7 +42,7 @@ Be terse, pragmatic, ask only what affects the solution, no Q&A theatre. That me
 
 ### 1. Explore the context
 Understand the ground you're building on:
-- Read `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/architecture.yaml`, including its `notes` about what the change touches.
+- Read `docs/PRODUCT.md` and `docs/architecture.yaml`, including its `notes` about what the change touches.
 - Peek into dir tree, recent commit log, `docs/ideas/` and `docs/adr/` listings if warranted. Before proposing an option, grep the ADRs' `## Rejected` for it.
 - Explore additional context and zoom in as needed.
 
@@ -64,13 +64,13 @@ As new information arises, iterate between the solution and the problem framing 
 
 - Use template [reference/spec-template.md](reference/spec-template.md).
 - Lead with the **Review Brief**: the scannable decision surface a human approves from. Keep execution detail below it, and only where it's needed.
-- Be concrete, avoid prose, duplications, restatements of `docs/PRODUCT.md`/`docs/ARCHITECTURE.md` - link instead.
+- Be concrete, avoid prose, duplications, restatements of `docs/PRODUCT.md`/`docs/architecture.yaml` - link instead.
 - YAGNI: Focus on the core value, and defer non-essential ideas to `docs/ideas/`.
 - If the change path crosses code smells (oversized file, tangled responsibilities, unclear boundaries), fold targeted fixes into the spec — improve what you touch. Don't propose unrelated refactoring.
 - **Contract changes** go in the Review Brief, one per item with its consequence: a new or upgraded dependency, a schema change, a public API or event change, a new writer or copy of data, a new external call. They outlive the code, so they're what the human reviews first. Load the `sa` lens the change touches ([../sa/SKILL.md](../sa/SKILL.md) § Lenses).
 - **A schema or stored-format change needs a Migration plan:** expand → backfill → switch → contract, mixed-version behavior, roll-forward.
-- **Targets and the model:** `target:` lists component names from `docs/architecture.yaml`. A change that needs a new component, a new `depends_on` edge, a new entity or owner, or a new rule says so in **Doc impact**, as an exact edit to `docs/architecture.yaml`.
-- **Doc impact** lists the exact edits to `docs/ARCHITECTURE.md`, `docs/PRODUCT.md`, `AGENTS.md` and `docs/architecture.yaml`. `build3` applies only these, and `review` flags any other doc edit.
+- **Targets and the model:** `target:` lists component names from `docs/architecture.yaml`. A change that needs a new component, a new relation, a new entity, wider exposure, or a new rule says so in **Doc impact**, as an exact edit to `docs/architecture.yaml`.
+- **Doc impact** lists the exact edits to `docs/PRODUCT.md`, `AGENTS.md` and `docs/architecture.yaml`. `build3` applies only these, and `review` flags any other doc edit.
 - Define a feature-relevant testing approach following the testing pyramid, with the negative cases that apply. For UI changes, consider e2e using playwright-cli skill or similar. Gate refactoring with TDD: establish a green safety net before restructuring.
 - **Acceptance is a table of commands:** `| ID | Criterion | Command |`. Each criterion names observable behavior; its command runs exactly the tests named `AC<n>_…` (the AC command form in `AGENTS.md`). `build3` has these tests written first, by an agent that sees only the spec — so a criterion must be testable from the spec alone. A criterion no test can show is marked `(manual)` with `—` as the command; the human checks it at review. `verify` exiting 0 is always implied.
 

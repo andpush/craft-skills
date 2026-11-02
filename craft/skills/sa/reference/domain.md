@@ -5,7 +5,7 @@ Load when a change adds or moves a component, an entity, or a boundary.
 ## Boundaries
 
 - **Default: a modular monolith.** One deployable, components as modules with enforced
-  `depends_on`. Split a deployable only for a named driver: independent scaling, a separate team,
+  `uses`. Split a deployable only for a named driver: independent scaling, a separate team,
   a different release cadence, or isolation of a failure or a secret.
 - **Draw boundaries around data and its rules,** not around layers or technical roles. A component
   that owns no data and no rule is usually a folder, not a component.

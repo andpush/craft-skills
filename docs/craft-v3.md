@@ -2,6 +2,10 @@
 
 Status: agreed 2026-10-27. The contract every v3 skill relies on; change it first, then the skills.
 
+## Update 2026-11: model without `ARCHITECTURE.md`
+
+Where this contract says `arch`, `guard` or `docs/ARCHITECTURE.md`, the new flow uses `arch-define`, `guard3` and `docs/architecture.yaml` alone (format: `arch-define/reference/architecture.schema.json`). Intent lives in the model's `notes` and `rules`, how-to-work in `AGENTS.md`. Checks read the generated `docs/architecture.gate.json`, not the YAML. `arch` and `guard` stay for old-format models until the new ones are proven.
+
 ## Goal
 
 Same minimal flow `prod → arch → spec/task → build`, plus what v2 lacks: executable acceptance,
