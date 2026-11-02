@@ -50,8 +50,7 @@ dimensions below with `file:line`. Small repo: one pass yourself.
 | HTTP/gRPC clients, SDKs, configured URLs | `calls`, `external`, endpoint `for` |
 | migrations, ORM mappings, repositories — who writes which table | `datastores`, entities, `reads`, `writes` |
 | topics, producers, listeners | `queues`, `produces`, `consumes` |
-| security config, identity providers, permission checks | endpoint `auth`, `authz` |
-| deploy flags (ingress, firewall, bind address), how services authenticate to each other, DB logins | `exposure`, `identity`, `credential` |
+| security config, permission checks, deploy flags, service-to-service auth, DB logins | `auth`, `authz`, `exposure`, `identity`, `credential` |
 | status enums and the code that changes them | `states` |
 | architecture tests, lint configs | `rules` with `check` |
 
@@ -70,40 +69,25 @@ gets one of three outcomes, chosen by the user: fix the code (park it with `idea
 model line, or record an explicit decision. The model keeps its intent; code that contradicts it is
 a finding, never a silent edit.
 
-## 3. Intent: what structure can't say
+## 3. Intent
 
-The model shows what exists, not what is meant. Ask the user, and read `ARCHITECTURE.md`, ADRs and
-code comments, for:
-- what looks wrong but is deliberate, so someone would "fix" it
-- what looks like a boundary and isn't
-- what has a wider effect than it appears: a delete that cascades, an irreversible operation
-- what is shaped for a reason you can't see: a table split for the hot path
-
-Check every claim against the code first: prose goes stale, and a contradiction is a finding. Each
-one that survives goes to exactly one place:
-- must keep holding → `rules`, with a `check` if one is possible
-- would still be misread by a competent reader of the model and code → `notes`, anchored by `about`
-- how to work (commands, ports, process) → `AGENTS.md` or `README.md`
-- anything else → drop it
-
-At most ten notes, one or two sentences each. A note states the trap and its reason, not the design.
+Structure shows what exists, not what is meant. From the user, prose docs and code comments, collect
+what a competent reader would still get wrong: deliberate oddities, false boundaries, effects wider
+than they look, hidden reasons. Check each against the code; a contradiction is a finding. What must
+keep holding becomes a rule, the rest a one- or two-sentence note. How-to-work content goes to
+`AGENTS.md` or `README.md`.
 
 ## 4. Findings
 
-While modeling, flag the severe issues: those that make the architecture degrade or fail.
-- dependency cycles between components or modules
-- an entity written by several components; a component reaching into another's private store
-- a shared store or queue with no `schema_owner`
-- circular or chatty sync calls between services; an external on the critical path without timeout or fallback
-- at-least-once consumers without dedupe; retried calls to non-idempotent endpoints
-- a `shared` or `utils` module that holds business logic everyone depends on
-- an endpoint reachable more widely than its audience; an open or token-optional route that costs money or reaches personal data
-- a capability checked on one route but not its sibling; stores of different components sharing a login
-- greenfield: services, queues or caches that no driver demands
+`validate.py` reports the mechanical ones: cycles, several writers, open or over-exposed endpoints,
+shared logins. Add what takes reading the code: gates missing on a sibling route, open paths that
+cost money or touch personal data, chatty sync calls, externals without timeout or fallback,
+at-least-once consumers without dedupe, retried non-idempotent calls, a `utils` module holding
+business logic, and in greenfield parts that no driver demands.
 
-Each finding: what, evidence (`file:line` or model line), consequence, direction. The user decides:
-a rule to stop it growing, an `idea` to park the fix, or accept. This skill fixes the model, not
-the code.
+Each finding: what, evidence (`file:line` or model line), consequence, direction. Suggest each one
+as an `idea`; the user confirms, makes it a rule, or accepts it. This skill fixes the model, not the
+code.
 
 ## 5. Write the model
 
@@ -122,11 +106,8 @@ catch it drifting?
   model ids, or a short name for consumers outside the model (`partner-apps`). Each also has `auth`:
   protocol and providers, or `none` when it is deliberately open. Schedule endpoints have neither:
   they are the component's own trigger.
-- **Security** answers four separate questions. `exposure`: who can reach it on the network, from the
-  deploy config and not assumed from `auth`; set it on the component, override per endpoint.
-  `auth`: how identity is proven. `identity`: whose identity arrives (`user`, `service`, `none`).
-  `authz`: what the caller must be allowed. Routes with different answers are separate endpoints.
-  `credential` names a store's login, never the secret.
+- **Security:** `exposure` comes from the deploy config, not from `auth`. Routes that differ in
+  `exposure`, `auth`, `identity` or `authz` are separate endpoints.
 - **UI endpoints** have the same structure, for people and agents: `for` lists actors, and `protocol`
   is the real one (`http` for a web UI). Nothing `calls` them.
 - **Relations** list everything allowed. A missing one becomes a violation later, so the list is
@@ -145,9 +126,8 @@ catch it drifting?
 
 1. `uv run --quiet <this-skill-dir>/scripts/validate.py docs/architecture.yaml` exits 0. It checks the
    schema, every reference, flows against relations, states against entity fields, endpoint `for`
-   against callers, `serves` against endpoints, exposure against audience, shared logins, what each
-   note is `about`, and paths.
-   Warnings are findings.
+   against callers, `serves` against endpoints, what each note is `about`, and paths.
+   Warnings need fixing or explaining; findings go to step 4.
 2. Run the `sa` skill's Verify checklist against the model.
 3. Walk the user through the draft: components and their jobs, data ownership, exposure, flows, rules,
    notes, findings, open questions. Apply their changes, then re-run step 1.

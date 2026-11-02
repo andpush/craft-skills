@@ -1,6 +1,6 @@
 ---
 name: arch-view
-description: Use to show the project's architecture as one HTML page in the browser — system map, notes, components, endpoint exposure, data ownership, lifecycles, main flows, rules and the ADR decision timeline — rendered from `docs/architecture.yaml` for a quick human review.
+description: Use to show the project's architecture as one HTML page in the browser — system map, notes, components, endpoint exposure, data ownership, lifecycles, main flows, rules, the ADR decision timeline and findings — rendered from `docs/architecture.yaml` for a quick human review.
 ---
 
 A script renders the page deterministically from `docs/architecture.yaml` and `docs/adr/`. Run it and

@@ -29,6 +29,7 @@ TEST_FILE = re.compile(r"(^|/)(tests?|__tests__|spec)/|[._-](test|spec)\.\w+$|Te
 SKIP_MARK = re.compile(r"@Disabled|@Ignore\b|\.skip\(|\bx(it|describe|test)\(|\.only\(|@pytest\.mark\.skip"
                        r"|\bt\.Skip\(|#\[ignore\]")
 LOCKFILE = re.compile(r"(\.lock|-lock\.(json|yaml)|\.sum)$")
+REACH = {"local": 0, "private": 1, "internet": 2}
 DOC_FILES = {"PRODUCT.md", "ARCHITECTURE.md", "AGENTS.md", "CLAUDE.md", Path(m.MODEL_FILE).name}
 CONTRACT_TRIGGERS = ("dependency", "schema", "api", "event")
 RED_CONTRACTS = {"dependency", "schema", "api", "event", "data-writer", "data-copy", "external-call"}
@@ -66,6 +67,13 @@ def read_item(path: Path) -> dict:
             acs.append({"ac": row[1], "criterion": row[2], "command": "" if cmd in ("", "—", "-") else cmd})
     return {"targets": {t for t in re.split(r"[,\s/]+", fm.get("target", "")) if t},
             "doc_impact": impact[1] if impact else "", "acs": acs}
+
+
+def raw_at(repo: Path, ref: str, rel: str) -> dict | None:
+    try:
+        return m.yaml.safe_load(m.git(repo, "show", f"{ref}:{rel}"))
+    except (RuntimeError, m.yaml.YAMLError):
+        return None
 
 
 def model_at(repo: Path, ref: str, rel: str) -> dict | None:
@@ -118,6 +126,70 @@ def model_changes(old: dict | None, new: dict | None) -> tuple[list, list[str]]:
         elif (r["level"], now["level"]) == ("MUST", "SHOULD") or (now["manual"] and not r["manual"]):
             out.append(("red", f"arch-check: rule {r['id']} weakened"))
     return out, edges
+
+
+def surface(raw: dict) -> dict:
+    """Network endpoints of an arch-define model: ref -> (component, exposure, spec, open)."""
+    out = {}
+    for c in raw["components"]:
+        for field in ("endpoints", "ui_endpoints"):
+            for ep, spec in (c.get(field) or {}).items():
+                auth = spec.get("auth")
+                is_open = auth == "none" or any(p.endswith("-optional") for p in auth or {})
+                out[f"{c['component']}.{ep}"] = (c["component"], spec.get("exposure", c.get("exposure")), spec, is_open)
+    return out
+
+
+def data_access(raw: dict) -> set:
+    """(component, relation, target, entity) over each component and its modules."""
+    return {(c["component"], rel, target, e)
+            for c in raw["components"] for h in [c, *(c.get("modules") or [])]
+            for rel in ("reads", "writes", "produces", "consumes")
+            for target, ents in (h.get(rel) or {}).items() for e in ents or [None]}
+
+
+def logins(raw: dict) -> set:
+    """Pairs of owners that share a store login."""
+    owners: dict[str, set] = {}
+    for s in raw.get("datastores") or []:
+        owners.setdefault(s.get("credential"), set()).add(s.get("schema_owner") or s["datastore"])
+    for c in raw["components"]:
+        for s in c.get("datastores") or []:
+            owners.setdefault(s.get("credential"), set()).add(c["component"])
+    return {(k, a, b) for k, o in owners.items() if k for a in o for b in o if a < b}
+
+
+def define_changes(old: dict | None, new: dict | None) -> list:
+    """Security, data and note changes that only the arch-define format can show."""
+    if not (old and new and isinstance(old.get("components"), list) and isinstance(new.get("components"), list)):
+        return []
+    out, was, now = [], surface(old), surface(new)
+    for ref, (_, exposure, spec, is_open) in now.items():
+        if ref not in was:
+            out.append(("red", f"security: new open endpoint {ref} on the internet") if is_open and exposure == "internet"
+                       else ("yellow", f"model: new endpoint {ref}"))
+            continue
+        _, before, old_spec, was_open = was[ref]
+        if REACH.get(exposure, -1) > REACH.get(before, -1):
+            out.append(("red", f"security: {ref} exposure {before} -> {exposure}"))
+        if is_open and not was_open:
+            out.append(("red", f"security: {ref} now accepts anonymous calls"))
+        elif spec.get("auth") != old_spec.get("auth"):
+            out.append(("yellow", f"security: {ref} auth changed"))
+        out += [("red", f"security: {ref} no longer needs {a}")
+                for a in m.as_list(old_spec.get("authz")) if a not in m.as_list(spec.get("authz"))]
+        if spec.get("identity") == "user" and old_spec.get("identity") != "user":
+            out.append(("red", f"security: user identity now reaches {ref}"))
+    def user_side(s):
+        return {c for c, _, spec, _ in s.values() if spec.get("identity") == "user"}
+    out += [("red", f"security: user identity now reaches {c}") for c in sorted(user_side(now) - user_side(was))]
+    out += [("red", f"security: {a} and {b} now share the login {k}") for k, a, b in sorted(logins(new) - logins(old))]
+    for comp, rel, target, entity in sorted(data_access(new) - data_access(old), key=str):
+        what = f"{comp} {rel} {target}" + (f".{entity}" if entity else "")
+        out.append(("red", f"data-writer: {what}") if rel == "writes" else ("yellow", f"model: {what}"))
+    kept = {n["note"] for n in new.get("notes") or []}
+    out += [("yellow", f"model: note changed or removed: {n['note'][:60]}") for n in old.get("notes") or [] if n["note"] not in kept]
+    return out
 
 
 def diff_triggers(repo: Path, base: str, head: str, model: dict, item: dict | None, ac_commit: str | None) -> list:
@@ -222,6 +294,7 @@ def main() -> None:
     model = m.load_model(model_path)
     rel = str(model_path.relative_to(repo)) if model_path else m.MODEL_FILE
     changes, edges = model_changes(model_at(repo, base, rel), model_at(repo, head, rel))
+    changes += define_changes(raw_at(repo, base, rel), raw_at(repo, head, rel))
 
     ac_commit = args.ac_commit or (m.git(repo, "log", f"{base}..{head}", "--format=%H", "--grep",
                                          f"^{AC_COMMIT_SUBJECT}").split() or [None])[-1]

@@ -575,6 +575,14 @@ def load_adrs(folder):
     return adrs
 
 
+def findings_section(deficiencies, improvements):
+    def block(title, items, css):
+        if not items:
+            return ""
+        return f'<div class="{css}"><b>{title}</b><ul>{"".join(f"<li>{esc(i)}</li>" for i in items)}</ul></div>'
+    return block("Deficiencies", deficiencies, "problems") + block("Improvements", improvements, "problems warn")
+
+
 def decisions_section(adrs):
     items = []
     for a in adrs:
@@ -606,17 +614,17 @@ def decisions_section(adrs):
 
 def problems(path):
     if not VALIDATOR.exists():
-        return [], ["validator not found: model not checked"]
+        return [], ["validator not found: model not checked"], [], []
     spec = importlib.util.spec_from_file_location("arch_validate", VALIDATOR)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     errors, warnings = mod.check(path)
-    return list(errors), list(warnings)
+    return list(errors), list(warnings), list(mod.deficiencies), list(mod.improvements)
 
 
 def render(path):
     data = yaml.safe_load(path.read_text())
-    errors, warnings = problems(path)
+    errors, warnings, deficiencies, improvements = problems(path)
     m = Model(data)
     root = path.resolve().parent
     if root.name == "docs":  # the model lives in docs/; its paths are relative to the repo root
@@ -659,10 +667,13 @@ def render(path):
         sections.append(("decisions", "Decisions",
                          f'<p class="muted">{len(adrs)} decisions, {current} current, {rejected} rejected options.</p>'
                          + decisions_section(adrs)))
+    if deficiencies or improvements:
+        sections.append(("findings", "Findings", findings_section(deficiencies, improvements)))
 
     counts = [f"{len(m.components)} components", f"{len(m.stores) + len(m.private)} datastores",
               f"{len(m.queues)} queues", f"{len(m.externals)} external systems",
-              f"{len(data.get('rules') or [])} rules", f"{len(adrs)} decisions"]
+              f"{len(data.get('rules') or [])} rules", f"{len(adrs)} decisions",
+              f"{len(deficiencies)} deficiencies", f"{len(improvements)} improvements"]
     banner = ""
     if errors:
         banner += (f'<div class="problems"><b>{len(errors)} model errors</b> — fix with arch-define'

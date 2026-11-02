@@ -5,7 +5,7 @@
 """Validate docs/architecture.yaml: schema, references, flows, states, ownership.
 
 Usage: uv run validate.py [docs/architecture.yaml] [--skip-paths]
-Exit 1 on errors; warnings are printed but pass.
+Exit 1 on errors; warnings and findings (deficiencies, improvements) are printed but pass.
 """
 import json
 import re
@@ -19,8 +19,8 @@ SCHEMA = Path(__file__).resolve().parent.parent / "reference" / "architecture.sc
 RELATIONS = ("uses", "calls", "produces", "consumes", "reads", "writes")
 CLIENT_TYPES = {"web-app", "mobile-app", "desktop-app", "console-app"}  # run outside our network
 NOT_ON_NETWORK = {"native", "cli", "schedule"}
-MAX_NOTES = 10
 errors, warnings = [], []
+deficiencies, improvements = [], []
 
 
 def err(msg):
@@ -29,6 +29,34 @@ def err(msg):
 
 def warn(msg):
     warnings.append(msg)
+
+
+def deficiency(msg):
+    deficiencies.append(msg)
+
+
+def improve(msg):
+    improvements.append(msg)
+
+
+def cycles(graph):
+    """Groups of nodes that depend on each other, directly or through others."""
+    def reach(start):
+        seen, stack = set(), list(graph.get(start, ()))
+        while stack:
+            n = stack.pop()
+            if n not in seen:
+                seen.add(n)
+                stack.extend(graph.get(n, ()))
+        return seen
+    reached = {n: reach(n) for n in graph}
+    done, out = set(), []
+    for n in sorted(graph):
+        if n in reached[n] and n not in done:
+            group = sorted(x for x in reached[n] if n in reached.get(x, ()))
+            done |= set(group)
+            out.append(group)
+    return out
 
 
 def as_list(v):
@@ -43,9 +71,9 @@ def arrow(item):
 
 
 def check(path, skip_paths=False):
-    """Validate the model at path; return (errors, warnings)."""
-    errors.clear()
-    warnings.clear()
+    """Validate the model at path; return (errors, warnings). Findings land in deficiencies and improvements."""
+    for found in (errors, warnings, deficiencies, improvements):
+        found.clear()
     model = yaml.safe_load(Path(path).read_text())
     path = Path(path)
     root = path.resolve().parent
@@ -188,7 +216,13 @@ def check(path, skip_paths=False):
                 if (target in components or target in externals) and target not in callers | coarse:
                     warn(f"endpoint {ref}: for lists {target}, which doesn't call it")
 
-    # security: exposure, identity and authz against auth and audience
+    # security
+    def module_reach(name, ep):
+        """What the code behind an endpoint calls or changes."""
+        c = components[name]
+        mods = [m for m in c.get("modules") or [] if ep in as_list(m.get("serves"))] or [c]
+        return sorted({x for m in mods for x in [*as_list(m.get("calls")), *(m.get("writes") or {}), *(m.get("produces") or {})]})
+
     for name, c in components.items():
         for kind in ("endpoints", "ui_endpoints"):
             for ep, spec in (c.get(kind) or {}).items():
@@ -199,18 +233,20 @@ def check(path, skip_paths=False):
                 is_open = auth == "none" or any(p.endswith("-optional") for p in auth or {})
                 if not exposure:
                     warn(f"endpoint {ref}: no exposure")
-                if kind == "endpoints" and auth != "none" and not spec.get("identity"):
-                    warn(f"endpoint {ref}: no identity")
                 if auth == "none" and spec.get("identity") not in (None, "none"):
                     warn(f"endpoint {ref}: identity {spec['identity']}, but auth is none")
                 if is_open and spec.get("authz"):
-                    warn(f"endpoint {ref}: authz needs an identity, but anonymous calls are allowed; split the route")
+                    deficiency(f"{ref}: needs {', '.join(as_list(spec['authz']))}, but anonymous calls are allowed. Split the route.")
+                if audience == ["unused"] and exposure != "local":
+                    improve(f"{ref}: reachable, but nothing consumes it. Remove it or wire it up.")
                 if exposure != "internet":
                     continue
-                if audience == ["unused"]:
-                    warn(f"endpoint {ref}: on the internet with no consumer")
-                elif audience and all(a in components and components[a].get("type") not in CLIENT_TYPES for a in audience):
-                    warn(f"endpoint {ref}: on the internet, but only our own services consume it")
+                reach = module_reach(name, ep)
+                if is_open and reach:
+                    deficiency(f"{ref}: open to the internet, and its code reaches {', '.join(reach[:3])}. Require a token or a limit.")
+                elif audience != ["unused"] and audience and all(
+                        a in components and components[a].get("type") not in CLIENT_TYPES for a in audience):
+                    improve(f"{ref}: on the internet, but only our own services consume it. Narrow its ingress.")
     logins = {}
     for s in stores.values():
         logins.setdefault(s.get("credential"), set()).add(s.get("schema_owner") or s["datastore"])
@@ -219,7 +255,30 @@ def check(path, skip_paths=False):
             logins.setdefault(d.get("credential"), set()).add(c["component"])
     for login, owners in logins.items():
         if login and len(owners) > 1:
-            warn(f"credential {login}: shared by {', '.join(sorted(owners))}")
+            deficiency(f"{', '.join(sorted(owners))} share the login {login}: compromising one exposes the other's data.")
+
+    # structure
+    def targets(holders, me):
+        """Components and root modules these holders depend on; 'core.api test' -> core."""
+        refs = [r for h in holders for r in [*as_list(h.get("calls")), *as_list(h.get("uses"))]]
+        return {t for t in (r.split(" ")[0].split(".")[0] for r in refs)
+                if t != me and (t in components or t in root_modules)}
+    top = {n: targets([c, *(c.get("modules") or [])], n) for n, c in components.items()}
+    top |= {n: targets([m], n) for n, m in root_modules.items()}
+    for group in cycles(top):
+        deficiency(f"Dependency cycle between {', '.join(group)}.")
+    for n, c in components.items():
+        names = {m["module"] for m in c.get("modules") or []}
+        inner = {m["module"]: {r.split(" ")[0].removeprefix(f"{n}.") for r in as_list(m.get("uses"))} & names
+                 for m in c.get("modules") or []}
+        for group in cycles(inner):
+            deficiency(f"{n}: dependency cycle between modules {', '.join(group)}.")
+    for s in [*stores.values(), *queues.values()]:
+        if not s.get("schema_owner"):
+            deficiency(f"{s.get('datastore') or s.get('queue')}: shared, with no schema_owner.")
+    unchecked = [r["rule"] for r in model.get("rules") or [] if r.get("level", "must") == "must" and not r.get("check")]
+    if unchecked:
+        improve(f"Must rules that only review enforces: {', '.join(unchecked)}. Add a check where one is possible.")
 
     # notes
     known = set(top_ids) | set(entities)
@@ -229,13 +288,10 @@ def check(path, skip_paths=False):
         known |= {f"{c['component']}.{m['module']}" for m in c.get("modules") or []}
     for ent, fields in entities.items():
         known |= {f"{ent}.{f.split(' ')[0]}" for f in fields}
-    notes = model.get("notes") or []
-    for n in notes:
+    for n in model.get("notes") or []:
         for a in n["about"]:
             if a not in known:
                 err(f"note about '{a}': no such thing in the model — {n['note'][:50]}")
-    if len(notes) > MAX_NOTES:
-        warn(f"notes: {len(notes)}, keep at most {MAX_NOTES}: only what a reader would get wrong")
 
     # entity references and ownership
     for name, fields in entities.items():
@@ -250,7 +306,7 @@ def check(path, skip_paths=False):
                 writers.setdefault(ent, set()).add(c)
     for ent, ws in writers.items():
         if len(ws) > 1:
-            warn(f"entity {ent}: written by several components ({', '.join(sorted(ws))})")
+            deficiency(f"{ent}: written by several components ({', '.join(sorted(ws))}).")
     for s in stores.values():
         if s.get("schema_owner") and s["schema_owner"] not in components:
             err(f"datastore {s['datastore']}: schema_owner '{s['schema_owner']}' is not a component")
@@ -336,7 +392,11 @@ def report():
         print(f"warning: {w}")
     for e in errors:
         print(f"error: {e}")
-    print(f"{len(errors)} errors, {len(warnings)} warnings")
+    for d in deficiencies:
+        print(f"deficiency: {d}")
+    for i in improvements:
+        print(f"improvement: {i}")
+    print(f"{len(errors)} errors, {len(warnings)} warnings, {len(deficiencies)} deficiencies, {len(improvements)} improvements")
     return 1 if errors else 0
 
 
