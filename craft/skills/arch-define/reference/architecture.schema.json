@@ -22,7 +22,7 @@
     },
     "actors": {
       "type": "object",
-      "description": "People using the system, keyed by id. Keys: does (required), uses (components they work with directly; each component's ui says how).",
+      "description": "People and agents using the system, keyed by id. Keys: does (required), uses (components they work with directly; each component's ui_endpoints say how).",
       "propertyNames": { "$ref": "#/$defs/id" },
       "additionalProperties": {
         "type": "object",
@@ -62,34 +62,20 @@
           },
           "does": { "$ref": "#/$defs/strings" },
           "source_path": { "type": "string", "description": "Code directory relative to repo root, e.g. 'core/'." },
-          "ui": {
-            "type": "object",
-            "description": "Actor id -> how that actor reaches this component: 'cli', 'gui' or an address (path or URL).",
-            "propertyNames": { "$ref": "#/$defs/id" },
-            "additionalProperties": { "type": "string", "minLength": 1 }
-          },
-          "auth": {
-            "type": "object",
-            "description": "Auth protocol (oauth2, oidc, saml, api-key, mtls, webhook-signature, ...) -> identity providers or issuers, e.g. {oauth2: [google, apple, keycloak]}.",
-            "additionalProperties": { "$ref": "#/$defs/strings" }
-          },
+          "ui": false,
+          "auth": false,
           "tech": { "$ref": "#/$defs/tech" },
           "endpoints": {
             "type": "object",
-            "description": "API surfaces or channels (not single operations), keyed by id. Synchronous APIs and triggers; messaging goes to root queues. A schedule endpoint is the component's own trigger (address: cron). Keys: protocol (required: http, grpc, graphql, websocket, schedule, file, ...), for (required except on schedule endpoints), address, spec, summary, idempotent (true: safe to retry).",
+            "description": "API surfaces or channels (not single operations) that services and clients consume, keyed by id. Synchronous APIs and triggers; messaging goes to root queues. A schedule endpoint is the component's own trigger (address: cron). Protocols: http, grpc, graphql, websocket, schedule, file, ... for: component or external ids, or a short name for consumers outside the model, e.g. partner-apps.",
             "propertyNames": { "$ref": "#/$defs/id" },
-            "additionalProperties": {
-              "type": "object",
-              "required": ["protocol"],
-              "properties": {
-                "for": {
-                  "$ref": "#/$defs/strings",
-                  "description": "Target audience: the services and clients expected to consume this endpoint. Component or external ids, or a short name for consumers outside the model, e.g. partner-apps."
-                }
-              },
-              "if": { "properties": { "protocol": { "const": "schedule" } } },
-              "else": { "required": ["for"] }
-            }
+            "additionalProperties": { "$ref": "#/$defs/endpoint" }
+          },
+          "ui_endpoints": {
+            "type": "object",
+            "description": "Entry points for people and agents, keyed by id; same structure as endpoints, and not targets of calls. Protocols: http (web UI), cli, native (mobile or desktop), mcp, ... for: actor ids.",
+            "propertyNames": { "$ref": "#/$defs/id" },
+            "additionalProperties": { "$ref": "#/$defs/endpoint" }
           },
           "datastores": {
             "type": "array",
@@ -164,6 +150,23 @@
   "$defs": {
     "id": { "type": "string", "pattern": "^[^.\\s]+$", "description": "No dots, no whitespace." },
     "ref": { "type": "string", "pattern": "^[^.\\s]+(\\.[^.\\s]+)?$", "description": "'<id>' or '<component>.<id>'." },
+    "endpoint": {
+      "type": "object",
+      "description": "Keys: protocol (required), for and auth (required except on schedule endpoints), address, spec, summary, idempotent (true: safe to retry).",
+      "required": ["protocol"],
+      "properties": {
+        "for": { "$ref": "#/$defs/strings", "description": "Target audience: who is expected to consume this endpoint." },
+        "auth": {
+          "description": "'none' for an open endpoint, or auth protocol (oauth2, oidc, saml, api-key, mtls, webhook-signature, ...) -> identity providers or issuers, e.g. {oauth2: [google, apple, keycloak]}.",
+          "anyOf": [
+            { "const": "none" },
+            { "type": "object", "minProperties": 1, "additionalProperties": { "$ref": "#/$defs/strings" } }
+          ]
+        }
+      },
+      "if": { "properties": { "protocol": { "const": "schedule" } } },
+      "else": { "required": ["for", "auth"] }
+    },
     "strings": {
       "anyOf": [
         { "type": "string", "minLength": 1 },

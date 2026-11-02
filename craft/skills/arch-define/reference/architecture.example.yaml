@@ -17,7 +17,7 @@ glossary:
   Cart: Unconfirmed selection, becomes an Order at checkout
   Payment hold: Funds reserved on the card, not yet captured
 
-actors:                            # people, keyed by id; uses = components they work with
+actors:                            # people and agents, keyed by id; uses = components they work with
   customer: { does: Browses and buys, uses: [storefront-web] }
   support: { does: Resolves order issues, uses: [storefront-web, admin-cli] }
 
@@ -43,8 +43,13 @@ components:
       test: [junit 5, testcontainers, archunit]
       deploy: gke
     endpoints:
-      storefront-api: { protocol: http, for: [storefront-web, partner-apps], address: /api, spec: core/src/main/resources/openapi.yaml }
-      admin-api: { protocol: http, for: [storefront-web, admin-cli], address: /admin }
+      storefront-api:
+        protocol: http
+        for: [storefront-web, partner-apps]
+        auth: { oauth2: [google, apple, keycloak] }   # protocol -> providers; 'none' = open
+        address: /api
+        spec: core/src/main/resources/openapi.yaml
+      admin-api: { protocol: http, for: [storefront-web, admin-cli], auth: { oauth2: [keycloak] }, address: /admin }
     uses: [shared-kernel]          # component-level: every module may do this
     modules:
       - module: catalog
@@ -63,8 +68,9 @@ components:
     type: web-app
     does: Web store and support back office
     source_path: web/
-    ui: { customer: /home, support: /admin }   # actor -> cli | gui | address
-    auth: { oauth2: [google, apple, keycloak] }  # protocol -> providers
+    ui_endpoints:                  # for people and agents; for = actors
+      store: { protocol: http, for: [customer], auth: { oauth2: [google, apple] }, address: /home }
+      back-office: { protocol: http, for: [support], auth: { oauth2: [keycloak] }, address: /admin }
     tech:
       language: typescript 5
       frameworks: [react 18]
@@ -75,14 +81,13 @@ components:
     type: service
     does: Authorize, capture and refund payments
     source_path: payments/
-    auth: { webhook-signature: [stripe] }
     tech:
       language: kotlin 2
       frameworks: [spring-boot 3.3]
       deploy: cloud-run
     endpoints:
-      payments-api: { protocol: grpc, for: [core], idempotent: true, spec: contracts/proto/payments.proto }
-      stripe-webhooks: { protocol: http, for: [stripe], address: /webhooks/stripe }
+      payments-api: { protocol: grpc, for: [core], auth: { mtls: [internal-ca] }, idempotent: true, spec: contracts/proto/payments.proto }
+      stripe-webhooks: { protocol: http, for: [stripe], auth: { webhook-signature: [stripe] }, address: /webhooks/stripe }
     datastores:                    # nested = private, access implicit
       - datastore: payments-db
         engine: postgresql 16
@@ -108,8 +113,8 @@ components:
     type: console-app
     does: Support operations on orders
     source_path: tools/admin-cli/
-    ui: { support: cli }
-    auth: { oauth2: [keycloak] }
+    ui_endpoints:
+      cli: { protocol: cli, for: [support], auth: { oauth2: [keycloak] } }
     calls: [core.admin-api]
 
 modules:                           # root modules = shared libraries

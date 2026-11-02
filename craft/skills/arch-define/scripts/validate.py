@@ -135,11 +135,12 @@ def check(path, skip_paths=False):
             check_relations(m, f"module {name}.{m['module']}", name)
         if not skip_paths and c.get("source_path") and not (root / c["source_path"]).exists():
             err(f"component {name}: source_path '{c['source_path']}' does not exist")
-        for actor, how in (c.get("ui") or {}).items():
-            if actor not in actors:
-                err(f"component {name}: ui actor '{actor}' not in actors")
-            elif name not in as_list(actors[actor].get("uses")):
-                warn(f"component {name}: ui lists '{actor}', but actor's uses doesn't list {name}")
+        for ep, spec in (c.get("ui_endpoints") or {}).items():
+            for actor in as_list(spec.get("for")):
+                if actor not in actors:
+                    err(f"ui endpoint {name}.{ep}: for '{actor}' not in actors")
+                elif name not in as_list(actors[actor].get("uses")):
+                    warn(f"ui endpoint {name}.{ep}: for lists '{actor}', but actor's uses doesn't list {name}")
     for m in root_modules.values():
         check_relations(m, f"module {m['module']}", None)
 
@@ -147,6 +148,10 @@ def check(path, skip_paths=False):
         for u in as_list(spec.get("uses")):
             if u not in components:
                 err(f"actor {a}: uses '{u}' — no such component")
+                continue
+            ui = (components[u].get("ui_endpoints") or {}).values()
+            if ui and not any(a in as_list(s.get("for")) for s in ui):
+                warn(f"actor {a}: uses {u}, but none of its ui_endpoints is for {a}")
     for x, spec in externals.items():
         for c in as_list(spec.get("calls")):
             if "." not in c or not resolve_call(c):

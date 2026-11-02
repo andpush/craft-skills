@@ -18,7 +18,7 @@ The page, top to bottom:
 - **Header:** system, summary, tech, actors, counts, and model problems from `arch-define`'s validator.
 - **System map:** actors, components, datastores, queues and external systems, with calls (labelled
   by endpoint), messages, writes and reads.
-- **Components:** cards with jobs, tech, endpoints, ui, auth, relations, and modules with their dependency graph.
+- **Components:** cards with jobs, tech, endpoints, ui endpoints, relations, and modules with their dependency graph.
 - **Data:** a keys-and-references map across stores; per store, every entity with who writes and
   reads it; per queue, who produces and consumes each message.
 - **Lifecycles** as state diagrams, **main flows** as sequence diagrams, **rules**, **glossary**.

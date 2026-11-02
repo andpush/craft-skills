@@ -45,11 +45,12 @@ dimensions below with `file:line`. Small repo: one pass yourself.
 |---|---|
 | build files, Dockerfiles, deploy manifests, entry points | components, `type`, `source_path`, `tech` |
 | packages, their size and the imports between them, contract and entity definitions | `modules`, `uses` |
-| routes, OpenAPI/proto/GraphQL, schedulers, CLI commands, UI routes | `endpoints`, `ui` |
+| routes, OpenAPI/proto/GraphQL, schedulers | `endpoints` |
+| UI routes, CLI commands, agent tools | `ui_endpoints` |
 | HTTP/gRPC clients, SDKs, configured URLs | `calls`, `external`, endpoint `for` |
 | migrations, ORM mappings, repositories — who writes which table | `datastores`, entities, `reads`, `writes` |
 | topics, producers, listeners | `queues`, `produces`, `consumes` |
-| security config, identity providers | `auth` |
+| security config, identity providers | endpoint `auth` |
 | status enums and the code that changes them | `states` |
 | architecture tests, lint configs | `rules` with `check` |
 
@@ -96,8 +97,11 @@ catch it drifting?
   business value, hold API or SPI contracts, define entities, contain a lot of code, or have many
   dependencies in or out. Leave out the rest, however cleanly they are packaged.
 - **Endpoints** are API surfaces. Each has `for`: the services and clients expected to consume it, as
-  model ids, or a short name for consumers outside the model (`partner-apps`). Schedule endpoints
-  have none: they are the component's own trigger.
+  model ids, or a short name for consumers outside the model (`partner-apps`). Each also has `auth`:
+  protocol and providers, or `none` when it is deliberately open. Schedule endpoints have neither:
+  they are the component's own trigger.
+- **UI endpoints** have the same structure, for people and agents: `for` lists actors, and `protocol`
+  is the real one (`http` for a web UI). Nothing `calls` them.
 - **Relations** list everything allowed. A missing one becomes a violation later, so the list is
   complete. Relations of code outside the listed modules go on its component, and `uses` names only
   listed modules.

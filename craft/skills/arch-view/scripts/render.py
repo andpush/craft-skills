@@ -139,7 +139,9 @@ def system_map(m):
     for a, spec in m.actors.items():
         for comp in as_list(spec.get("uses")):
             if comp in m.components:
-                edge(nid("a_", a), "-->", nid("c_", comp), (m.components[comp].get("ui") or {}).get(a))
+                ui = (m.components[comp].get("ui_endpoints") or {}).values()
+                how = [s.get("address") or s.get("protocol") for s in ui if a in as_list(s.get("for"))]
+                edge(nid("a_", a), "-->", nid("c_", comp), joined(how) or None)
     for x, spec in m.externals.items():
         for ref in as_list(spec.get("calls")):
             dst, ep = node(ref)
@@ -309,15 +311,14 @@ def kv(rows):
 def component_card(m, name, c):
     does = as_list(c.get("does"))
     rows = []
-    for ep, spec in (c.get("endpoints") or {}).items():
-        bits = [spec.get("protocol"), spec.get("address"), "idempotent" if spec.get("idempotent") else None,
-                f"for {joined(spec['for'])}" if spec.get("for") else None]
-        spec_link = f' <span class="muted mono">{esc(spec["spec"])}</span>' if spec.get("spec") else ""
-        rows.append(("endpoint", f"<b>{esc(ep)}</b> <span class='muted'>{esc(' · '.join(str(b) for b in bits if b))}</span>{spec_link}"))
-    if c.get("ui"):
-        rows.append(("ui", esc(", ".join(f"{a}: {how}" for a, how in c["ui"].items()))))
-    if c.get("auth"):
-        rows.append(("auth", esc("; ".join(f"{p}: {joined(v)}" for p, v in c["auth"].items()))))
+    for field, label in (("endpoints", "endpoint"), ("ui_endpoints", "ui endpoint")):
+        for ep, spec in (c.get(field) or {}).items():
+            auth = spec.get("auth")
+            bits = [spec.get("protocol"), spec.get("address"), "idempotent" if spec.get("idempotent") else None,
+                    f"for {joined(spec['for'])}" if spec.get("for") else None,
+                    "no auth" if auth == "none" else "; ".join(f"{p}: {joined(v)}" for p, v in (auth or {}).items())]
+            spec_link = f' <span class="muted mono">{esc(spec["spec"])}</span>' if spec.get("spec") else ""
+            rows.append((label, f"<b>{esc(ep)}</b> <span class='muted'>{esc(' · '.join(str(b) for b in bits if b))}</span>{spec_link}"))
     for s in c.get("datastores") or []:
         rows.append(("private store", f"<b>{esc(s['datastore'])}</b> <span class='muted'>{esc(s.get('engine', ''))}</span>"))
     rows += [(k, esc(v)) for k, v in rel_rows(c)]
