@@ -4,9 +4,13 @@
 # ///
 """Validate docs/architecture.yaml: schema, references, flows, states, ownership.
 
-Usage: uv run validate.py [docs/architecture.yaml] [--skip-paths]
+Usage: uv run validate.py [docs/architecture.yaml] [--skip-paths] [--gate [--accept]]
 Exit 1 on errors; warnings and findings (deficiencies, improvements) are printed but pass.
+--gate also writes docs/architecture.gate.json, what `verify` enforces, flattened from the model.
+Stack checks read only that file and fail when its model_sha256 no longer matches the model.
+A new deficiency exits 1 unless --accept; fixed ones drop out.
 """
+import hashlib
 import json
 import re
 import sys
@@ -139,7 +143,8 @@ def check(path, skip_paths=False):
         for c in as_list(holder.get("calls")):
             if not resolve_call(c):
                 err(f"{where}: calls '{c}' — no such component, endpoint or external")
-        for rel, pool in (("produces", queues), ("consumes", queues), ("reads", stores), ("writes", stores)):
+        own = {s for s, owner in private_stores.items() if owner == comp}
+        for rel, pool in (("produces", queues), ("consumes", queues), ("reads", {*stores, *own}), ("writes", {*stores, *own})):
             for target, ents in (holder.get(rel) or {}).items():
                 if target not in pool:
                     hint = f" (private to {private_stores[target]})" if target in private_stores else ""
@@ -221,7 +226,7 @@ def check(path, skip_paths=False):
         """What the code behind an endpoint calls or changes."""
         c = components[name]
         mods = [m for m in c.get("modules") or [] if ep in as_list(m.get("serves"))] or [c]
-        return sorted({x for m in mods for x in [*as_list(m.get("calls")), *(m.get("writes") or {}), *(m.get("produces") or {})]})
+        return sorted({x for m in mods for x in [*as_list(m.get("calls")), *(k for k in m.get("writes") or {} if private_stores.get(k) != name), *(m.get("produces") or {})]})
 
     for name, c in components.items():
         for kind in ("endpoints", "ui_endpoints"):
@@ -400,10 +405,94 @@ def report():
     return 1 if errors else 0
 
 
+def io_of(holder):
+    out = set()
+    if holder.get("reads") or holder.get("writes"):
+        out.add("persistence")
+    if holder.get("produces") or holder.get("consumes"):
+        out.add("messaging")
+    if holder.get("calls"):
+        out.add("client")
+    return out
+
+
+def imports(refs, comp, roots):
+    """Unit ids that code may import. `calls` go over the network, so they never allow an import."""
+    out = set()
+    own = {m["module"] for m in comp.get("modules") or []} if comp else set()
+    for ref in refs:
+        name, _, scope = ref.partition(" ")
+        if scope in ("runtime", "test"):
+            continue
+        out.add(f"{comp['component']}.{name}" if name in own else name)
+    return out
+
+
+def units_of(model):
+    roots = {m["module"] for m in model.get("modules") or []}
+    units = {}
+    for c in model["components"]:
+        name, mods = c["component"], c.get("modules") or []
+        base = io_of(c)
+        owned = {"persistence"} if c.get("datastores") else set()
+        surfaces = {**(c.get("endpoints") or {}), **(c.get("ui_endpoints") or {})}
+        shared = imports(as_list(c.get("uses")), c, roots)
+        units[name] = {
+            "paths": as_list(c.get("source_path")),
+            "imports": sorted(shared | {f"{name}.{m['module']}" for m in mods}),
+            "io": sorted(base | owned | ({"server"} if any(s.get("protocol") not in NOT_ON_NETWORK for s in surfaces.values()) else set())),
+        }
+        for m in mods:
+            units[f"{name}.{m['module']}"] = {
+                "paths": as_list(m.get("packages")),
+                "imports": sorted(shared | imports(as_list(m.get("uses")), c, roots) | {name}),
+                "io": sorted(base | io_of(m) | ({"server"} if m.get("serves") else set())),
+            }
+    for m in model.get("modules") or []:
+        units[m["module"]] = {"paths": as_list(m.get("packages")),
+                              "imports": sorted(imports(as_list(m.get("uses")), None, roots)), "io": sorted(io_of(m))}
+    return units
+
+
+def surface_of(model):
+    out = {}
+    for c in model["components"]:
+        for spec_group in ("endpoints", "ui_endpoints"):
+            for ep, s in (c.get(spec_group) or {}).items():
+                if s.get("protocol") in NOT_ON_NETWORK:
+                    continue
+                auth = s.get("auth")
+                out[f"{c['component']}.{ep}"] = {
+                    "exposure": s.get("exposure", c.get("exposure")), "address": s.get("address"),
+                    "open": auth == "none" or any(p.endswith("-optional") for p in auth or {}),
+                    "authz": as_list(s.get("authz"))}
+    return out
+
+
+def write_gate(path, accept):
+    """Write architecture.gate.json next to the model. Its deficiencies are a ratchet: new ones need `accept`."""
+    out = path.with_name("architecture.gate.json")
+    known = set(json.loads(out.read_text())["deficiencies"]) if out.exists() else None
+    current = sorted(deficiencies)
+    new = [d for d in current if known is not None and d not in known]
+    if new and not accept:
+        print("New deficiencies. Fix them, or ask the user whether to accept them with --accept:")
+        print("\n".join(f"- {d}" for d in new))
+        return 1
+    model = yaml.safe_load(path.read_text())
+    out.write_text(json.dumps({
+        "model_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "deficiencies": current, "units": units_of(model), "surface": surface_of(model)}, indent=1) + "\n")
+    print(f"{out}: {len(current)} deficiencies, {len((known or set()) - set(current))} fixed, {len(new)} newly accepted")
+    return 0
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    check(args[0] if args else "docs/architecture.yaml", "--skip-paths" in sys.argv)
-    return report()
+    path = Path(args[0] if args else "docs/architecture.yaml")
+    check(path, "--skip-paths" in sys.argv)
+    code = report()
+    return code or (write_gate(path, "--accept" in sys.argv) if "--gate" in sys.argv else 0)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 # Craft Skills
 
 Product development workflow for agentic development — from idea to production. Ships one plugin,
-**`craft`**: a lightweight SDD flow **prod → arch-define → guard3 → spec → build3 → review**. Discovery is guided and
+**`craft`**: a lightweight SDD flow **prod → arch-define → guard → spec → build3 → review**. Discovery is guided and
 conversational — craft surfaces expensive-to-undo decisions (data model, boundaries) while they're
 cheap to change, recommends, and lets you steer; you delegate the coding, not the decisions.
 Token-frugal: no planning that doesn't change the outcome, no questionnaire theatre. Decisions land
@@ -23,7 +23,7 @@ from code, then confirm), adopting existing files rather than clobbering them.
 
 1. **`prod`** → `docs/PRODUCT.md`, **`arch-define`** → `docs/architecture.yaml`. Required for later steps; one-time, so use bigger models (Opus/high). Or write them by hand / via `/impeccable teach`.
 2. **`spec`** → a build-ready item in the queue `docs/ready/` (small tasks go straight there via `task`). Medium efforts (Opus/medium, GPT-5.5).
-3. **`guard3`** (once, after `arch-define`) → one `verify` command, architecture checks driven by `docs/architecture.yaml`, CI that runs `verify`, branch protection.
+3. **`guard`** (once, after `arch-define`) → one `verify` command, architecture checks driven by `docs/architecture.yaml`, CI that runs `verify`, branch protection.
 4. **`build3`** → per item, on a `craft/<item>` branch: acceptance tests first, implement, verify, an independent `review`, docs closed in the branch, then a PR or merge per the policy in `AGENTS.md`. Faster/cheaper models, unattended once permissions are granted. (`/goal` or any agent still works too.)
 5. **`review`** → computes a risk tier, describes contract changes (data model, API, dependencies) and turns suspicions into failing tests; `review walk` guides you through what matters in the terminal, with the change page open in the browser.
 
@@ -38,8 +38,8 @@ Invoke by name in your agent host (`/prod`, `/spec <feature>`, …).
 | `prod` | define the product → `docs/PRODUCT.md` |
 | `arch-define` | define, derive or reconcile architecture → `docs/architecture.yaml`, `AGENTS.md`; reports deficiencies and improvements |
 | `arch-view` | one HTML page rendered from the model: map, components, exposure, data, flows, rules, findings |
-| `guard3` | make the model executable: `verify`, gate file, architecture checks, baseline, CI, branch protection |
-| `arch`, `guard` | old-format versions, kept until the new ones are proven |
+| `guard` | make the model executable: `verify`, gate file, architecture checks, baseline, CI, branch protection |
+| `arch` | old-format version, kept as a reference |
 | `spec <feature>` | frame a feature into a build-ready item (`feat-<slug>`) in `docs/ready/`: contract changes, AC as commands, doc impact |
 | `task <task>` | terse handoff for a small task (`task-<slug>`, one component, no contract changes) into `docs/ready/` |
 | `build3 [all\|<item>]` | branch → AC tests → implement → verify → `review` → close → PR/merge |
@@ -50,7 +50,7 @@ Invoke by name in your agent host (`/prod`, `/spec <feature>`, …).
 | `audit` | deep repo health check: structure, maintainability, security |
 | `doc-refactor <in> -> <out> [goal]` | merge, dedupe, restructure docs, preserving knowledge |
 | `whereami` | reorient after a break: focus, parked ideas, next step |
-| `init` | macro chaining `prod`, `arch-define` and `guard3` for a small/fresh project |
+| `init` | macro chaining `prod`, `arch-define` and `guard` for a small/fresh project |
 | `ba` | requirements decomposition |
 | `sa` | design a technical solution — system, component, or change |
 | `code-reviewer` | review code quality |
@@ -71,14 +71,14 @@ One file per work item / decision — filenames are the index, content is scanna
 | --- | --- | --- |
 | `docs/PRODUCT.md` | purpose, users, value, constraints, MVP scope | `prod` |
 | `docs/architecture.yaml` | the model: components, relations, security, data, flows, rules, notes | `arch-define` |
-| `docs/architecture.gate.json`, `docs/architecture.baseline` | what `verify` enforces, and frozen violations | `guard3` |
+| `docs/architecture.gate.json`, `docs/architecture.baseline` | what `verify` enforces, and frozen violations | `guard` |
 | `docs/ideas/idea-*.md` | idea backlog (images beside); unvalidated; optional `priority: high\|low` steers `whereami`; `spec` validates on pickup (pursue/defer/reject) | `idea` |
 | `docs/ready/*.md` | the execution queue — build-ready `feat-`/`task-`/promoted `idea-` items; `status:` = `draft`\|`ready`\|`blocked`; the claim is a `craft/<item>` branch | `spec`, `task` |
 | `docs/done/*.md` | archive of shipped (`done`) and rejected items, with `<item>.review.json` | `build3`, `spec` |
 | `docs/adr/YYYY-MM-DD-*.md` | one decision per file: Context / Decision / Rejected / Consequences; optional `supersedes` | `sa`, `build3` |
 | `docs/audit-*.md` | repo health snapshot: findings, scores, action items | `audit` |
 | `docs/tests-optimizer-*.md` | flagged low-value tests, before/after metrics | `tests-optimizer` |
-| `AGENTS.md` | ≤60 lines every agent loads: commands incl. `verify`, invariants, merge policy, pointers; `CLAUDE.md` = `@AGENTS.md` | `arch-define`, `guard3` |
+| `AGENTS.md` | ≤60 lines every agent loads: commands incl. `verify`, invariants, merge policy, pointers; `CLAUDE.md` = `@AGENTS.md` | `arch-define`, `guard` |
 | `README.md` | onboarding for humans; read as a source | human |
 
 **Work items** flow `ideas/ → ready/ → done/`. Each is `type-slug.md` — type by prefix

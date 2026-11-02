@@ -54,7 +54,7 @@ dimensions below with `file:line`. Small repo: one pass yourself.
 | status enums and the code that changes them | `states` |
 | architecture tests, lint configs | `rules` with `check` |
 
-Record the relations the code actually has: the model is a true baseline, and `guard3` freezes
+Record the relations the code actually has: the model is a true baseline, and `guard` freezes
 existing violations. Then ask the user, in batches, only what code can't tell: actors, the purpose
 of components and externals, endpoint consumers outside the repo, which flows are the main ones,
 which lifecycles matter, which rules they intend.
@@ -112,7 +112,7 @@ catch it drifting?
   is the real one (`http` for a web UI). Nothing `calls` them.
 - **Relations** list everything allowed. A missing one becomes a violation later, so the list is
   complete. A relation a listed module has goes on that module, so the model shows who works with
-  each store, queue and outside system. The component keeps only what applies to all its code or
+  each store (private ones too), queue and outside system. The component keeps only what applies to all its code or
   comes from code outside the listed modules. `uses` names only listed modules.
 - **Entities:** keys and references at minimum; other fields where the location of data matters (money, personal data).
 - **States:** only lifecycles where an illegal transition costs money or trust.
@@ -139,4 +139,4 @@ Create it from [reference/agents-template.md](reference/agents-template.md), or 
 Done when the validator exits 0 and the user has approved the model.
 
 Report in a few lines: the file written, findings and their outcomes, open questions, and the next
-step — `guard3`, to turn relations and rules into checks.
+step — `guard`, to turn relations and rules into checks.

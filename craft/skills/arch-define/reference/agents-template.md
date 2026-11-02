@@ -10,7 +10,7 @@ CLAUDE.md contains a single line: @AGENTS.md
 
 ## Commands
 
-- verify: `<one command: build, lint, tests, architecture checks>`   ← `guard3` sets this
+- verify: `<one command: build, lint, tests, architecture checks>`   ← `guard` sets this
 - AC command: `<runner filter AC1_>`
 - run: `<…>`
 - <other commands an agent needs and can't guess>

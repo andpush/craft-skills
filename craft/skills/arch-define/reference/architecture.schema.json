@@ -81,7 +81,7 @@
           "datastores": {
             "type": "array",
             "items": { "$ref": "#/$defs/datastore" },
-            "description": "Private to this component, access implicit."
+            "description": "Private to this component. Its modules name it in reads and writes."
           },
           "modules": { "type": "array", "items": { "$ref": "#/$defs/module" } }
         }
@@ -278,7 +278,7 @@
     },
     "datastore": {
       "type": "object",
-      "description": "Data store. Nested: private, access implicit. Root: shared. Keys: datastore (required), engine (postgresql 16, redis 7, gcs, ...), deploy (cloud-sql, ...), entities (tables, collections, buckets), source_path (migrations), schema_owner (root: owning component).",
+      "description": "Data store. Nested: private to the component. Root: shared. Keys: datastore (required), engine (postgresql 16, redis 7, gcs, ...), deploy (cloud-sql, ...), entities (tables, collections, buckets), source_path (migrations), schema_owner (root: owning component).",
       "required": ["datastore"],
       "properties": {
         "datastore": { "$ref": "#/$defs/id" },
