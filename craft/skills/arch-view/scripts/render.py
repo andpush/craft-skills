@@ -99,6 +99,16 @@ class Model:
 
 # ---------- diagrams ----------
 
+MAP_CLASSES = [
+    "  classDef actor fill:#fde9c9,stroke:#c98a1b,color:#3b2a08",
+    "  classDef comp fill:#dce8fb,stroke:#2f6fde,color:#0f2346",
+    "  classDef store fill:#dff3e6,stroke:#2e7d4f,color:#0f2e1b",
+    "  classDef private fill:#eef7f1,stroke:#2e7d4f,stroke-dasharray:4 3,color:#0f2e1b",
+    "  classDef queue fill:#efe3fb,stroke:#7b43c9,color:#2a1047",
+    "  classDef ext fill:#eceef1,stroke:#7a808a,stroke-dasharray:5 4,color:#22252a",
+]
+
+
 def system_map(m):
     L = ["flowchart LR"]
     for a, spec in m.actors.items():
@@ -170,38 +180,85 @@ def system_map(m):
             continue
         lab = f'|"{ml(", ".join(labels))}"|' if labels else ""
         L.append(f"  {src} {style}{lab} {dst}")
-    L += [
-        "  style sys fill:none,stroke:#8a909a,stroke-dasharray:6 4",
-        "  classDef actor fill:#fde9c9,stroke:#c98a1b,color:#3b2a08",
-        "  classDef comp fill:#dce8fb,stroke:#2f6fde,color:#0f2346",
-        "  classDef store fill:#dff3e6,stroke:#2e7d4f,color:#0f2e1b",
-        "  classDef private fill:#eef7f1,stroke:#2e7d4f,stroke-dasharray:4 3,color:#0f2e1b",
-        "  classDef queue fill:#efe3fb,stroke:#7b43c9,color:#2a1047",
-        "  classDef ext fill:#eceef1,stroke:#7a808a,stroke-dasharray:5 4,color:#22252a",
-    ]
+    L += ["  style sys fill:none,stroke:#8a909a,stroke-dasharray:6 4", *MAP_CLASSES]
     return "\n".join(L)
 
 
+def entity_label(rel, ents, per_line=3):
+    """'writes: a, b, c<br/>d' for an edge; just the relation when entities aren't detailed."""
+    names = [ml(e) for e in ents or []]
+    lines = [", ".join(names[i:i + per_line]) for i in range(0, len(names), per_line)]
+    return f"{rel}: " + "<br/>".join(lines) if lines else rel
+
+
+def module_box(name, spec=None):
+    does = "<br/>".join(ml(d) for d in as_list((spec or {}).get("does")))
+    return f'["<b>{ml(name)}</b>' + (f"<br/><small>{does}</small>" if does else "") + '"]'
+
+
 def module_map(m, comp):
+    """A component's modules with what each does, uses, calls, stores and publishes.
+
+    Relations declared on the component start at its border: they apply to every module.
+    """
     c = m.components[comp]
     mods = c.get("modules") or []
-    names = {x["module"] for x in mods}
-    L = ["flowchart LR"]
-    for x in mods:
-        L.append(f'  {nid("m_", x["module"])}["{ml(x["module"])}"]:::mod')
-    seen = set()
-    for _, h in [(None, c)] + [(x["module"], x) for x in mods]:
-        srcs = [nid("m_", h["module"])] if "module" in h else [nid("m_", n) for n in names]
+    local = {x["module"] for x in mods}
+    border = nid("g_", comp)
+    L = ["flowchart LR", f'  subgraph {border}["{ml(comp)}"]']
+    L += [f'    {nid("m_", x["module"])}{module_box(x["module"], x)}:::mod' for x in mods]
+    L.append("  end")
+    nodes, edges = {}, {}
+
+    def edge(src, style, dst, label):
+        labels = edges.setdefault((src, style, dst), [])
+        if label not in labels:
+            labels.append(label)
+
+    def store(sid):
+        engine = (m.stores.get(sid) or (m.private.get(sid) or (None, {}))[1]).get("engine", "")
+        cls = "store" if sid in m.stores else "private"
+        nodes[nid("s_", sid)] = f'[("{ml(sid)}<br/><small>{ml(engine)}</small>")]:::{cls}'
+        return nid("s_", sid)
+
+    def queue(qid):
+        engine = (m.queues.get(qid) or {}).get("engine", "")
+        nodes[nid("q_", qid)] = f'>"{ml(qid)}<br/><small>{ml(engine)}</small>"]:::queue'
+        return nid("q_", qid)
+
+    for name, h in m.holders(comp):
+        src = nid("m_", name) if name else border
         for u in as_list(h.get("uses")):
-            u = u.split(" ")[0]
-            target = u.split(".")[-1]
-            dst = nid("m_", target)
-            if target not in names and dst not in seen:
-                L.append(f'  {dst}["{ml(u)}"]:::lib')
-                seen.add(dst)
-            for src in srcs:
-                L.append(f"  {src} --> {dst}")
-    L += ["  classDef mod fill:#dce8fb,stroke:#2f6fde,color:#0f2346",
+            ref, _, scope = u.partition(" ")
+            ref = ref.removeprefix(f"{comp}.")
+            dst = nid("m_", ref)
+            if ref not in local:
+                nodes[dst] = f"{module_box(ref, m.root_modules.get(ref))}:::lib"
+            edge(src, "-->", dst, f"uses ({scope})" if scope else "uses")
+        for ref in as_list(h.get("calls")):
+            head, _, ep = ref.partition(".")
+            if head == comp:
+                continue
+            kind = "comp" if head in m.components else "ext" if head in m.externals else None
+            if kind:
+                dst = nid("c_" if kind == "comp" else "x_", head)
+                nodes[dst] = f'["{ml(head)}"]:::{kind}'
+                edge(src, "-->", dst, ml(ep) if ep else "calls")
+        for s, ents in (h.get("writes") or {}).items():
+            edge(src, "==>", store(s), entity_label("writes", ents))
+        for s, ents in (h.get("reads") or {}).items():
+            edge(src, "-->", store(s), entity_label("reads", ents))
+        for q, ents in (h.get("produces") or {}).items():
+            edge(src, "-.->", queue(q), entity_label("produces", ents))
+        for q, ents in (h.get("consumes") or {}).items():
+            edge(queue(q), "-.->", src, entity_label("consumes", ents))
+    for s in c.get("datastores") or []:
+        edge(border, "===", store(s["datastore"]), "owns")
+
+    L += [f"  {node}{shape}" for node, shape in nodes.items()]
+    L += [f'  {src} {style}|"{"<br/>".join(labels)}"| {dst}' for (src, style, dst), labels in edges.items()]
+    L += [f"  style {border} fill:none,stroke:#8a909a,stroke-dasharray:6 4", *MAP_CLASSES,
+          "  classDef mod fill:#dce8fb,stroke:#2f6fde,color:#0f2346",
           "  classDef lib fill:#eceef1,stroke:#7a808a,stroke-dasharray:5 4,color:#22252a"]
     return "\n".join(L)
 
@@ -330,8 +387,10 @@ def component_card(m, name, c):
             pk = f' <span class="muted mono">{esc(joined(x.get("packages")))}</span>'
             items.append(f'<div class="module"><b>{esc(x["module"])}</b> — {esc(joined(x.get("does")))}{pk}'
                          f'{kv([(k, esc(v)) for k, v in rel_rows(x)])}</div>')
-        graph = mermaid(module_map(m, name)) if len(mods) > 1 or any(x.get("uses") for x in mods) else ""
-        mod_html = f'<div class="modules"><h3>Modules</h3>{graph}{"".join(items)}</div>'
+        legend = ('<div class="legend">Solid arrow: uses, calls (label = endpoint) or reads · thick: writes · dashed: '
+                  'message via queue · from the border: applies to every module.</div>')
+        mod_html = (f'<div class="modules"><h3>Modules</h3>{mermaid(module_map(m, name))}{legend}'
+                    f'{"".join(items)}</div>')
     path = f'<span class="muted mono">{esc(c["source_path"])}</span>' if c.get("source_path") else ""
     return (f'<div class="card" id="c-{esc(name)}"><div class="head"><h3>{esc(name)}</h3>'
             f'<span class="badge">{esc(c.get("type", ""))}</span>{path}</div>'
