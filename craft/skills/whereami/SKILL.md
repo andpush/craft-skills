@@ -1,6 +1,6 @@
 ---
 name: whereami
-description: Use when user asks about the state of the project to reorient fast after a context switch — recall where work was left off, what was being solved, whether it landed, and the likely next step.
+description: Use when user asks about the state of the project to orient fast after a context switch — recall where work was left off, what was being solved, whether it landed, and the likely next step.
 ---
 
 Reload the user's mental context in seconds. Read the artifacts, infer the story, report it compressed. NOT a code review — surface only what's needed to recall and continue.
