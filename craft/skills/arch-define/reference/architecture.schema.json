@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "architecture.schema.json",
+  "title": "Architecture description",
+  "description": "Compact, durable description of a software system for orientation of agents and humans and for guarding architecture against drift. List items start with a key naming their type and holding the id (component: payments); endpoints and external systems are maps keyed by id. Ids are unique per scope: top-level items share one namespace, items nested in a component share another. Entity names are unique system-wide. Relations (uses, calls, produces, consumes, reads, writes) are an allowlist: a module may do what its component declares plus what the module itself declares; anything else is a violation. Arrow items (flows, states) are 'a -> b' or 'a -> b: label'; quote them when the label contains ': '. Objects are open: add fields as needed. Value sets are listed in descriptions and checked by the check utility.",
+  "type": "object",
+  "required": ["version", "system", "components"],
+  "properties": {
+    "version": { "const": 1 },
+    "system": { "type": "string", "description": "System name." },
+    "summary": { "type": "string", "description": "One or two sentences: what the system is and its main shape." },
+    "decisions": { "type": "string", "description": "Path to ADRs. Link, never retell." },
+    "tech": {
+      "type": "object",
+      "description": "System-wide overview, not inherited. Keys: languages, deploy, ci, e2e, observability, ... Values: string or list.",
+      "additionalProperties": { "$ref": "#/$defs/strings" }
+    },
+    "glossary": {
+      "type": "object",
+      "description": "Domain terms. Value: optional note when the meaning is non-obvious.",
+      "additionalProperties": { "type": ["string", "null"] }
+    },
+    "actors": {
+      "type": "object",
+      "description": "People using the system, keyed by id. Keys: does (required), uses (components they work with directly; each component's ui says how).",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["does"],
+        "properties": {
+          "does": { "$ref": "#/$defs/strings" },
+          "uses": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+        }
+      }
+    },
+    "external": {
+      "type": "object",
+      "description": "Third-party systems, keyed by id. Keys: does (required), protocol, address, calls (our endpoints it calls inbound, e.g. [payments.stripe-webhooks]).",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["does"],
+        "properties": {
+          "does": { "$ref": "#/$defs/strings" },
+          "calls": { "type": "array", "items": { "$ref": "#/$defs/ref" } }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "description": "Deployable units.",
+      "items": {
+        "type": "object",
+        "description": "Relations declared on a component apply to all its modules; a module adds its own on top.",
+        "$ref": "#/$defs/relations",
+        "required": ["component", "type", "does"],
+        "properties": {
+          "component": { "$ref": "#/$defs/id" },
+          "type": {
+            "type": "string",
+            "description": "service (serves requests) | worker (triggered by consumed events or its own schedule endpoint) | web-app | mobile-app | desktop-app | console-app (CLI run by a person)."
+          },
+          "does": { "$ref": "#/$defs/strings" },
+          "source_path": { "type": "string", "description": "Code directory relative to repo root, e.g. 'core/'." },
+          "ui": {
+            "type": "object",
+            "description": "Actor id -> how that actor reaches this component: 'cli', 'gui' or an address (path or URL).",
+            "propertyNames": { "$ref": "#/$defs/id" },
+            "additionalProperties": { "type": "string", "minLength": 1 }
+          },
+          "auth": {
+            "type": "object",
+            "description": "Auth protocol (oauth2, oidc, saml, api-key, mtls, webhook-signature, ...) -> identity providers or issuers, e.g. {oauth2: [google, apple, keycloak]}.",
+            "additionalProperties": { "$ref": "#/$defs/strings" }
+          },
+          "tech": { "$ref": "#/$defs/tech" },
+          "endpoints": {
+            "type": "object",
+            "description": "API surfaces or channels (not single operations), keyed by id. Synchronous APIs and triggers; messaging goes to root queues. A schedule endpoint is the component's own trigger (address: cron). Keys: protocol (required: http, grpc, graphql, websocket, schedule, file, ...), for (required except on schedule endpoints), address, spec, summary, idempotent (true: safe to retry).",
+            "propertyNames": { "$ref": "#/$defs/id" },
+            "additionalProperties": {
+              "type": "object",
+              "required": ["protocol"],
+              "properties": {
+                "for": {
+                  "$ref": "#/$defs/strings",
+                  "description": "Target audience: the services and clients expected to consume this endpoint. Component or external ids, or a short name for consumers outside the model, e.g. partner-apps."
+                }
+              },
+              "if": { "properties": { "protocol": { "const": "schedule" } } },
+              "else": { "required": ["for"] }
+            }
+          },
+          "datastores": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/datastore" },
+            "description": "Private to this component, access implicit."
+          },
+          "modules": { "type": "array", "items": { "$ref": "#/$defs/module" } }
+        }
+      }
+    },
+    "modules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/module" },
+      "description": "Root modules: shared libraries, not separately deployable."
+    },
+    "datastores": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/datastore" },
+      "description": "Root datastores: shared, every access declared with reads/writes."
+    },
+    "queues": {
+      "type": "array",
+      "description": "Topics and queues: shared, every use declared with produces/consumes. Keys: queue (required), engine (kafka 3, rabbitmq, ...), deploy (sqs, pubsub, confluent-cloud, ...), address (topic/queue name), schema_owner (component owning the message contract), entities (message types).",
+      "items": {
+        "type": "object",
+        "required": ["queue"],
+        "properties": { "queue": { "$ref": "#/$defs/id" }, "entities": { "$ref": "#/$defs/entities" } }
+      }
+    },
+    "states": {
+      "type": "object",
+      "description": "Lifecycles where an illegal transition costs money or trust. Keyed by '<entity>.<field>' (or '<entity>' when the field is obvious). Items: 'from -> to' with an optional trigger label. Any transition not listed is illegal.",
+      "propertyNames": { "$ref": "#/$defs/ref" },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/arrow",
+          "description": "'placed -> confirmed' or {'placed -> confirmed': 'payment authorized'}."
+        }
+      }
+    },
+    "flows": {
+      "type": "object",
+      "description": "One to three main success paths, keyed by name. Steps in order. Participants: actor, external, component, '<component>.<module>', datastore, queue. 'a -> b: label' is a sync call, allowed by a's calls (b, b's component or one of its endpoints), an actor's uses, or reads/writes for a datastore. 'a ~> b: message' is async; message is an entity of a queue that a produces and b consumes.",
+      "additionalProperties": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/arrow" } }
+    },
+    "rules": {
+      "type": "array",
+      "description": "Only rules that relations can't express.",
+      "items": {
+        "type": "object",
+        "required": ["rule", "statement"],
+        "properties": {
+          "rule": { "$ref": "#/$defs/id" },
+          "level": {
+            "enum": ["must", "should"],
+            "default": "must",
+            "description": "must: a violation blocks the merge (failing check, or reviewer when no check). should: a violation is allowed with a stated reason in the change; a check only warns."
+          },
+          "statement": { "type": "string", "description": "Imperative and checkable." },
+          "rationale": { "type": "string" },
+          "applies_to": {
+            "type": "object",
+            "description": "Selector; omitted = whole system. Keys (AND): components, modules, queues, type, language, protocol, relation (uses, calls, produces, consumes, reads, writes), paths. Values: lists (OR)."
+          },
+          "check": { "type": "string", "description": "Path to the automated check. Omitted = enforced by review." }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[^.\\s]+$", "description": "No dots, no whitespace." },
+    "ref": { "type": "string", "pattern": "^[^.\\s]+(\\.[^.\\s]+)?$", "description": "'<id>' or '<component>.<id>'." },
+    "strings": {
+      "anyOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ]
+    },
+    "tech": {
+      "type": "object",
+      "description": "Notable items as 'name major-version'. Keys: language, build, runtime, frameworks, messaging, test, observability, deploy (where it runs: gke, cloud-run, cloud-sql, ...), ... Values: string or list.",
+      "additionalProperties": { "$ref": "#/$defs/strings" }
+    },
+    "access": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "type": ["array", "null"], "items": { "type": "string", "minLength": 1 } },
+      "description": "Store or queue id -> entity names (null = not detailed)."
+    },
+    "arrow": {
+      "anyOf": [
+        { "type": "string", "pattern": "^\\S+ (->|~>) \\S+$" },
+        {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 1,
+          "propertyNames": { "pattern": "^\\S+ (->|~>) \\S+$" },
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        }
+      ],
+      "description": "'a -> b' or 'a -> b: label' (sync, or a state transition); 'a ~> b: label' (async)."
+    },
+    "relations": {
+      "description": "Outbound relations. Own endpoints and nested datastores are implicit. A bare id inside a component resolves to its own module first, then to a top-level item.",
+      "properties": {
+        "uses": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[^.\\s]+(\\.[^.\\s]+)?( (runtime|test))?$" },
+          "description": "Code dependencies on modules: sibling, root or 'core.catalog'. Compile by default; suffix ' runtime' or ' test'."
+        },
+        "calls": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ref" },
+          "description": "Synchronous calls: endpoints ('payments.payments-api'), external systems, or a whole component (coarse)."
+        },
+        "produces": { "$ref": "#/$defs/access", "description": "Queue -> message entities produced." },
+        "consumes": {
+          "$ref": "#/$defs/access",
+          "description": "Queue -> message entities consumed. Also a trigger of the component."
+        },
+        "reads": { "$ref": "#/$defs/access", "description": "Root datastore -> entities read only." },
+        "writes": { "$ref": "#/$defs/access", "description": "Root datastore -> entities modified (includes reading)." }
+      }
+    },
+    "module": {
+      "type": "object",
+      "description": "Code unit with a structural or functional role: distinct business value, API or SPI contracts, entity definitions, a lot of code, or many dependencies in or out. Not every package is a module; relations of code outside listed modules go on its component. Nested in a component or at root (shared library). Relations on a nested module are allowed for that module only, in addition to the component's.",
+      "$ref": "#/$defs/relations",
+      "required": ["module", "does", "packages"],
+      "properties": {
+        "module": { "$ref": "#/$defs/id" },
+        "does": { "$ref": "#/$defs/strings" },
+        "packages": {
+          "$ref": "#/$defs/strings",
+          "description": "Package patterns ('com.shop.orders.**') or directory globs."
+        },
+        "artifact": { "type": "string", "description": "Build module name, e.g. ':libs:shared-kernel'." }
+      }
+    },
+    "datastore": {
+      "type": "object",
+      "description": "Data store. Nested: private, access implicit. Root: shared. Keys: datastore (required), engine (postgresql 16, redis 7, gcs, ...), deploy (cloud-sql, ...), entities (tables, collections, buckets), source_path (migrations), schema_owner (root: owning component).",
+      "required": ["datastore"],
+      "properties": { "datastore": { "$ref": "#/$defs/id" }, "entities": { "$ref": "#/$defs/entities" } }
+    },
+    "entities": {
+      "type": "object",
+      "description": "Keyed by entity name. Value: list of fields, or null. Keys and references are the useful minimum; add other fields when where the data lives matters. Field markers: 'pk' primary key (several = composite), 'uk' unique, 'uk1', 'uk2' composite unique groups, '-> entity' reference to its pk, '-> entity.field' to another field (across stores = logical). Combine: 'order_id pk -> orders'.",
+      "additionalProperties": { "type": ["array", "null"], "items": { "type": "string", "minLength": 1 } }
+    }
+  }
+}

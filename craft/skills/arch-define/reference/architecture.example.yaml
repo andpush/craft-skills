@@ -1,0 +1,179 @@
+# Reference example. Detail level varies per component on purpose:
+# core is detailed (modules, endpoints), reports and admin-cli are coarse.
+version: 1
+
+system: Shop
+summary: Online store. Modular storefront service, web frontend, payments service, shared database and order events.
+decisions: docs/adr/
+tech:
+  languages: [java, kotlin, typescript]
+  deploy: [gcp, firebase]
+  ci: [github-actions, argocd]
+  e2e: [playwright]
+  observability: [opentelemetry, cloud-logging, cloud-monitoring]
+
+glossary:
+  Order:
+  Cart: Unconfirmed selection, becomes an Order at checkout
+  Payment hold: Funds reserved on the card, not yet captured
+
+actors:                            # people, keyed by id; uses = components they work with
+  customer: { does: Browses and buys, uses: [storefront-web] }
+  support: { does: Resolves order issues, uses: [storefront-web, admin-cli] }
+
+external:                          # third-party systems
+  stripe:
+    does: Card payments
+    protocol: http
+    address: https://api.stripe.com
+    calls: [payments.stripe-webhooks]   # inbound: payment status updates
+
+components:
+  - component: core
+    type: service
+    does:
+      - Serve storefront and admin APIs
+      - Manage catalog and order lifecycle
+    source_path: core/
+    tech:
+      language: java 21
+      build: gradle 8
+      frameworks: [spring-boot 3.3, spring-data-jpa]
+      messaging: [kafka 3]
+      test: [junit 5, testcontainers, archunit]
+      deploy: gke
+    endpoints:
+      storefront-api: { protocol: http, for: [storefront-web, partner-apps], address: /api, spec: core/src/main/resources/openapi.yaml }
+      admin-api: { protocol: http, for: [storefront-web, admin-cli], address: /admin }
+    uses: [shared-kernel]          # component-level: every module may do this
+    modules:
+      - module: catalog
+        does: Products, prices and availability
+        packages: [com.shop.catalog.**]
+        writes: { shop-db: [products, prices] }
+      - module: orders
+        does: Order lifecycle from cart to fulfilment
+        packages: [com.shop.orders.**]
+        uses: [catalog]            # module-level: only orders may do these
+        calls: [payments.payments-api]                  # authorize at checkout
+        writes: { shop-db: [orders, order-lines] }
+        produces: { order-events: [order-created, order-cancelled] }
+
+  - component: storefront-web
+    type: web-app
+    does: Web store and support back office
+    source_path: web/
+    ui: { customer: /home, support: /admin }   # actor -> cli | gui | address
+    auth: { oauth2: [google, apple, keycloak] }  # protocol -> providers
+    tech:
+      language: typescript 5
+      frameworks: [react 18]
+      deploy: firebase-hosting
+    calls: [core.storefront-api, core.admin-api]
+
+  - component: payments
+    type: service
+    does: Authorize, capture and refund payments
+    source_path: payments/
+    auth: { webhook-signature: [stripe] }
+    tech:
+      language: kotlin 2
+      frameworks: [spring-boot 3.3]
+      deploy: cloud-run
+    endpoints:
+      payments-api: { protocol: grpc, for: [core], idempotent: true, spec: contracts/proto/payments.proto }
+      stripe-webhooks: { protocol: http, for: [stripe], address: /webhooks/stripe }
+    datastores:                    # nested = private, access implicit
+      - datastore: payments-db
+        engine: postgresql 16
+        deploy: cloud-sql
+        entities:
+          payments: [id pk, order_id uk -> orders, status, amount, idempotency_key uk]   # logical: other store
+          refunds: [id pk, payment_id -> payments, amount, reason]
+          holds:
+    uses: [shared-kernel]
+    calls: [stripe]
+    consumes: { order-events: [order-cancelled] }       # release holds on cancelled orders
+
+  - component: reports
+    type: worker
+    does: Build nightly sales reports
+    source_path: reports/
+    endpoints:
+      nightly: { protocol: schedule, address: "0 2 * * *" }   # own trigger
+    reads: { shop-db: [orders, order-lines, products] }
+    writes: { shop-db: [report-runs] }
+
+  - component: admin-cli
+    type: console-app
+    does: Support operations on orders
+    source_path: tools/admin-cli/
+    ui: { support: cli }
+    auth: { oauth2: [keycloak] }
+    calls: [core.admin-api]
+
+modules:                           # root modules = shared libraries
+  - module: shared-kernel
+    does: Cross-cutting value objects
+    packages: [com.shop.shared.**]
+    artifact: ":libs:shared-kernel"
+
+datastores:                        # root datastores = shared, every reads/writes declared
+  - datastore: shop-db
+    engine: postgresql 16
+    deploy: cloud-sql
+    schema_owner: core
+    source_path: db/migrations/
+    entities:                      # pk, uk = unique, -> = reference; other fields optional
+      products: [id pk, sku uk, name, description]
+      prices: [product_id pk -> products, currency pk, amount, valid_from]
+      orders: [id pk, customer_id, status, created_at]
+      order-lines: [order_id pk -> orders, line_no pk, product_id -> products, quantity, amount]
+      report-runs: [id pk, report, started_at, finished_at]
+
+queues:                            # shared, every produces/consumes declared
+  - queue: order-events
+    engine: kafka 3
+    deploy: confluent-cloud
+    address: shop.orders.v1
+    schema_owner: core
+    entities:
+      order-created: [order_id -> orders, customer_id, total, created_at]
+      order-cancelled: [order_id -> orders, reason, cancelled_at]
+
+states:                            # lifecycles where an illegal transition costs money or trust
+  orders.status:
+    - placed -> confirmed: payment authorized
+    - placed -> cancelled: customer or support cancels
+    - confirmed -> fulfilled: shipped
+    - confirmed -> cancelled: support cancels before shipping
+  payments.status:
+    - held -> captured: order fulfilled
+    - held -> released: order cancelled
+    - captured -> refunded
+
+flows:                             # main success paths; -> sync call, ~> async message
+  checkout:
+    - customer -> storefront-web: place order
+    - storefront-web -> core.orders: POST /api/orders
+    - core.orders -> payments: Authorize(order_id, idempotency_key)
+    - payments -> stripe: create payment intent (manual capture)
+  cancel order:
+    - support -> admin-cli: cancel <order-id>
+    - admin-cli -> core.orders: POST /admin/orders/{id}/cancel
+    - core.orders ~> payments: order-cancelled
+    - payments -> stripe: cancel payment intent
+
+rules:                             # only what relations can't express; level defaults to must
+  - rule: idempotent-consumers
+    statement: Every topic/queue consumer deduplicates by eventId
+    rationale: Kafka delivers at least once
+    applies_to: { relation: [consumes] }     # no check: review enforces it
+  - rule: constructor-injection
+    statement: Constructor injection only, no field injection
+    applies_to: { language: [java, kotlin] }
+    check: core/src/test/java/com/shop/ArchitectureTest.java
+  - rule: thin-endpoints
+    level: should
+    statement: Endpoint handlers delegate to module services, no business logic
+    applies_to: { components: [core, payments] }
