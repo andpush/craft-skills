@@ -1,11 +1,11 @@
 ---
 name: guard
-description: Use to set up the project's gate — one `verify` command, architecture checks driven by `docs/architecture.yaml`, a baseline for existing violations, a CI workflow that runs `verify`, and branch protection. Run once after `arch-define`, and again whenever the model or its rules change. Idempotent.
+description: Use to set up the project's gate — one `verify` command, architecture checks driven by `docs/architecture.yaml`, a baseline for existing violations, a CI workflow that runs `verify`, and branch protection. Run once after `arch3`, and again whenever the model or its rules change. Idempotent.
 ---
 
 Put one command between the agent and main, and make the model executable. The agent, the human and CI all run the same `verify`; CI has no checks of its own. On a rerun, fix what drifted and leave the rest.
 
-Needs `docs/architecture.yaml`; without it, offer `arch-define` first. Load [reference/stacks.md](reference/stacks.md) for the detected stack only.
+Needs `docs/architecture.yaml`; without it, offer `arch3` first. Load [reference/stacks.md](reference/stacks.md) for the detected stack only.
 
 ## 1. Detect
 
@@ -20,7 +20,7 @@ Run an AC filter that matches nothing and see it fail. If it passes, wrap it (st
 ## 3. Gate file
 
 ```bash
-uv run --quiet <arch-define-dir>/scripts/validate.py docs/architecture.yaml --gate
+uv run --quiet <arch3-dir>/scripts/validate.py docs/architecture.yaml --gate
 ```
 
 Writes `docs/architecture.gate.json`, the flat form of the model that checks read, so CI needs neither Python nor this plugin. It refuses new model deficiencies unless passed `--accept`. Only the user decides that; fixed ones drop out by themselves.

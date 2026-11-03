@@ -7,24 +7,20 @@
 Usage: uv run render.py [docs/architecture.yaml] [--no-open] [--out FILE]
 Prints the page path and the number of model problems.
 """
-import html
 import importlib.util
 import re
 import sys
-import tempfile
-import webbrowser
 from pathlib import Path
 
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from page import esc, write  # noqa: E402
+
 HERE = Path(__file__).resolve().parent
-VALIDATOR = HERE.parent.parent / "arch-define" / "scripts" / "validate.py"
+VALIDATOR = HERE / "validate.py"
 APP_TYPES = {"web-app", "mobile-app", "desktop-app"}
 NOT_ON_NETWORK = {"native", "cli", "schedule"}
-
-
-def esc(v):
-    return html.escape(str(v))
 
 
 def ml(v):
@@ -184,6 +180,21 @@ def system_map(m):
         L.append(f"  {src} {style}{lab} {dst}")
     L += ["  style sys fill:none,stroke:#8a909a,stroke-dasharray:6 4", *MAP_CLASSES]
     return "\n".join(L)
+
+
+def impact_map(m, changed=(), new_edges=()):
+    """Components and their dependencies only: `changed` highlighted, `new_edges` (from, to) in red."""
+    names = [*m.components, *m.root_modules]
+    deps = {(comp, str(ref).split()[0].split(".")[0]) for comp in m.components for _, h in m.holders(comp)
+            for ref in [*as_list(h.get("uses")), *as_list(h.get("calls"))]}
+    deps = sorted((a, b) for a, b in deps | set(new_edges) if a != b and a in names and b in names)
+    L = ["flowchart LR", *(f'  {nid("c_", n)}["{ml(n)}"]:::comp' for n in names)]
+    L += [f'  {nid("c_", a)} {"-. new .->" if (a, b) in new_edges else "-->"} {nid("c_", b)}' for a, b in deps]
+    red = [str(i) for i, e in enumerate(deps) if e in new_edges]
+    if red:
+        L.append(f"  linkStyle {','.join(red)} stroke:#dc2626,stroke-width:2px,color:#dc2626")
+    L += [f"  style {nid('c_', n)} fill:#fde68a,stroke:#b45309,stroke-width:3px,color:#111" for n in names if n in changed]
+    return "\n".join([*L, *MAP_CLASSES])
 
 
 def entity_label(rel, ents, per_line=3):
@@ -676,7 +687,7 @@ def render(path):
               f"{len(deficiencies)} deficiencies", f"{len(improvements)} improvements"]
     banner = ""
     if errors:
-        banner += (f'<div class="problems"><b>{len(errors)} model errors</b> — fix with arch-define'
+        banner += (f'<div class="problems"><b>{len(errors)} model errors</b> — fix with arch3'
                    f'<ul>{"".join(f"<li>{esc(e)}</li>" for e in errors)}</ul></div>')
     if warnings:
         banner += (f'<div class="problems warn"><b>{len(warnings)} warnings</b>'
@@ -688,8 +699,7 @@ def render(path):
             + f'<p class="counts">{esc(" · ".join(counts))}</p>{banner}</header>')
     nav = '<nav><div>' + "".join(f'<a href="#{a}">{esc(t)}</a>' for a, t, _ in sections) + "</div></nav>"
     body = head + nav + "<main>" + "".join(f'<section id="{a}"><h2>{esc(t)}</h2>{h}</section>' for a, t, h in sections) + "</main>"
-    page = (HERE / "template.html").read_text()
-    return page.replace("{{TITLE}}", esc(f"{data['system']} architecture")).replace("{{BODY}}", body), errors, warnings
+    return f"{data['system']} architecture", body, errors, warnings
 
 
 def main():
@@ -702,19 +712,12 @@ def main():
     files = [a for a in args if not a.startswith("--")]
     path = Path(files[0] if files else "docs/architecture.yaml")
     if not path.exists():
-        print(f"{path} not found — create it with the arch-define skill")
+        print(f"{path} not found — create it with the arch3 skill")
         return 2
-    page, errors, warnings = render(path)
-    if out is None:
-        folder = Path(tempfile.gettempdir()) / "craft-views"
-        folder.mkdir(exist_ok=True)
-        system = re.sub(r"\W+", "-", str(yaml.safe_load(path.read_text())["system"])).lower()
-        out = folder / f"arch-{system}.html"
-    out.write_text(page)
-    print(out)
+    title, body, errors, warnings = render(path)
+    system = re.sub(r"\W+", "-", title.removesuffix(" architecture")).lower()
+    write(title, body, f"arch-{system}", out, "--no-open" not in args)
     print(f"{len(errors)} model errors, {len(warnings)} warnings")
-    if "--no-open" not in args:
-        webbrowser.open(out.resolve().as_uri())
     return 0
 
 

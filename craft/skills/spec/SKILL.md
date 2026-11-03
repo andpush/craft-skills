@@ -16,7 +16,7 @@ Once it's ready, the implementation is a delegated execution — via `build3` (c
 `spec` builds on `docs/PRODUCT.md` and `docs/architecture.yaml`.
 
 If either is missing or placeholder-only — offer a fork:
-- **Establish now** — run `prod`/`arch-define` skills in this session, then continue the spec.
+- **Establish now** — run `prod`/`arch3` skills in this session, then continue the spec.
 - **Defer** — name what's missing and why it matters, then stop so the user runs `/init` separately.
 
 ## Core Principles
@@ -45,6 +45,7 @@ Understand the ground you're building on:
 - Read `docs/PRODUCT.md` and `docs/architecture.yaml`, including its `notes` about what the change touches.
 - Peek into dir tree, recent commit log, `docs/ideas/` and `docs/adr/` listings if warranted. Before proposing an option, grep the ADRs' `## Rejected` for it.
 - Explore additional context and zoom in as needed.
+- A change that adds a component or a contract: run `arch3` reconcile on what it touches first, so the spec doesn't build on a stale model.
 
 ### 2. Frame the problem
 
@@ -79,8 +80,9 @@ As new information arises, iterate between the solution and the problem framing 
 Don't just dump a spec with the details buried in it; present the chosen solution clearly in a way easy to grasp for a human:
 - Write the item as `status: draft` and open the spec page — Review Brief first, the model's component diagram with the targets highlighted, contract changes as cards, the AC table:
   ```bash
-  uv run --quiet <this-skill-dir>/../view/scripts/view.py spec docs/ready/<item>.md
+  uv run --quiet <this-skill-dir>/scripts/spec_page.py docs/ready/<item>.md
   ```
+- For the page to lift them: frontmatter `target:` names components from the model; contract changes are a nested list under `- **Contract changes:**`, one per item: `C1 <kind>: <what> — <consequence>`.
 - In the terminal, lead with what needs the human: open questions, contract changes, anything the page flags. Every item has an ID (`C1`, `AC3`) to discuss by.
 - Obtain confirmation that the spec captures the intent and is ready to build. If not, iterate and re-render.
 

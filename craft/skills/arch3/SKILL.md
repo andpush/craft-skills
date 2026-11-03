@@ -1,6 +1,6 @@
 ---
-name: arch-define
-description: Use to define a project's `docs/architecture.yaml` — the reference architecture and durable skeletal context for agents — designed with the user for a new project, derived from the code for an existing one, or reconciled when it has drifted.
+name: arch3
+description: Use to define a project's `docs/architecture.yaml` — the reference architecture and durable skeletal context for agents — designed with the user for a new project, derived from the code for an existing one, or reconciled when it has drifted; and to show it as an HTML page ("show me the architecture").
 ---
 
 `docs/architecture.yaml` is the project's architecture in one file, with three jobs:
@@ -8,13 +8,15 @@ description: Use to define a project's `docs/architecture.yaml` — the referenc
 - **Drift baseline:** relations are an allowlist, so anything the code does beyond them is degradation to fix or decide on.
 - **Diagram source:** context, containers, modules, ER, lifecycles and sequences render from it.
 
+**To only show the architecture,** skip the rest: see [View](#view).
+
 The format is [reference/architecture.schema.json](reference/architecture.schema.json). Read it and
 [reference/architecture.example.yaml](reference/architecture.example.yaml) before drafting.
 
 ## 1. Ground
 
 - Read the product inputs: `docs/PRODUCT.md`, `README.md`, vision, requirements and PRDs under `docs/`,
-  and `docs/ARCHITECTURE.md` and `docs/adr/` when present.
+  and `docs/adr/` when present.
 - With no product purpose anywhere, offer to run `prod` first: the model needs a purpose to design against.
 - Pick the branch: no production code → **greenfield**; code → **brownfield**; `docs/architecture.yaml`
   already exists → **reconcile**.
@@ -138,5 +140,15 @@ Create it from [reference/agents-template.md](reference/agents-template.md), or 
 
 Done when the validator exits 0 and the user has approved the model.
 
-Report in a few lines: the file written, findings and their outcomes, open questions, and the next
+## View
+
+```bash
+uv run --quiet <this-skill-dir>/scripts/render.py [docs/architecture.yaml]
+```
+
+Renders the model, ADRs and validator findings to `<tmp>/craft-views/arch-<system>.html` and opens it. Flags: `--no-open`, `--out <file>`. Display only: it decides nothing and has no findings of its own. A new kind of finding goes in `validate.py`. A `Diagram error` is a bug in `render.py`.
+
+## Report
+
+In a few lines: the file written, findings and their outcomes, open questions, and the next
 step — `guard`, to turn relations and rules into checks.

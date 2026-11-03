@@ -100,7 +100,7 @@ If main moved, merge it into the branch — don't rebase: the review's refs must
 PR body, short: the goal, the tier and its reasons, the AC evidence, what wasn't checked, and the line `review: docs/done/<item>.review.json`. Then open the change page:
 
 ```bash
-uv run --quiet <this-skill-dir>/../view/scripts/view.py change docs/done/<item>.review.json
+uv run --quiet <this-skill-dir>/../review/scripts/change_page.py docs/done/<item>.review.json
 ```
 
 ### 9. Report

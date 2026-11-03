@@ -1,5 +1,5 @@
 <!--
-The skeleton `arch-define` writes at AGENTS.md — always loaded by every agent, so ≤60 lines.
+The skeleton `arch3` writes at AGENTS.md — always loaded by every agent, so ≤60 lines.
 Pointers, commands and invariants only; everything else lives in the docs it points to.
 CLAUDE.md contains a single line: @AGENTS.md
 -->

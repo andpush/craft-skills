@@ -22,8 +22,8 @@ Make sure the architecture is consistent within repo and with docs. Flag inconsi
 ### 2. Conformance — when `docs/architecture.yaml` exists
 
 Deterministic first; these findings need no judgment:
-- **Model vs code:** run `verify` (or the architecture checks alone). Then look for what the checks can't see: imports the model doesn't list in code the checks skip, production files no unit covers, writes to a store outside its `writes`, and what `arch-define` reconcile finds.
-- **Model validity:** `uv run --quiet <this-skill-dir>/../arch-define/scripts/validate.py docs/architecture.yaml` prints problems and exits non-zero on errors. Its deficiencies and improvements are findings.
+- **Model vs code:** run `verify`, then `arch3` reconcile for what the checks can't see. Its differences are findings.
+- **Model validity:** `uv run --quiet <this-skill-dir>/../arch3/scripts/validate.py docs/architecture.yaml` prints problems and exits non-zero on errors. Its deficiencies and improvements are findings.
 - **Rule coverage:** every `must` rule has a `check` that exists and went red at least once (`guard` proves it). A rule without one that a tool could check is a finding.
 - **Baseline:** its size and trend (`git log` on the baseline file). A growing baseline is a finding.
 - **Doc drift:** `AGENTS.md`, `docs/PRODUCT.md` and model `notes`: claims that the code or the model contradicts. Say which side is wrong; never rewrite intent to match code.

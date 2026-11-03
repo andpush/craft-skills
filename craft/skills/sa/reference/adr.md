@@ -31,5 +31,5 @@ What gets easier, what gets harder, what to watch.
 - **No other fields.** Owners, status, tags and reviewers rot; git has the author and the date.
 - Before proposing an option, grep `docs/adr/` for it under `## Rejected`. If it's there, say so and
   check its "revisit if" before proposing it again.
-- `arch-view` draws ADRs as a timeline: each decision a waypoint, rejected options as side branches,
+- The `arch3` page draws ADRs as a timeline: each decision a waypoint, rejected options as side branches,
   superseded ones struck through.

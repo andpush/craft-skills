@@ -17,15 +17,32 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 import tempfile
+from fnmatch import fnmatchcase
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "view" / "scripts"))
-import view as m  # noqa: E402 — shared model, git and markdown helpers
+import yaml
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch-define" / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch3" / "scripts"))
 import validate  # noqa: E402 — architecture findings
+from page import split_frontmatter, targets_of  # noqa: E402
+
+MODEL_FILE = "docs/architecture.yaml"
+
+# Changed paths that make a change red. A model's review_triggers add project paths to these.
+DEFAULT_TRIGGERS = {
+    "dependency": ["package.json", "**/package.json", "*lock.json", "*lock.yaml", "yarn.lock", "**/build.gradle*",
+                   "**/settings.gradle*", "**/libs.versions.toml", "**/pom.xml", "go.mod", "go.sum", "Cargo.toml",
+                   "Cargo.lock", "pyproject.toml", "uv.lock", "requirements*.txt", "Gemfile*", "**/*.csproj",
+                   "pubspec.yaml", "Package.swift"],
+    "schema": ["**/migration/**", "**/migrations/**", "**/*.sql", "**/schema.prisma"],
+    "api": ["**/openapi*.yaml", "**/openapi*.yml", "**/openapi*.json", "**/*.proto", "**/*.graphql"],
+    "security": ["**/auth/**", "**/security/**", "**/*crypto*", "**/*secret*", "**/.env*"],
+    "ci": [".github/workflows/**", ".gitlab-ci.yml", "Jenkinsfile", ".circleci/**"],
+    "arch-check": ["**/architecture.gate.json", "**/architecture.baseline", "**/archunit_store/**", "**/.dependency-cruiser*", "**/ArchitectureTest*"],
+}
 
 TEST_FILE = re.compile(r"(^|/)(tests?|__tests__|spec)/|[._-](test|spec)\.\w+$|Tests?\.(kt|java|scala|cs)$"
                        r"|_test\.(go|py)$|(^|/)test_[^/]*\.py$")
@@ -33,18 +50,101 @@ SKIP_MARK = re.compile(r"@Disabled|@Ignore\b|\.skip\(|\bx(it|describe|test)\(|\.
                        r"|\bt\.Skip\(|#\[ignore\]")
 LOCKFILE = re.compile(r"(\.lock|-lock\.(json|yaml)|\.sum)$")
 REACH = {"local": 0, "private": 1, "internet": 2}
-DOC_FILES = {"PRODUCT.md", "AGENTS.md", "CLAUDE.md", Path(m.MODEL_FILE).name}
+DOC_FILES = {"PRODUCT.md", "AGENTS.md", "CLAUDE.md", Path(MODEL_FILE).name}
 CONTRACT_TRIGGERS = ("dependency", "schema", "api", "event")
 RED_CONTRACTS = {"dependency", "schema", "api", "event", "data-writer", "data-copy", "external-call"}
 AC_COMMIT_SUBJECT = "test: acceptance tests"
 AC_ROW = re.compile(r"^\|\s*(AC\d+)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*$")
 
 
+# ---------- git ----------
+
+def git(repo: Path, *args: str) -> str:
+    r = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True)
+    if r.returncode:
+        raise RuntimeError(r.stderr.strip() or f"git {' '.join(args)} failed")
+    return r.stdout
+
+
+def repo_root(start: Path) -> Path | None:
+    try:
+        return Path(git(start, "rev-parse", "--show-toplevel").strip())
+    except (RuntimeError, FileNotFoundError):
+        return None
+
+
+def resolve(repo: Path, ref: str | None) -> str | None:
+    if not ref:
+        return None
+    try:
+        return git(repo, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}").strip()
+    except RuntimeError:
+        return None
+
+
+def default_base(repo: Path, head: str) -> str | None:
+    for main in ("main", "master", "origin/main", "origin/master"):
+        try:
+            return git(repo, "merge-base", main, head).strip()
+        except RuntimeError:
+            continue
+    return None
+
+
+def changed_files(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
+    """(status letter, path at head)."""
+    out = []
+    for row in git(repo, "diff", "--name-status", base, head).splitlines():
+        status, *paths = row.split("\t")
+        out.append((status[0], paths[-1]))
+    return out
+
+
+def parse_diff(text: str) -> dict[str, list[dict]]:
+    files: dict[str, list[dict]] = {}
+    cur = hunk = None
+    old_path = None
+    o = n = 0
+    for line in text.splitlines():
+        if line.startswith("diff --git"):
+            cur = hunk = None
+            continue
+        if hunk is None and line.startswith("--- "):
+            old_path = line[4:].removeprefix("a/")
+            continue
+        if hunk is None and line.startswith("+++ "):
+            path = line[4:].removeprefix("b/")
+            cur = files.setdefault(old_path if path == "/dev/null" else path, [])
+            continue
+        h = re.match(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@", line)
+        if h and cur is not None:
+            hunk = {"header": line, "new": int(h[3]), "newLen": int(h[4] if h[4] is not None else 1), "lines": []}
+            cur.append(hunk)
+            o, n = int(h[1]), int(h[3])
+            continue
+        if hunk is not None and line[:1] in ("+", "-", " "):
+            t = line[:1]
+            hunk["lines"].append({"t": t, "o": o if t != "+" else None, "n": n if t != "-" else None, "s": line[1:]})
+            o += t != "+"
+            n += t != "-"
+    return files
+
+
+def matches(path: str, glob: str) -> bool:
+    return fnmatchcase(path, glob) or (glob.startswith("**/") and fnmatchcase(path, glob[3:]))
+
+
+def as_list(v) -> list[str]:
+    if v is None:
+        return []
+    return [str(x) for x in v] if isinstance(v, list) else [str(v)]
+
+
 # ---------- inputs ----------
 
 def find_item(repo: Path, arg: str | None) -> Path | None:
     if not arg:
-        branch = m.git(repo, "rev-parse", "--abbrev-ref", "HEAD").strip()
+        branch = git(repo, "rev-parse", "--abbrev-ref", "HEAD").strip()
         if not branch.startswith("craft/"):
             return None
         arg = branch.removeprefix("craft/")
@@ -60,7 +160,7 @@ def find_item(repo: Path, arg: str | None) -> Path | None:
 
 
 def read_item(path: Path) -> dict:
-    fm, body = m.split_frontmatter(path.read_text(encoding="utf-8"))
+    fm, body = split_frontmatter(path.read_text(encoding="utf-8"))
     impact = re.search(r"^#+\s*Doc impact\s*$(.*?)(?=^#+\s|\Z)", body, re.M | re.S | re.I)
     acs = []
     for line in body.splitlines():
@@ -68,71 +168,132 @@ def read_item(path: Path) -> dict:
         if row:
             cmd = row[3].strip("`").strip()
             acs.append({"ac": row[1], "criterion": row[2], "command": "" if cmd in ("", "—", "-") else cmd})
-    return {"targets": {t for t in re.split(r"[,\s/]+", fm.get("target", "")) if t},
+    return {"targets": set(targets_of(fm)),
             "doc_impact": impact[1] if impact else "", "acs": acs}
 
 
-def raw_at(repo: Path, ref: str, rel: str) -> dict | None:
+def raw_at(repo: Path, ref: str, rel: str = MODEL_FILE) -> dict | None:
+    """The model at a ref; None when it isn't there or isn't this format."""
     try:
-        return m.yaml.safe_load(m.git(repo, "show", f"{ref}:{rel}"))
-    except (RuntimeError, m.yaml.YAMLError):
+        raw = yaml.safe_load(git(repo, "show", f"{ref}:{rel}"))
+    except (RuntimeError, yaml.YAMLError):
         return None
+    return raw if isinstance(raw, dict) and isinstance(raw.get("components"), list) else None
 
 
-def model_at(repo: Path, ref: str, rel: str) -> dict | None:
-    try:
-        text = m.git(repo, "show", f"{ref}:{rel}")
-    except RuntimeError:
-        return None
-    with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False, encoding="utf-8") as f:
-        f.write(text)
-    return m.load_model(Path(f.name))
+def triggers_of(raw: dict | None) -> dict[str, list[str]]:
+    """Built-in globs, the model's review_triggers, and what the model implies: API specs, store paths, rule checks."""
+    out = {k: list(v) for k, v in DEFAULT_TRIGGERS.items()}
+    if not raw:
+        return out
+
+    def add(kind: str, globs) -> None:
+        have = out.setdefault(str(kind), [])
+        have.extend(g for g in globs if g not in have)
+
+    for kind, globs in (raw.get("review_triggers") or {}).items():
+        add(kind, as_list(globs))
+    comps = raw["components"]
+    stores = [*(raw.get("datastores") or []), *(s for c in comps for s in c.get("datastores") or [])]
+    surfaces = [s for c in comps for f in ("endpoints", "ui_endpoints") for s in (c.get(f) or {}).values()]
+    add("api", [s["spec"] for s in surfaces if s.get("spec")])
+    add("schema", [f"{s['source_path'].rstrip('/')}/**" for s in stores if s.get("source_path")])
+    add("arch-check", [r["check"] for r in raw.get("rules") or [] if r.get("check")])
+    return out
+
+
+def units_of(raw: dict | None) -> list[dict]:
+    """What code belongs to: components, and root modules whose packages are directory globs."""
+    if not raw:
+        return []
+    units = [{"name": c["component"], "paths": as_list(c.get("source_path"))} for c in raw["components"]]
+    return units + [{"name": x["module"], "paths": [p for p in as_list(x.get("packages")) if "/" in p]}
+                    for x in raw.get("modules") or []]
+
+
+def component_of(path: str, units: list[dict]) -> str | None:
+    best, size = None, -1
+    for u in units:
+        for p in u["paths"]:
+            if "*" in p:
+                if matches(path, p) and len(p) > size:
+                    best, size = u["name"], len(p)
+                continue
+            p = p.rstrip("/")
+            if (path == p or path.startswith(p + "/")) and len(p) > size:
+                best, size = u["name"], len(p)
+    return best
 
 
 # ---------- deterministic triggers ----------
 
-def model_changes(old: dict | None, new: dict | None) -> tuple[list, list[str]]:
-    if new is None or old is None:
-        return ([("yellow", f"model: {m.MODEL_FILE} added")] if new and new["file"] else []), []
-    out, edges = [], []
-    oc, nc = {c["name"]: c for c in old["components"]}, {c["name"]: c for c in new["components"]}
-    oext, next_ = {e["name"] for e in old["external"]}, {e["name"] for e in new["external"]}
-    out += [("yellow", f"model: new component {n}") for n in sorted(nc.keys() - oc.keys())]
-    out += [("yellow", f"model: component {n} removed") for n in sorted(oc.keys() - nc.keys())]
-    out += [("red", f"external-call: new external {e}") for e in sorted(next_ - oext)]
-    for name, c in nc.items():
-        before = set(oc[name]["deps"]) if name in oc else set()
-        for d in c["deps"]:
-            if d in before:
-                continue
-            if d in next_:
-                out.append(("red", f"external-call: {name} -> {d}"))
-            else:
-                out.append(("yellow", f"new edge: {name} -> {d}"))
-                edges.append(f"{name} -> {d}")
-    oe = {e["name"]: e for e in old["entities"]}
-    for e in new["entities"]:
-        was = oe.get(e["name"])
-        if was is None:
-            out.append(("yellow", f"model: new entity {e['name']}"))
-        elif was["owner"] != e["owner"]:
-            out.append(("red", f"data-writer: {e['name']} owner {was['owner']} -> {e['owner']}"))
-        elif was["states"] != e["states"]:
-            out.append(("yellow", f"model: {e['name']} lifecycle changed"))
-        known = {c["of"] for c in (was or {}).get("copies", [])}
-        out += [("red", f"data-copy: {e['name']} copies {c['of']} ({c['kind']})") for c in e["copies"] if c["of"] not in known]
-    nr = {r["id"]: r for r in new["rules"]}
-    for r in old["rules"]:
-        now = nr.get(r["id"])
-        if now is None:
-            out.append(("red", f"arch-check: rule {r['id']} removed"))
-        elif (r["level"], now["level"]) == ("MUST", "SHOULD") or (now["manual"] and not r["manual"]):
-            out.append(("red", f"arch-check: rule {r['id']} weakened"))
-    return out, edges
+def holders(c: dict) -> list[dict]:
+    return [c, *(c.get("modules") or [])]
+
+
+def own_names(c: dict) -> set[str]:
+    return {c["component"], *(x["module"] for x in c.get("modules") or [])}
+
+
+def head_of(ref) -> str:
+    """'payments.payments-api' -> payments; 'shared-kernel test' -> shared-kernel."""
+    return str(ref).split()[0].split(".")[0]
+
+
+def edges_of(raw: dict) -> set[tuple[str, str]]:
+    """(component, what it uses or calls outside itself)."""
+    return {(c["component"], head_of(ref)) for c in raw["components"] for h in holders(c)
+            for ref in [*(h.get("uses") or []), *(h.get("calls") or [])] if head_of(ref) not in own_names(c)}
+
+
+def entity_owners(raw: dict) -> dict[str, str]:
+    out = {}
+    for s in raw.get("datastores") or []:
+        out |= {str(e): str(s.get("schema_owner") or s["datastore"]) for e in s.get("entities") or {}}
+    for c in raw["components"]:
+        for s in c.get("datastores") or []:
+            out |= {str(e): c["component"] for e in s.get("entities") or {}}
+    return out
+
+
+def structure_changes(old: dict | None, new: dict | None) -> tuple[list, list[str]]:
+    """Components, externals, dependencies, entities and rules between two models."""
+    if not new:
+        return [], []
+    if not old:
+        return [("yellow", f"model: {MODEL_FILE} added")], []
+    out, new_edges = [], []
+    was, now = {c["component"] for c in old["components"]}, {c["component"] for c in new["components"]}
+    ext_was, ext_now = set(old.get("external") or {}), set(new.get("external") or {})
+    out += [("yellow", f"model: new component {n}") for n in sorted(now - was)]
+    out += [("yellow", f"model: component {n} removed") for n in sorted(was - now)]
+    out += [("red", f"external-call: new external {e}") for e in sorted(ext_now - ext_was)]
+    for a, b in sorted(edges_of(new) - edges_of(old)):
+        if b in ext_now:
+            out.append(("red", f"external-call: {a} -> {b}"))
+        else:
+            out.append(("yellow", f"new edge: {a} -> {b}"))
+            new_edges.append(f"{a} -> {b}")
+    before = entity_owners(old)
+    for e, owner in entity_owners(new).items():
+        if e not in before:
+            out.append(("yellow", f"model: new entity {e}"))
+        elif before[e] != owner:
+            out.append(("red", f"data-writer: {e} owner {before[e]} -> {owner}"))
+    states = old.get("states") or {}
+    out += [("yellow", f"model: {k} lifecycle changed") for k, v in (new.get("states") or {}).items() if k in states and states[k] != v]
+    rules = {r["rule"]: r for r in new.get("rules") or []}
+    for r in old.get("rules") or []:
+        n = rules.get(r["rule"])
+        if n is None:
+            out.append(("red", f"arch-check: rule {r['rule']} removed"))
+        elif (r.get("level", "must") == "must" and n.get("level", "must") != "must") or (r.get("check") and not n.get("check")):
+            out.append(("red", f"arch-check: rule {r['rule']} weakened"))
+    return out, new_edges
 
 
 def surface(raw: dict) -> dict:
-    """Network endpoints of an arch-define model: ref -> (component, exposure, spec, open)."""
+    """Network endpoints of an arch3 model: ref -> (component, exposure, spec, open)."""
     out = {}
     for c in raw["components"]:
         for field in ("endpoints", "ui_endpoints"):
@@ -144,17 +305,19 @@ def surface(raw: dict) -> dict:
 
 
 def data_access(raw: dict) -> set:
-    """(component, relation, target, entity) over each component and its modules."""
-    holders = [(c["component"], h) for c in raw["components"] for h in [c, *(c.get("modules") or [])]]
-    return {(comp, rel, target, e) for comp, h in holders for rel in ("reads", "writes", "produces", "consumes")
+    """(component, relation, target, entity) over each component and its modules; `uses` inside a component."""
+    pairs = [(c["component"], h) for c in raw["components"] for h in holders(c)]
+    return {(comp, rel, target, e) for comp, h in pairs for rel in ("reads", "writes", "produces", "consumes")
             for target, ents in (h.get(rel) or {}).items() for e in ents or [None]} | {
-        (comp, "uses", u, None) for comp, h in holders for u in h.get("uses") or []}
+        (c["component"], "uses", u, None) for c in raw["components"] for h in holders(c)
+        for u in h.get("uses") or [] if head_of(u) in own_names(c)}
 
 
 def deficiencies_of(raw: dict) -> set:
-    with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False, encoding="utf-8") as f:
-        m.yaml.safe_dump(raw, f)
-    validate.check(f.name, skip_paths=True)
+    with tempfile.NamedTemporaryFile("w", suffix=".yaml", encoding="utf-8") as f:
+        yaml.safe_dump(raw, f)
+        f.flush()
+        validate.check(f.name, skip_paths=True)
     return set(validate.deficiencies)
 
 
@@ -170,8 +333,8 @@ def logins(raw: dict) -> set:
 
 
 def define_changes(old: dict | None, new: dict | None) -> list:
-    """Security, data and note changes that only the arch-define format can show."""
-    if not (old and new and isinstance(old.get("components"), list) and isinstance(new.get("components"), list)):
+    """Security, data, deficiency and note changes between two models."""
+    if not (old and new):
         return []
     out, was, now = [], surface(old), surface(new)
     for ref, (_, exposure, spec, is_open) in now.items():
@@ -187,7 +350,7 @@ def define_changes(old: dict | None, new: dict | None) -> list:
         elif spec.get("auth") != old_spec.get("auth"):
             out.append(("yellow", f"security: {ref} auth changed"))
         out += [("red", f"security: {ref} no longer needs {a}")
-                for a in m.as_list(old_spec.get("authz")) if a not in m.as_list(spec.get("authz"))]
+                for a in as_list(old_spec.get("authz")) if a not in as_list(spec.get("authz"))]
         if spec.get("identity") == "user" and old_spec.get("identity") != "user":
             out.append(("red", f"security: user identity now reaches {ref}"))
     def user_side(s):
@@ -203,17 +366,15 @@ def define_changes(old: dict | None, new: dict | None) -> list:
     return out
 
 
-def diff_triggers(repo: Path, base: str, head: str, model: dict, item: dict | None, ac_commit: str | None) -> list:
+def diff_triggers(repo: Path, base: str, head: str, raw: dict | None, item: dict | None, ac_commit: str | None) -> list:
     out = []
-    diff = m.parse_diff(m.git(repo, "diff", "--no-color", "-U0", base, head))
-    files = []
-    for row in m.git(repo, "diff", "--name-status", base, head).splitlines():
-        status, *paths = row.split("\t")
-        files.append((status[0], paths[-1]))
+    diff = parse_diff(git(repo, "diff", "--no-color", "-U0", base, head))
+    files = changed_files(repo, base, head)
+    triggers, units = triggers_of(raw), units_of(raw)
 
     for status, path in files:
-        for kind, globs in model["triggers"].items():
-            if any(m.matches(path, g) for g in globs):
+        for kind, globs in triggers.items():
+            if any(matches(path, g) for g in globs):
                 added = [l["s"].strip() for h in diff.get(path, []) for l in h["lines"] if l["t"] == "+" and l["s"].strip()]
                 detail = "" if kind != "dependency" or LOCKFILE.search(path) or not added else f" +{added[0][:70]}"
                 out.append(("red", f"{kind}: {path}{detail}"))
@@ -225,8 +386,8 @@ def diff_triggers(repo: Path, base: str, head: str, model: dict, item: dict | No
                         for l in h["lines"] if l["t"] == "+" and SKIP_MARK.search(l["s"])]
 
     if ac_commit:
-        ac_files = set(m.git(repo, "show", "--name-only", "--format=", ac_commit).split())
-        edited = set(m.git(repo, "diff", "--name-only", ac_commit, head).split())
+        ac_files = set(git(repo, "show", "--name-only", "--format=", ac_commit).split())
+        edited = set(git(repo, "diff", "--name-only", ac_commit, head).split())
         out += [("red", f"ac-test-edited: {p}") for p in sorted(ac_files & edited)]
 
     if item:
@@ -236,7 +397,7 @@ def diff_triggers(repo: Path, base: str, head: str, model: dict, item: dict | No
         if item["targets"]:
             outside: dict[str, int] = {}
             for _, path in files:
-                comp = m.component_of(path, model["components"])
+                comp = component_of(path, units)
                 if comp and comp not in item["targets"] and not TEST_FILE.search(path):
                     outside[comp] = outside.get(comp, 0) + 1
             out += [("yellow", f"outside target: {c} ({n} file{'s' * (n > 1)})") for c, n in outside.items()]
@@ -295,19 +456,19 @@ def main() -> None:
     ap.add_argument("--out", help="review file (default: next to the item, or <tmp>/craft-reviews/)")
     args = ap.parse_args()
 
-    repo = m.repo_root(Path.cwd()) or sys.exit("not a git repository")
-    head = m.resolve(repo, args.head) or sys.exit(f"unknown ref {args.head}")
-    base = (m.resolve(repo, args.base) if args.base else m.default_base(repo, head)) or sys.exit("base not found; pass --base")
+    repo = repo_root(Path.cwd()) or sys.exit("not a git repository")
+    head = resolve(repo, args.head) or sys.exit(f"unknown ref {args.head}")
+    base = (resolve(repo, args.base) if args.base else default_base(repo, head)) or sys.exit("base not found; pass --base")
     item_path = find_item(repo, args.item)
     item = read_item(item_path) if item_path else None
 
-    model_path = m.find_model(repo, None)
-    model = m.load_model(model_path)
-    rel = str(model_path.relative_to(repo)) if model_path else m.MODEL_FILE
-    changes, edges = model_changes(model_at(repo, base, rel), model_at(repo, head, rel))
-    changes += define_changes(raw_at(repo, base, rel), raw_at(repo, head, rel))
+    raw, was = raw_at(repo, head), raw_at(repo, base)
+    if raw is None and MODEL_FILE in git(repo, "ls-tree", "-r", "--name-only", head).splitlines():
+        sys.exit(f"{MODEL_FILE} at {head[:8]} can't be read as a model: fix it with arch3")
+    changes, edges = structure_changes(was, raw)
+    changes += define_changes(was, raw)
 
-    ac_commit = args.ac_commit or (m.git(repo, "log", f"{base}..{head}", "--format=%H", "--grep",
+    ac_commit = args.ac_commit or (git(repo, "log", f"{base}..{head}", "--format=%H", "--grep",
                                          f"^{AC_COMMIT_SUBJECT}").split() or [None])[-1]
 
     if args.out:
@@ -315,19 +476,19 @@ def main() -> None:
     elif item_path:
         out = item_path.with_name(f"{item_path.stem}.review.json")
     else:
-        branch = m.git(repo, "rev-parse", "--abbrev-ref", head).strip().replace("/", "-")
+        branch = git(repo, "rev-parse", "--abbrev-ref", head).strip().replace("/", "-")
         out = Path(tempfile.gettempdir()) / "craft-reviews" / f"{branch}.review.json"
     r = json.loads(out.read_text(encoding="utf-8")) if out.exists() else {
         "deviations": [], "contracts": [], "blast": [], "findings": [], "evidence": [],
         "not_checked": ["code-review: not run", "security-review: not run"]
-                       + [f"{x['id']} (manual): {x['text']}" for x in model["rules"] if x["manual"]],
+                       + [f"{x['rule']} (manual): {x['statement']}" for x in (raw or {}).get("rules") or [] if not x.get("check")],
         "verdicts": {},
     }
     have = {e.get("ac") for e in r.get("evidence", [])}
     r.setdefault("evidence", []).extend(
         {**a, "result": "not-run" if a["command"] else "manual"} for a in (item or {}).get("acs", []) if a["ac"] not in have)
 
-    triggers = changes + diff_triggers(repo, base, head, model, item, ac_commit)
+    triggers = changes + diff_triggers(repo, base, head, raw, item, ac_commit)
     reasons = triggers + content_reasons(r, {w.split(':', 1)[0] for _, w in triggers})
     r["triggers"] = [{"tier": t, "what": w} for t, w in sorted(reasons, key=lambda x: x[0] != "red")]
     tiers = {t["tier"] for t in r["triggers"]}
