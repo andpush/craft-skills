@@ -28,7 +28,7 @@ This is the core value: an implementor should be able to execute from the doc co
 
 ```markdown
 ---
-status: ready       # ready | blocked | done — build3 owns the last two
+status: ready       # ready | blocked — build3 owns blocked
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 target: <component name from docs/architecture.yaml>

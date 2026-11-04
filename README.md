@@ -64,7 +64,7 @@ Companion skills: `simplify` and `code-review`, `security-review` (used by `buil
 
 1. **Plan.** `feat` or `task` commits an item to `docs/ready/` on main.
 2. **Build.** `build3`, by hand or on a schedule, works on a `craft/<item>` branch in a sibling worktree: acceptance tests (with the code for `task` items), implementation, `verify`, independent `review`, docs, `verify` again.
-3. **Merge.** 🟢 merges to local main by itself. 🟡 and 🔴 wait for you. Uncommitted changes in your main checkout also make it wait.
+3. **Merge.** 🟢 merges to local main by itself. 🟡 and 🔴 wait for you, and so does 🟢 if your main checkout has uncommitted changes. Run `review walk` to go through everything waiting and merge what you accept.
 4. **Sync.** No skill pulls or pushes, so deploying stays your call. Periodically run `git pull --no-rebase`, `verify`, fix anything red, `git push`. Two changes can each pass and still fail together. If both sides changed `architecture.yaml`, regenerate the gate with `validate.py --gate`.
 
 Why you can trust the result:
@@ -102,8 +102,8 @@ Review what's expensive to undo. Agents can cheaply rewrite internals, but a bad
 | --- | --- | --- |
 | Before code | Every `feat` | Approve the plan: goal, contract changes, acceptance criteria, open questions. Your best use of time |
 | Before merge | 🟢 none of the below | Nothing |
-| | 🟡 new relation, other architecture changes, edited acceptance test, files outside the spec's target, uncovered callers, unaccepted findings, anything not checked | Skim the changes view, merge |
-| | 🔴 new dependency, schema, API or event change, security or CI paths, wider exposure, new data writer, new deficiency, weakened rule, deleted or skipped test, doc edits outside the spec, deviation from the spec, confirmed high finding, failing acceptance test | `review walk`, then merge or send back fixes |
+| | 🟡 new relation, other architecture changes, edited acceptance test, files outside the spec's target, uncovered callers, unaccepted findings, anything not checked | `review walk`: skim the changes view, merge |
+| | 🔴 new dependency, schema, API or event change, security or CI paths, wider exposure, new data writer, new deficiency, weakened rule, deleted or skipped test, doc edits outside the spec, deviation from the spec, confirmed high finding, failing acceptance test | `review walk`: decide each item, merge or send back fixes |
 | Periodically | After a batch of items | Run `audit`, view the architecture page, decide findings in `arch3` |
 
 The changes view and `review walk` lead with the data model and API, then deviations, other contracts, findings and blast radius. Open code only where an item points you, and run manual acceptance criteria yourself.
@@ -133,7 +133,7 @@ docs/
 
 `guard` also adds architecture and rule tests to your suite. HTML pages go to a temp folder and are never committed.
 
-**Work items** move `ideas/ → ready/ → done/` and keep their `type-slug.md` name throughout. Frontmatter holds `status:` (`draft`, `ready`, `blocked`, `done`); a `craft/<item>` branch is the claim. Order is `priority: high`, then `created:`. Closed work is archived, not deleted.
+**Work items** move `ideas/ → ready/ → done/` and keep their `type-slug.md` name throughout. An item's folder says whether it's done. In the queue, frontmatter holds `status:` (`draft`, `ready`, `blocked`); a `craft/<item>` branch is the claim. Order is `priority: high`, then `created:`. Closed work is archived, not deleted.
 
 ## Other skills
 

@@ -1,5 +1,5 @@
 ---
-status: draft   # draft (still shaping) | ready (claimable) — build3 owns blocked and done
+status: draft   # draft (still shaping) | ready (claimable) — build3 owns blocked
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 target: <component names from docs/architecture.yaml, comma-separated>

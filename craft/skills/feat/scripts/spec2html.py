@@ -24,7 +24,7 @@ ARCHITECTURE_FILE = "docs/architecture.yaml"
 PROMOTE = re.compile(r"open questions?|migration plan|data model|api contracts?|api changes", re.I)
 OPEN = re.compile(r"verification|acceptance|open question|contract|migration", re.I)
 KEY_KINDS = {"schema", "data-writer", "data-copy", "api", "event"}
-STATUS = {"draft": "yellow", "ready": "green", "in-progress": "chip", "blocked": "red", "done": "green"}
+STATUS = {"draft": "yellow", "ready": "green", "in-progress": "chip", "blocked": "red"}
 CONTRACTS = re.compile(r"\s*[-*]\s+\*\*Contract changes|#{3,4}\s+Contract changes", re.I)
 CONTRACT = re.compile(r"(?:\*\*)?(C\d+)\s+([\w-]+)\s*:\s*(?:\*\*)?\s*(.*)", re.S)
 

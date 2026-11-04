@@ -37,7 +37,7 @@ An idea is born in `docs/ideas/` and stays there, `status: open`, until picked u
 
 - `status: open` — captured, unvalidated. Lives in `docs/ideas/`.
 - `status: deferred` — evaluated, not now; stays in `docs/ideas/` (the live scan pool).
-- **pursued** — `feat` elaborates the idea in place into a build-ready item and moves it (same name) to `docs/ready/`, where it adopts the queue's `status:` (`ready` → `done`). The idea now flows like any queued item; `build3` executes it and archives it to `docs/done/`.
+- **pursued** — `feat` elaborates the idea in place into a build-ready item and moves it (same name) to `docs/ready/`, where it adopts the queue's `status: ready`. The idea now flows like any queued item; `build3` executes it and archives it to `docs/done/`.
 - `status: rejected` — move the file to `docs/done/` so the idea is archived and not re-proposed.
 
 When status leaves `open`, set `verdict:` — the one-line rationale (quote it if it contains a colon) — and bump `updated`. On any move, `git mv` when tracked so history follows, and carry same-basename images along.

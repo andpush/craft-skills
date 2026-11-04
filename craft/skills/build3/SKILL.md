@@ -14,7 +14,7 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 
 ## The queue
 
-`docs/ready/` holds `feat-`, `task-` and promoted `idea-` items. Status lives in the frontmatter: `ready`, `blocked` (with `blocked: <reason>`), `done`. The claim is the branch `craft/<item>` — there is no in-progress status and no owner field.
+`docs/ready/` holds `feat-`, `task-` and promoted `idea-` items. Status lives in the frontmatter: `ready` or `blocked` (with `blocked: <reason>`). An item is done when it's in `docs/done/`. The claim is the branch `craft/<item>` — there is no in-progress status and no owner field.
 
 ## Invocation
 
@@ -38,7 +38,7 @@ Do everything from here on in that worktree, and give subagents its path. If thi
 
 Resuming: `git worktree list` finds it, or `git worktree add ../<repo>-<item> craft/<item>`. Read the branch's commits and continue from the first step not done (an AC commit means step 3 is done).
 
-A `done:` commit means the item closed and came back from a `review walk` with a fix list. It stays in `docs/done/`: make the fixes and re-review as in step 6, using that path, apply any doc impact the fixes changed, commit the review file (`docs: <item> fixes`), and go to step 8.
+A `change` verdict in the review file means a `review walk` sent the item back. Its `fixes` field is the fix list: start at the fixes in step 6, and clear each verdict and fix as it lands.
 
 ### 3. Acceptance tests first — feat and idea items
 
@@ -84,11 +84,11 @@ Fix what has a clear fix: confirmed findings, failing ACs, deviations, architect
    If that changed `docs/architecture.yaml`, re-run `validate.py --gate` (see `guard`). If it refuses a new deficiency, stop and ask the user; never pass `--accept` yourself.
 2. Write the ADRs the item agreed to, in the format of [../sa/reference/adr.md](../sa/reference/adr.md).
 3. File an idea (`docs/ideas/idea-<slug>.md`) for each piece of deferred work and each temporary flag or adapter, with its removal condition.
-4. Commit these with the review file (`docs: <item>`), then rerun the review script without `--base` so the tier covers the docs too:
+4. Commit these without the review file (`docs: <item>`), then rerun the review script without `--base` so the tier covers the docs too:
    ```bash
    uv run --quiet <this-skill-dir>/../review/scripts/review.py docs/ready/<item>.md
    ```
-5. Set `status: done` and `updated:`, `git mv` the item and its same-basename files (`<item>.review.json`, `<item>-*.png`) to `docs/done/`, and commit (`done: <item>`).
+5. Commit the review file (`review: <item>`). A committed review file is what marks the item as finished building.
 
 ### 8. Integrate
 
@@ -99,23 +99,28 @@ Then run `verify` and show the result, even if main didn't move: step 7 changed 
 Open the changes view (`--no-open` on an unattended run):
 
 ```bash
-uv run --quiet <this-skill-dir>/../review/scripts/diff2html.py docs/done/<item>.review.json
+uv run --quiet <this-skill-dir>/../review/scripts/diff2html.py docs/ready/<item>.review.json
 ```
 
-🟢 green merges now. 🟡 and 🔴 leave the branch and its worktree waiting for the human, who merges the same way after reviewing.
+🟢 green goes on to Merge. 🟡 and 🔴 stop here: the branch and its worktree wait for `review walk`, which runs this step and the next once the human accepts.
 
-The merge happens in the main checkout, the first entry of `git worktree list`. If it isn't on main or has uncommitted changes (`git -C <main checkout> status --porcelain -uno`), don't touch it: leave the branch waiting, put the reason in the review file's `waiting` field, commit it (`docs: <item> waiting`), and say why. If main moved since your last `verify`, go back to the start of this step.
+### 9. Merge
+
+The merge happens in the main checkout, the first entry of `git worktree list`. If it isn't on main or has uncommitted changes (`git -C <main checkout> status --porcelain -uno`), don't touch it: leave the branch waiting and say why. If main moved since your last `verify`, go back to step 8.
+
+In the branch, remove `status:` and set `updated:`, then `mkdir -p docs/done`, `git mv` the item and its same-basename files (`<item>.review.json`, `<item>-*.png`) there, and commit (`done: <item>`). Then:
 
 ```bash
 git -C <main checkout> merge --no-ff -m "merge: <item> (<tier>)" craft/<item>
-git worktree remove <worktree> && git branch -d craft/<item>
+git -C <main checkout> worktree remove <worktree>
+git -C <main checkout> branch -d craft/<item>
 ```
 
 Each item is one merge commit, never squashed, so the AC commit stays reachable and `git revert -m 1` undoes the whole item.
 
-### 9. Report
+### 10. Report
 
-Per item, at most six lines: the tier and red reasons, the branch and worktree, and what needs the human — a `review walk` for red, manual ACs, what wasn't checked. For `build3 all`, end with: merged, waiting, blocked, left.
+Per item, at most six lines: the tier and red reasons, the branch and worktree, and what needs the human — `review walk` if it's waiting, what wasn't checked. For `build3 all`, end with: merged, waiting, blocked, left.
 
 ## Fail
 
@@ -125,4 +130,4 @@ Set `status: blocked` and `blocked: <one-line reason>` on the branch and commit.
 
 - **`build3 all`** starts each item from main. An item that needs another item's unmerged code waits; say so and move on.
 - **No subagents on this host:** do steps 3–4 inline, then stop after verify and ask the user to run `review` in a new session. The author doesn't review its own change.
-- Item names never change across folders; only `status:` and location move.
+- Item names never change across folders.

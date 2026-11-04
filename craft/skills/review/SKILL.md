@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use to review a change before it merges — a craft item's branch or any other branch. Computes the risk tier, describes contract changes (data model, API, dependencies), runs independent reviewers, turns suspicions into failing tests, and writes `<item>.review.json`. `review walk` then guides the human through what matters, in the terminal. `build3` calls it after verify.
+description: Use to review a change before it merges — a craft item's branch or any other branch. Computes the risk tier, describes contract changes (data model, API, dependencies), runs independent reviewers, turns suspicions into failing tests, and writes `<item>.review.json`. `review walk` then takes the human through every change waiting for them, in the terminal, and merges what they accept. `build3` calls it after verify.
 ---
 
 Find what a human must look at, prove what you can, and say plainly what wasn't checked. The tier is computed by a script, never chosen by you. Zero findings is a valid result; padding is not.
@@ -11,7 +11,7 @@ Find what a human must look at, prove what you can, and say plainly what wasn't 
 
 - `review` — the current branch (`craft/<item>` finds the item) against main.
 - `review <item | branch>` — that item or branch against main.
-- `review walk` — guide the human through an existing review (below).
+- `review walk [item]` — take the human through everything waiting, or just that item (below).
 
 ## Process
 
@@ -68,9 +68,17 @@ Report in at most 8 lines: the tier, the red reasons, and what needs the human.
 
 ## review walk
 
-Run it from the branch's worktree: on a `craft/` branch, the review file and the verdicts live on that branch.
+Works from any checkout. The human doesn't need to know about branches or worktrees.
 
-Open the changes view, then go through the items in this order:
+**The queue.** For each `craft/*` branch, read `git show craft/<item>:docs/ready/<item>.review.json`. No review file means it's still building: skip it. List what's left, one line each: tier, item, why (`triggers`, or `blocked:` from the item). Take 🔴 and blocked items first, then 🟡, then 🟢.
+
+**Each item.** Find its worktree in `git worktree list`, or `git worktree add ../<repo>-<item> craft/<item>`. Run git there with `git -C <worktree>`, and open the changes view from `<worktree>/docs/ready/<item>.review.json`. Always list the manual ACs for the human to check. Then, by tier:
+
+- **🟢 green:** say it's clean. Ask: merge / skip.
+- **🟡 yellow:** summarize the triggers and what wasn't checked in at most six lines. Ask: merge / walk through it / send back / skip.
+- **🔴 red, or blocked:** give the `blocked:` reason if any, then walk through it.
+
+**Walking through an item.** Go through these in order:
 
 1. data model & API contracts
 2. deviations
@@ -88,14 +96,15 @@ For each item, at most six lines:
 
 Ask for the verdict with AskUserQuestion: accept / change / discuss. You may group up to four low-risk items in one call. On "discuss", answer and ask again. Record each verdict in `verdicts`.
 
-The tier sets the depth:
-- **🟢 green:** no walk.
-- **🟡 yellow:** the page is enough, unless the user wants a walk.
-- **🔴 red:** a walk is required before merge.
+**Ending an item.** Commit any verdicts in the worktree (`review: <item> verdicts`). Then:
 
-On a `craft/` branch, commit the verdicts when the walk ends (`docs: <item> verdicts`). It ends one of two ways:
-- **All accepted:** ask, then merge as `build3`'s Integrate step does.
-- **Any "change":** produce a fix list (ID → minimal fix) for `build3 <item>`.
+- **Merge, or all accepted:** run `build3`'s Integrate and Merge steps, without reopening the view. A red `verify` or a dirty main checkout leaves the item waiting: say why and move on.
+- **Send back, or any "change":** record each `change` verdict and its minimal fix in `fixes` (ID → fix), and leave the branch. That's the fix list `build3 <item>` picks up.
+- **Skip:** leave it waiting.
+
+After the last item, report what merged, what went back and what was skipped, and offer to run `build3 <item>` for each one sent back.
+
+**A branch outside `craft/`.** `review walk <branch>` walks only that branch. Its review file is in the temp folder, so there's nothing to commit, and merging stays with the user.
 
 ## Re-review after a fix
 
@@ -113,7 +122,8 @@ Read only the fix diff (`git diff <reviewed head>..HEAD`). Rerun each finding's 
                 "invariant": "", "scenario": "", "consequence": "", "fix": "", "test": ""}],
 "evidence":   [{"ac": "AC1", "criterion": "", "command": "", "result": "pass|fail|not-run|manual"}],
 "not_checked": ["what was not checked, and why"],
-"verdicts":   {"H1": "accept|change|discuss"}
+"verdicts":   {"H1": "accept|change|discuss"},
+"fixes":      {"H1": "minimal fix for a `change` verdict"}
 ```
 
 `where` is at head. The changes view uses it to cut the real diff hunk, so it must be precise. The script owns `item`, `base`, `head`, `tier`, `triggers` and `new_edges`.
