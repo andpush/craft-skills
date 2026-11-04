@@ -5,7 +5,7 @@
 # ///
 """Render a spec as one HTML page in a temp folder, so a human can check the plan.
 
-Usage: uv run to_html.py docs/ready/<item>.md [--no-open] [--out FILE]
+Usage: uv run spec2html.py docs/ready/<item>.md [--no-open] [--out FILE]
 """
 import argparse
 import re
@@ -16,8 +16,9 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch3" / "scripts"))
-import render  # noqa: E402 — the component map
-from page import esc, inline, md, pill, section, split_frontmatter, split_sections, targets_of, write  # noqa: E402
+import arch2html  # noqa: E402 — the component map
+from html_utils import esc, inline, md, pill, section, write  # noqa: E402
+from md_utils import split_frontmatter, split_sections  # noqa: E402
 
 ARCHITECTURE_FILE = "docs/architecture.yaml"
 PROMOTE = re.compile(r"open questions?|migration plan|data model|api contracts?|api changes", re.I)
@@ -103,7 +104,7 @@ def page_body(path):
     fm, text = split_frontmatter(path.read_text(encoding="utf-8"))
     title, sections = split_sections(text)
     sections = promote_subsections(sections)
-    targets = targets_of(fm)
+    targets = [t.strip() for t in fm.get("target", "").split(",") if t.strip()]
     meta = [pill(fm["status"], STATUS.get(fm["status"], ""))] if fm.get("status") else []
     meta += [pill(t, "chip") for t in targets]
     meta += [f'<span class="muted">{k} {esc(fm[k])}</span>' for k in ("created", "updated") if fm.get(k)]
@@ -117,9 +118,9 @@ def page_body(path):
 
     arch_file = (repo_root(path.parent) or path.parent) / ARCHITECTURE_FILE
     if arch_file.exists():
-        m = render.Architecture(yaml.safe_load(arch_file.read_text(encoding="utf-8")) or {})
+        m = arch2html.Architecture(yaml.safe_load(arch_file.read_text(encoding="utf-8")) or {})
         if m.components:
-            out.append(section("Affected components", render.mermaid(render.impact_map(m, changed=targets))
+            out.append(section("Affected components", arch2html.mermaid(arch2html.impact_map(m, changed=targets))
                                + '<div class="legend">Highlighted: the spec\'s targets.</div>'))
     for s in sections:
         if s is not brief:

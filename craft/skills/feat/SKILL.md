@@ -80,7 +80,7 @@ As new information arises, iterate between the solution and the problem framing 
 Don't just dump a spec with the details buried in it; present the chosen solution clearly in a way easy to grasp for a human:
 - Write the item as `status: draft` and open the spec page — Review Brief first, the component diagram with the targets highlighted, contract changes as cards, the AC table:
   ```bash
-  uv run --quiet <this-skill-dir>/scripts/to_html.py docs/ready/<item>.md
+  uv run --quiet <this-skill-dir>/scripts/spec2html.py docs/ready/<item>.md
   ```
 - For the page to lift them: frontmatter `target:` names components from `architecture.yaml`; contract changes are a nested list under `- **Contract changes:**`, one per item: `C1 <kind>: <what> — <consequence>`.
 - In the terminal, lead with what needs the human: open questions, contract changes, anything the page flags. Every item has an ID (`C1`, `AC3`) to discuss by.

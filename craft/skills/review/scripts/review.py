@@ -27,7 +27,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch3" / "scripts"))
 import validate  # noqa: E402 — architecture findings
-from page import split_frontmatter, targets_of  # noqa: E402
+from md_utils import split_frontmatter  # noqa: E402
 
 ARCHITECTURE_FILE = "docs/architecture.yaml"
 
@@ -168,7 +168,7 @@ def read_item(path: Path) -> dict:
         if row:
             cmd = row[3].strip("`").strip()
             acs.append({"ac": row[1], "criterion": row[2], "command": "" if cmd in ("", "—", "-") else cmd})
-    return {"targets": set(targets_of(fm)),
+    return {"targets": {t.strip() for t in fm.get("target", "").split(",") if t.strip()},
             "doc_impact": impact[1] if impact else "", "acs": acs}
 
 

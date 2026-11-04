@@ -59,7 +59,7 @@ Run every AC command and record `pass` or `fail`. Manual ACs stay `manual`, and 
 Rerun the script, and resolve every `incomplete` line, or state why in `not_checked`. Don't fix the code: fixes belong to `build3` or the user. Then open the changes view:
 
 ```bash
-uv run --quiet <this-skill-dir>/scripts/diff_to_html.py <item>.review.json
+uv run --quiet <this-skill-dir>/scripts/diff2html.py <item>.review.json
 ```
 
 Excerpts come from the real diff, so each `where` must be `path:line` or `path:start-end` at head. Flags: `--editor vscode|cursor|idea|none` (default `$CRAFT_EDITOR` or `vscode`), `--spec`, `--repo`, `--no-open`, `--out`.

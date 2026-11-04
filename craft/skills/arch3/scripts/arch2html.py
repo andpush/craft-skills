@@ -4,7 +4,7 @@
 # ///
 """Render docs/architecture.yaml and its ADRs as one HTML page in a temp folder.
 
-Usage: uv run render.py [docs/architecture.yaml] [--no-open] [--out FILE]
+Usage: uv run arch2html.py [docs/architecture.yaml] [--no-open] [--out FILE]
 Prints the page path and the number of architecture problems.
 """
 import importlib.util
@@ -15,7 +15,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from page import esc, write  # noqa: E402
+from html_utils import esc, write  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 VALIDATOR = HERE / "validate.py"

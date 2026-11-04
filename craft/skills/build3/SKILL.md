@@ -99,7 +99,7 @@ Then run `verify` and show the result, even if main didn't move: step 7 changed 
 Open the changes view (`--no-open` on an unattended run):
 
 ```bash
-uv run --quiet <this-skill-dir>/../review/scripts/diff_to_html.py docs/done/<item>.review.json
+uv run --quiet <this-skill-dir>/../review/scripts/diff2html.py docs/done/<item>.review.json
 ```
 
 🟢 green merges now. 🟡 and 🔴 leave the branch and its worktree waiting for the human, who merges the same way after reviewing.

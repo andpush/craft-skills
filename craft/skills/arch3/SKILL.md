@@ -143,10 +143,10 @@ Done when the validator exits 0 and the user has approved `architecture.yaml`.
 ## View
 
 ```bash
-uv run --quiet <this-skill-dir>/scripts/render.py [docs/architecture.yaml]
+uv run --quiet <this-skill-dir>/scripts/arch2html.py [docs/architecture.yaml]
 ```
 
-Renders `architecture.yaml`, ADRs and validator findings to `<tmp>/craft-views/arch-<system>.html` and opens it. Flags: `--no-open`, `--out <file>`. Display only: it decides nothing and has no findings of its own. A new kind of finding goes in `validate.py`. A `Diagram error` is a bug in `render.py`.
+Renders `architecture.yaml`, ADRs and validator findings to `<tmp>/craft-views/arch-<system>.html` and opens it. Flags: `--no-open`, `--out <file>`. Display only: it decides nothing and has no findings of its own. A new kind of finding goes in `validate.py`. A `Diagram error` is a bug in `arch2html.py`.
 
 ## Report
 

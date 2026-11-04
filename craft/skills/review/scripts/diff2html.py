@@ -5,7 +5,7 @@
 # ///
 """Render <item>.review.json as one HTML page in a temp folder: what changed, and is it risky?
 
-Usage: uv run diff_to_html.py <item>.review.json [--spec FILE] [--repo DIR] [--editor E] [--no-open] [--out FILE]
+Usage: uv run diff2html.py <item>.review.json [--spec FILE] [--repo DIR] [--editor E] [--no-open] [--out FILE]
 """
 import argparse
 import json
@@ -19,8 +19,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import review as rv  # noqa: E402 — git, diff, triggers
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch3" / "scripts"))
-import render  # noqa: E402 — the component map
-from page import esc, md, pill, section, split_frontmatter, split_sections, write  # noqa: E402
+import arch2html  # noqa: E402 — the component map
+from html_utils import esc, md, pill, section, write  # noqa: E402
+from md_utils import split_frontmatter, split_sections  # noqa: E402
 
 EXCERPT_WINDOW = 15  # lines kept around the focus range when a hunk is long
 SNIPPET_CONTEXT = 3
@@ -243,7 +244,7 @@ def build(review, got, repo, raw, spec_path, editor):
     if raw and raw.get("components"):
         edges = [tuple(x.strip() for x in e.split("->", 1)) for e in review.get("new_edges", []) if "->" in e]
         count = f"{len(edges)} new edge{'s' * (len(edges) > 1)}" if edges else None
-        out.append(section("Architecture impact", render.mermaid(render.impact_map(render.Architecture(raw), got["changed"], edges))
+        out.append(section("Architecture impact", arch2html.mermaid(arch2html.impact_map(arch2html.Architecture(raw), got["changed"], edges))
                            + '<div class="legend">Highlighted: components this diff touches. Red: dependencies new in this change.</div>', count))
     if review.get("evidence"):
         rows = "".join(f'<tr><td class="id">{esc(e.get("ac", ""))}</td><td>{esc(e.get("criterion", ""))}</td>'
