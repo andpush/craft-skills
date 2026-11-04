@@ -16,7 +16,7 @@ Each skill outputs durable info to your repo, where the next skill reads it.
 
 ```text
 Once          prod → arch3 → guard
-Each change   (idea →) feat or task → build3 (runs verify and review) → merged, or waiting for your review
+Each change   (idea →) feat or task → build3 (runs verify and review) → merged, or waiting for review walk
 Quick fix     fix
 Periodically  audit → decide on findings in arch3
 ```
@@ -24,16 +24,17 @@ Periodically  audit → decide on findings in arch3
 | Skill | Goal | Output | Needs |
 | --- | --- | --- | --- |
 | `prod` | Define what we are building and why | `PRODUCT.md` | |
-| `arch3` | Define the architecture | `architecture.yaml`, `AGENTS.md`, findings, HTML page | a product purpose; existing code if any |
+| `arch3` | Define the architecture | `architecture.yaml`, `AGENTS.md`, findings, HTML page | a product purpose; existing code if any; any documents you point it to |
 | `guard` | Enforce architecture and code quality | `verify` command with deterministic checks | `architecture.yaml` |
 | `idea <hunch>` | Capture an idea for later | `.craft/ideas/idea-*.md`, checked against `PRODUCT.md` | `PRODUCT.md` |
 | `feat <feature>` | Define a feature, ready for implementation | `.craft/ready/feat-*.md`: contracts, acceptance criteria, doc impact | `PRODUCT.md`, `architecture.yaml` |
 | `task <task>` | Same, for a small change with no contract or architecture impact | One-screen `.craft/ready/task-*.md` | `architecture.yaml`, `AGENTS.md` |
-| `build3 [all\|<item>]` | Implement an item | Branch, merged or waiting for your review | `.craft/ready/*.md`, `verify` |
-| `review [<item>\|<branch>\|walk]` | Show what a change did and where attention is needed | Risk tier, findings, page. Works on any branch | |
+| `build3 [all\|<item>]` | Implement an item | Branch, merged or waiting for `review walk` | `.craft/ready/*.md`, `verify` |
+| `review [<item>\|<branch>]` | Show what a change did and where attention is needed | Risk tier, findings, page. Works on any branch | |
+| `review walk [<item>]` | Go through everything waiting for you | Your decisions; merges what you accept, sends the rest back | |
 | `fix` | Fix a bug surgically in this session, skipping `build3` and `review` | Minimal change with a test that was red first | |
 | `audit` | Assess the health of the whole repo | `.craft/audit-*.md`: findings, scores, actions | |
-| `whereami` | Reorient after a break | Status report and HTML dashboard: focus, parked ideas, next step | `.craft/` work items |
+| `whereami` | Reorient after a break | Status report and HTML dashboard: focus, what's waiting and why, parked ideas, next step | `.craft/` work items |
 | `orient` | Understand an unfamiliar repo | Map of structure, architecture and dependencies, in the session | |
 | `sa` | Design a technical solution, also used by `arch3` and `feat` | Options with a recommendation; ADRs in `.craft/adr/` on your yes | |
 | `ba` | Decompose requirements | Functional spec: epics, features, user stories with acceptance criteria | |
@@ -52,7 +53,6 @@ A skill missing its input offers to run the skill that creates it, e.g. `build3`
 Companion skills: `simplify` and `code-review`, `security-review` (used by `build3` and `review`), `playwright-cli` (UI end-to-end tests).
 
 **Onboard:** `/craft:init` for a small project, otherwise `/prod`, `/arch3`, `/guard` separately. Existing files are adopted, not overwritten.
-
 - **New project:** you define the product and architecture together. Rerun `guard` once there's code to check.
 - **Existing project:** Craft derives both from the code and asks only what code can't tell. `guard` freezes existing violations in a baseline, so only new ones fail and debt can only shrink.
 
@@ -62,9 +62,9 @@ Companion skills: `simplify` and `code-review`, `security-review` (used by `buil
 
 ## Making a change
 
-1. **Plan.** `feat` or `task` commits an item to `.craft/ready/` on main.
+1. **Plan.** `feat` shapes a spec in `.craft/draft/` and, once you approve it, commits it to `.craft/ready/` on main. `task` commits there directly.
 2. **Build.** `build3`, by hand or on a schedule, works on a `craft/<item>` branch in a sibling worktree: acceptance tests (with the code for `task` items), implementation, `verify`, independent `review`, docs, `verify` again.
-3. **Merge.** 🟢 merges to local main by itself. 🟡 and 🔴 wait for you, and so does 🟢 if your main checkout has uncommitted changes. Run `review walk` to go through everything waiting and merge what you accept.
+3. **Merge.** 🟢 merges to local main by itself. 🟡 and 🔴 wait for you, and so does 🟢 if your main checkout has uncommitted changes or isn't on main. Run `review walk` from your main checkout to go through everything waiting and merge what you accept.
 4. **Sync.** No skill pulls or pushes, so deploying stays your call. Periodically run `git pull --no-rebase`, `verify`, fix anything red, `git push`. Two changes can each pass and still fail together. If both sides changed `architecture.yaml`, regenerate the gate with `validate.py --gate`.
 
 Why you can trust the result:
@@ -134,7 +134,7 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 
 `guard` also adds architecture and rule tests to your suite. HTML pages go to a temp folder and are never committed.
 
-**Work items** move `ideas/ → draft/ → ready/ → done/` and keep their `type-slug.md` name throughout. The folder is the state: tasks skip `draft/`, and anything committed in `ready/` can be built. A `craft/<item>` branch is the claim, and a failed build adds a `blocked:` line on it. Order is `priority: high`, then `created:`. Closed work is archived, not deleted.
+**Work items** move `ideas/ → draft/ → ready/ → done/` and keep their `type-slug.md` name throughout. The folder is the state: tasks skip `draft/`, and anything committed in `ready/` can be built. A `craft/<item>` branch is the claim, and a failed build adds a `blocked:` line on it. Ideas also carry `status:` (`open`, `deferred`, `rejected`). Order is `priority: high`, then `created:`. Closed work is archived, not deleted.
 
 ## Other skills
 
@@ -153,7 +153,7 @@ The `3` suffix marks new versions. It goes away once they're proven and the old 
 
 **Proven.** On a Kotlin fixture (2026-10-28, run stopped halfway), `build3` and `review` wrote acceptance tests red first, and `review` proved a spec gap with a failing test, blocking the merge. On travelai (2026-11-02), `guard`'s Kotlin and Dart checks and deploy test went red on planted violations. Python was proven on a throwaway repo.
 
-**Not yet run.** `build3` and `review` on the current `architecture.yaml` format; the worktree flow; a full `verify` on travelai; blocked → resume; a green merge; the TypeScript, Go and Rust/Swift adapters.
+**Not yet run.** `build3` and `review` on the current `architecture.yaml` format; the worktree flow, `review walk` and merge steps with a real item (their git steps passed on a throwaway repo); `feat`'s `draft/` flow; a full `verify` on travelai; blocked → resume; a green merge; the TypeScript, Go and Rust/Swift adapters.
 
 **Next.** Trim every skill, then a trial with planted defects: a forbidden dependency, an unauthorized writer, a consumer without dedupe.
 
