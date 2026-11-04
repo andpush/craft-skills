@@ -78,9 +78,9 @@ As new information arises, iterate between the solution and the problem framing 
 ### 5. Present and confirm
 
 Don't just dump a spec with the details buried in it; present the chosen solution clearly in a way easy to grasp for a human:
-- Write the item as `status: draft` and open the spec page — Review Brief first, the component diagram with the targets highlighted, contract changes as cards, the AC table:
+- Write the item to `.craft/draft/`, named as in step 6, and open the spec page — Review Brief first, the component diagram with the targets highlighted, contract changes as cards, the AC table:
   ```bash
-  uv run --quiet <this-skill-dir>/scripts/spec2html.py .craft/ready/<item>.md
+  uv run --quiet <this-skill-dir>/scripts/spec2html.py .craft/draft/<item>.md
   ```
 - For the page to lift them: frontmatter `target:` names components from `architecture.yaml`; contract changes are a nested list under `- **Contract changes:**`, one per item: `C1 <kind>: <what> — <consequence>`.
 - In the terminal, lead with what needs the human: open questions, contract changes, anything the page flags. Every item has an ID (`C1`, `AC3`) to discuss by.
@@ -88,11 +88,11 @@ Don't just dump a spec with the details buried in it; present the chosen solutio
 
 ### 6. Emit the spec
 
-Write the item into the execution queue `.craft/ready/` using [reference/template.md](reference/template.md):
-- A fresh feature → `feat-<slug>.md`, `slug` = kebab feature name, unique across `.craft/ideas/`, `.craft/ready/` and `.craft/done/`; `created:` = today.
-- A pursued idea → keep its `idea-<slug>.md` name (and carry its images); elaborate it in place to build-ready and move it (`git mv` when tracked) from `.craft/ideas/` into `.craft/ready/`.
+Items follow [reference/template.md](reference/template.md):
+- A fresh feature → `feat-<slug>.md`, `slug` = kebab feature name, unique across `.craft/ideas/`, `.craft/draft/`, `.craft/ready/` and `.craft/done/`; `created:` = today.
+- A pursued idea → keep its `idea-<slug>.md` name (and carry its images); move it (`git mv` when tracked) from `.craft/ideas/` into `.craft/draft/` and elaborate it there to build-ready.
 
-If one item splits into an ordered sequence, put a letter after the type: `feat-a-<slug>.md`, `feat-b-<slug>.md`, … Names never change afterwards — only `status:` and folder move as `build3` executes.
+If one item splits into an ordered sequence, put a letter after the type: `feat-a-<slug>.md`, `feat-b-<slug>.md`, … Names never change afterwards; only the folder does.
 
 
 ## Ideas
@@ -113,7 +113,7 @@ Self-review the spec with fresh eyes before declaring it ready:
 
 ## When done
 
-- if no open blockers — set `status: ready` (the item is now claimable from the queue) and commit it to main; otherwise keep `status: draft` until resolved.
+- if no open blockers — move the item and its images to `.craft/ready/` (it's now claimable from the queue) and commit to main; otherwise it stays in `.craft/draft/` until resolved.
 - report it's ready to execute and give the next step: `build3 <item>`, or the goal line for a `/goal` run:
   `/goal Item .craft/ready/<item>.md built per build3: verify exited 0 with output shown, review tier reported`
   A few lines, no narrative.

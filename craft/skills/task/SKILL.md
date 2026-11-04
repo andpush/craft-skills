@@ -24,11 +24,10 @@ Ask only the sharp unknowns that change the outcome — the ones the implementor
 This is the core value: an implementor should be able to execute from the doc cold, without coming back to the user.
 
 ### 3. Write the doc
-`.craft/ready/task-<slug>.md` — `slug` is the kebab task name, unique across `.craft/ideas/`, `.craft/ready/` and `.craft/done/`. The filename is the index. A task doc is a brief, not a spec: aim for one screen. Keep it terse; cut any section that adds nothing. If it's growing past a screen with diagrams and layered decisions, that's the signal it wanted to be a `feat`.
+`.craft/ready/task-<slug>.md` — `slug` is the kebab task name, unique across `.craft/ideas/`, `.craft/draft/`, `.craft/ready/` and `.craft/done/`. The filename is the index. A task doc is a brief, not a spec: aim for one screen. Keep it terse; cut any section that adds nothing. If it's growing past a screen with diagrams and layered decisions, that's the signal it wanted to be a `feat`.
 
 ```markdown
 ---
-status: ready       # ready | blocked — build3 owns blocked
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 target: <component name from .craft/architecture.yaml>
@@ -58,4 +57,4 @@ One or two lines: file created, plus the next step — `build3 <item>` to have c
 
 ## Lifecycle
 
-The task lands in `.craft/ready/` as `status: ready` and is committed to main — the live execution queue. From there `build3` owns it: it claims it with a `craft/<item>` branch, implements (a task's tests come with the code — no separate acceptance-test step), verifies, reviews, and moves it to `.craft/done/` in the same branch. A failed build marks it `blocked` on its branch. `whereami` lists ready and claimed tasks as live work. Deleting a task file is the user's call, never yours.
+The task lands in `.craft/ready/` and is committed to main — the live execution queue. From there `build3` owns it: it claims it with a `craft/<item>` branch, implements (a task's tests come with the code — no separate acceptance-test step), verifies, reviews, and moves it to `.craft/done/` in the same branch. A failed build marks it `blocked` on its branch. `whereami` lists ready and claimed tasks as live work. Deleting a task file is the user's call, never yours.

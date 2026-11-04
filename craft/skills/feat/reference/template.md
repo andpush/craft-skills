@@ -1,5 +1,4 @@
 ---
-status: draft   # draft (still shaping) | ready (claimable) — build3 owns blocked
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 target: <component names from .craft/architecture.yaml, comma-separated>
@@ -104,7 +103,7 @@ safety net that locks current behavior before code moves.*
 
 ### Open questions *[if any]*
 
-*Non-blocking ones only — a blocking question keeps the spec in `draft`.*
+*Non-blocking ones only — a blocking question keeps the spec in `.craft/draft/`.*
 
 ## Acceptance
 

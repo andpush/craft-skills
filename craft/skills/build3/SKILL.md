@@ -14,7 +14,7 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 
 ## The queue
 
-`.craft/ready/` holds `feat-`, `task-` and promoted `idea-` items. Status lives in the frontmatter: `ready` or `blocked` (with `blocked: <reason>`). An item is done when it's in `.craft/done/`. The claim is the branch `craft/<item>` — there is no in-progress status and no owner field.
+`.craft/ready/` holds `feat-`, `task-` and promoted `idea-` items. Anything committed there on main is ready. A failed build sets `status: blocked` and `blocked: <reason>` on its branch. An item is done when it's in `.craft/done/`. The claim is the branch `craft/<item>` — there is no in-progress status and no owner field.
 
 ## Invocation
 
@@ -26,7 +26,7 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 
 ### 1. Pick
 
-Read the queue from the `main` branch, not the working tree (`git ls-tree --name-only main .craft/ready/`, `git show main:.craft/ready/<item>.md`). Unclaimed = `status: ready` and no `craft/<item>` branch (`git branch -a --list '*craft/<item>'`). Order: `priority: high` first, then `created`. Check it's buildable: a goal, `target:` components, an Acceptance table. If not, skip it and say why.
+Read the queue from the `main` branch, not the working tree (`git ls-tree --name-only main .craft/ready/`, `git show main:.craft/ready/<item>.md`). Unclaimed = no `craft/<item>` branch (`git branch -a --list '*craft/<item>'`). Order: `priority: high` first, then `created`. Check it's buildable: a goal, `target:` components, an Acceptance table. If not, skip it and say why.
 
 ### 2. Claim
 
@@ -108,7 +108,7 @@ uv run --quiet <this-skill-dir>/../review/scripts/diff2html.py .craft/ready/<ite
 
 The merge happens in the main checkout, the first entry of `git worktree list`. If it isn't on main or has uncommitted changes (`git -C <main checkout> status --porcelain -uno`), don't touch it: leave the branch waiting and say why. If main moved since your last `verify`, go back to step 8.
 
-In the branch, remove `status:` and set `updated:`, then `mkdir -p .craft/done`, `git mv` the item and its same-basename files (`<item>.review.json`, `<item>-*.png`) there, and commit (`done: <item>`). Then:
+In the branch, clear any `status: blocked` and `blocked:`, set `updated:`, then `mkdir -p .craft/done`, `git mv` the item and its same-basename files (`<item>.review.json`, `<item>-*.png`) there, and commit (`done: <item>`). Then:
 
 ```bash
 git -C <main checkout> merge --no-ff -m "merge: <item> (<tier>)" craft/<item>

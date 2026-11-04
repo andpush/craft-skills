@@ -7,18 +7,18 @@ Reload the user's mental context in seconds. Read the artifacts, infer the story
 
 ## Gather (skip what's absent)
 
-Three folders under `.craft/`: `ideas/` (raw candidates), `ready/` (the execution queue — build-ready `feat-`/`task-`/promoted `idea-` items), and `done/` (archive of shipped + rejected items). `ideas/` + `ready/` are the live set; `done/` is the timeline, not live work. Filenames (`type-slug`) are the index — don't open files unless needed.
+Four folders under `.craft/`: `ideas/` (raw candidates), `draft/` (specs still being shaped), `ready/` (the execution queue — build-ready `feat-`/`task-`/promoted `idea-` items), and `done/` (archive of shipped + rejected items). `ideas/`, `draft/` and `ready/` are the live set; `done/` is the timeline, not live work. Filenames (`type-slug`) are the index — don't open files unless needed.
 
 - `PRODUCT.md` first lines — what this is.
 - The queue and archive, newest last:
 ```bash
-ls -1 .craft/ready/*.md .craft/done/*.md 2>/dev/null | sort
+ls -1 .craft/draft/*.md .craft/ready/*.md .craft/done/*.md 2>/dev/null | sort
 ```
-- Queue state — what's live vs claimed vs stuck (an item's `status:` distinguishes them within `.craft/ready/`):
+- Queue priorities, and any legacy status:
 ```bash
 grep -H '^status:\|^priority:' .craft/ready/*.md 2>/dev/null
 ```
-  `ready` = queued. `in-progress` is legacy `build`; with `build3` a claim is a branch.
+  Everything in `.craft/ready/` is queued. `in-progress` is legacy `build`; with `build3` a claim is a branch.
 - Claims — branches. `craft/<item>` = claimed; its tip says how far it got:
 ```bash
 git branch -a --list '*craft/*' --format='%(refname:short) %(committerdate:relative) %(subject)'
@@ -33,7 +33,7 @@ For git repos, also check for uncommitted changes, unmerged branches, and recent
 
 - Last contribution: newest queue/done items + commits — what was being solved.
 - Stuck? A `blocked` item in WIP, dangling uncommitted edits, big unfinished refactoring, or a branch that hasn't landed in a while.
-- Next: `review walk` for anything waiting, `blocked` to unstick, claims to finish, `ready` to pick up, `idea-remove-*` whose condition holds, parked ideas to promote, uncommitted files.
+- Next: `review walk` for anything waiting, `blocked` to unstick, drafts and claims to finish, queued items to pick up, `idea-remove-*` whose condition holds, parked ideas to promote, uncommitted files.
 
 ## Report
 

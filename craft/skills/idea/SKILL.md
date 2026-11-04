@@ -11,7 +11,7 @@ Optional: if the first word of the args is `high` or `low`, treat it as the prio
 
 Distill the idea to one line. If it's too vague to write down, ask one clarifying question — not an interview.
 
-Write `.craft/ideas/idea-<slug>.md` — one idea per file. `slug` carries the idea and is unique across `.craft/ideas/`, `.craft/ready/` and `.craft/done/`. Filenames are the index — a directory listing is the scan. Format:
+Write `.craft/ideas/idea-<slug>.md` — one idea per file. `slug` carries the idea and is unique across `.craft/ideas/`, `.craft/draft/`, `.craft/ready/` and `.craft/done/`. Filenames are the index — a directory listing is the scan. Format:
 
 ```markdown
 ---
@@ -37,7 +37,7 @@ An idea is born in `.craft/ideas/` and stays there, `status: open`, until picked
 
 - `status: open` — captured, unvalidated. Lives in `.craft/ideas/`.
 - `status: deferred` — evaluated, not now; stays in `.craft/ideas/` (the live scan pool).
-- **pursued** — `feat` elaborates the idea in place into a build-ready item and moves it (same name) to `.craft/ready/`, where it adopts the queue's `status: ready`. The idea now flows like any queued item; `build3` executes it and archives it to `.craft/done/`.
+- **pursued** — `feat` moves the idea (same name) to `.craft/draft/`, elaborates it into a build-ready item, then moves it to `.craft/ready/`, dropping `status:`. The idea now flows like any queued item; `build3` executes it and archives it to `.craft/done/`.
 - `status: rejected` — move the file to `.craft/done/` so the idea is archived and not re-proposed.
 
 When status leaves `open`, set `verdict:` — the one-line rationale (quote it if it contains a colon) — and bump `updated`. On any move, `git mv` when tracked so history follows, and carry same-basename images along.

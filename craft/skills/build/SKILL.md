@@ -9,7 +9,7 @@ Autonomously turn ready work items into shipped, verified changes. Each item in 
 
 `.craft/ready/` is the execution queue: `feat-NNN`, `task-NNN`, and promoted `idea-NNN` items, each carrying a goal and acceptance criteria. The **folder** is the coarse state (ready vs archived); a `status:` field distinguishes claimed from unclaimed so parallel runs don't collide:
 
-- `status: ready` — unclaimed, up for grabs.
+- no `status:` — unclaimed, up for grabs.
 - `status: in-progress` — a run has claimed it (see Claim).
 - `status: blocked` — a run failed it; carries a one-line reason. Won't be re-picked until a human clears it.
 - `status: done` — verified; lives in `.craft/done/`.
@@ -23,7 +23,7 @@ Autonomously turn ready work items into shipped, verified changes. Each item in 
 ## Process
 
 ### 1. Pick
-Read the queue: unclaimed items are `status: ready`. Order by `priority: high` first, then ascending number. Skip `in-progress` (unless the owner is stale — see Claim) and `blocked`.
+Read the queue: unclaimed items have no `status:`. Order by `priority: high` first, then ascending number. Skip `in-progress` (unless the owner is stale — see Claim) and `blocked`.
 
 ### 2. Claim — before touching any code
 Stamp the item `status: in-progress`, `owner: <this session/agent id>`, `started: <ISO ts>` and save it. This is the lock: it's why two executors (or a human and an agent) can work the same queue without both grabbing one item, and why a crashed run is visible rather than silently lost. If an item is already `in-progress` but its owner is clearly gone (process ended, timestamp long stale), reclaim it — overwrite owner/started and continue.

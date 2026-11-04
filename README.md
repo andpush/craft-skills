@@ -125,6 +125,7 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 ├── architecture.gate.json       # generated; what verify reads
 ├── architecture.baseline        # frozen existing violations
 ├── ideas/idea-*.md              # unvalidated backlog
+├── draft/{feat,idea}-*.md       # specs still being shaped
 ├── ready/{feat,task,idea}-*.md  # build queue
 ├── done/                        # shipped and rejected items, with <item>.review.json
 ├── adr/YYYY-MM-DD-*.md          # one decision per file
@@ -133,7 +134,7 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 
 `guard` also adds architecture and rule tests to your suite. HTML pages go to a temp folder and are never committed.
 
-**Work items** move `ideas/ → ready/ → done/` and keep their `type-slug.md` name throughout. An item's folder says whether it's done. In the queue, frontmatter holds `status:` (`draft`, `ready`, `blocked`); a `craft/<item>` branch is the claim. Order is `priority: high`, then `created:`. Closed work is archived, not deleted.
+**Work items** move `ideas/ → draft/ → ready/ → done/` and keep their `type-slug.md` name throughout. The folder is the state: tasks skip `draft/`, and anything committed in `ready/` can be built. A `craft/<item>` branch is the claim, and a failed build sets `status: blocked` on it. Order is `priority: high`, then `created:`. Closed work is archived, not deleted.
 
 ## Other skills
 
