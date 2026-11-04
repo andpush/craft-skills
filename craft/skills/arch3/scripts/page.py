@@ -1,4 +1,4 @@
-"""What the architecture, spec and change pages share: escaping, markdown, the template, writing."""
+"""What the architecture page, spec page and changes view share: escaping, markdown, the template, writing."""
 import html
 import re
 import tempfile
@@ -14,7 +14,7 @@ def esc(v):
 
 
 def _markdown():
-    from markdown_it import MarkdownIt  # only the spec and change pages need it
+    from markdown_it import MarkdownIt  # only the spec page and changes view need it
     return MarkdownIt("commonmark", {"html": False}).enable("table")
 
 

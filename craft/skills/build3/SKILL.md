@@ -95,10 +95,10 @@ If main moved, merge it into the branch — don't rebase: the review's refs must
 
 Then run `verify` and show the result, even if main didn't move: step 7 changed the branch since the last run. Red → back to the implementer, as in step 5.
 
-Open the change page (`--no-open` on an unattended run):
+Open the changes view (`--no-open` on an unattended run):
 
 ```bash
-uv run --quiet <this-skill-dir>/../review/scripts/change_page.py docs/done/<item>.review.json
+uv run --quiet <this-skill-dir>/../review/scripts/diff_to_html.py docs/done/<item>.review.json
 ```
 
 🟢 green with `Auto-merge: green` merges now. Anything else leaves the branch and its worktree waiting for the human, who merges the same way after reviewing.

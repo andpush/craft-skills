@@ -5,7 +5,7 @@
 # ///
 """Render <item>.review.json as one HTML page in a temp folder: what changed, and is it risky?
 
-Usage: uv run change_page.py <item>.review.json [--spec FILE] [--repo DIR] [--editor E] [--no-open] [--out FILE]
+Usage: uv run diff_to_html.py <item>.review.json [--spec FILE] [--repo DIR] [--editor E] [--no-open] [--out FILE]
 """
 import argparse
 import json
@@ -285,7 +285,7 @@ def main():
     head = rv.resolve(repo, review.get("head")) or rv.resolve(repo, "HEAD")
     raw = rv.raw_at(repo, head, rv.ARCHITECTURE_FILE) if head else None
     item, body = build(review, gather(review, repo, raw), repo, raw, spec_path, args.editor)
-    write(f"change: {item}", body, f"change-{name}", args.out, not args.no_open)
+    write(f"changes: {item}", body, f"changes-{name}", args.out, not args.no_open)
 
 
 if __name__ == "__main__":

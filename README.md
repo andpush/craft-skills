@@ -102,11 +102,11 @@ Review what's expensive to undo. Agents can cheaply rewrite internals, but a bad
 | --- | --- | --- |
 | Before code | Every `feat` | Approve the plan: goal, contract changes, acceptance criteria, open questions. Your best use of time |
 | Before merge | 🟢 none of the below | Nothing |
-| | 🟡 new relation, other architecture changes, edited acceptance test, files outside the spec's target, uncovered callers, unaccepted findings, anything not checked | Skim the change page, merge |
+| | 🟡 new relation, other architecture changes, edited acceptance test, files outside the spec's target, uncovered callers, unaccepted findings, anything not checked | Skim the changes view, merge |
 | | 🔴 new dependency, schema, API or event change, security or CI paths, wider exposure, new data writer, new deficiency, weakened rule, deleted or skipped test, doc edits outside the spec, deviation from the spec, confirmed high finding, failing acceptance test | `review walk`, then merge or send back fixes |
 | Periodically | After a batch of items | Run `audit`, view the architecture page, decide findings in `arch3` |
 
-The change page and `review walk` lead with the data model and API, then deviations, other contracts, findings and blast radius. Open code only where an item points you, and run manual acceptance criteria yourself.
+The changes view and `review walk` lead with the data model and API, then deviations, other contracts, findings and blast radius. Open code only where an item points you, and run manual acceptance criteria yourself.
 
 For each item, ask: Is it hard to reverse? Does it change what the system promises? Does it widen who can reach or change what? Does it match what I approved?
 

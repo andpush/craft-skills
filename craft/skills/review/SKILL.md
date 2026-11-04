@@ -56,10 +56,10 @@ Run every AC command and record `pass` or `fail`. Manual ACs stay `manual`, and 
 
 ### 6. Close
 
-Rerun the script, and resolve every `incomplete` line, or state why in `not_checked`. Don't fix the code: fixes belong to `build3` or the user. Then open the change page:
+Rerun the script, and resolve every `incomplete` line, or state why in `not_checked`. Don't fix the code: fixes belong to `build3` or the user. Then open the changes view:
 
 ```bash
-uv run --quiet <this-skill-dir>/scripts/change_page.py <item>.review.json
+uv run --quiet <this-skill-dir>/scripts/diff_to_html.py <item>.review.json
 ```
 
 Excerpts come from the real diff, so each `where` must be `path:line` or `path:start-end` at head. Flags: `--editor vscode|cursor|idea|none` (default `$CRAFT_EDITOR` or `vscode`), `--spec`, `--repo`, `--no-open`, `--out`.
@@ -68,7 +68,7 @@ Report in at most 8 lines: the tier, the red reasons, and what needs the human.
 
 ## review walk
 
-Open the change page, then go through the items in this order:
+Open the changes view, then go through the items in this order:
 
 1. data model & API contracts
 2. deviations
@@ -114,4 +114,4 @@ Read only the fix diff (`git diff <reviewed head>..HEAD`). Rerun each finding's 
 "verdicts":   {"H1": "accept|change|discuss"}
 ```
 
-`where` is at head. The change page uses it to cut the real diff hunk, so it must be precise. The script owns `item`, `base`, `head`, `tier`, `triggers` and `new_edges`.
+`where` is at head. The changes view uses it to cut the real diff hunk, so it must be precise. The script owns `item`, `base`, `head`, `tier`, `triggers` and `new_edges`.
