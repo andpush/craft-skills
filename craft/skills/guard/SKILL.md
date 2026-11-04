@@ -59,4 +59,4 @@ An agent must not be able to loosen its own gate. `review` turns red on changes 
 
 ## Report
 
-At most 8 lines: the `verify` command, the checks and rules each covers, baseline size, deficiencies accepted, the auto-merge setting, whether a pipeline runs `verify`, what stays unchecked. Next step: `spec` or `task`.
+At most 8 lines: the `verify` command, the checks and rules each covers, baseline size, deficiencies accepted, the auto-merge setting, whether a pipeline runs `verify`, what stays unchecked. Next step: `feat` or `task`.

@@ -3,7 +3,7 @@ name: build
 description: Implement the build-ready work items in `docs/ready/`. Picks the next unclaimed item, implements it, runs a review pass, verifies acceptance, and archives it to docs/done/.
 ---
 
-Autonomously turn ready work items into shipped, verified changes. Each item in `docs/ready/` is self-contained by design (`spec` and `task` wrote it to execute from cold), so build is execution against a clear brief — not a design session. If an item is ambiguous enough to need decisions, it wasn't ready; stop and send it back to `spec`.
+Autonomously turn ready work items into shipped, verified changes. Each item in `docs/ready/` is self-contained by design (`feat` and `task` wrote it to execute from cold), so build is execution against a clear brief — not a design session. If an item is ambiguous enough to need decisions, it wasn't ready; stop and send it back to `feat`.
 
 ## The queue model
 
@@ -46,5 +46,5 @@ Per item: one line — shipped / blocked and why. For `/build all`, end with a q
 
 ## Notes
 
-- **Ready means ready.** If building reveals the item needs a design decision, a new boundary, or spans more than it claimed, stop and recommend re-running `spec` — don't improvise architecture from the executor seat.
+- **Ready means ready.** If building reveals the item needs a design decision, a new boundary, or spans more than it claimed, stop and recommend re-running `feat` — don't improvise architecture from the executor seat.
 - Numbers and names never change across folders — a `feat-007` stays `feat-007` in `done/`. Only `status:` and location move.

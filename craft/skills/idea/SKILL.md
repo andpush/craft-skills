@@ -1,9 +1,9 @@
 ---
 name: idea
-description: Use to capture a user idea into docs/ideas/ — one small file with a quick alignment check against docs/PRODUCT.md. Capture, not elaboration; specing happens later via `spec`.
+description: Use to capture a user idea into docs/ideas/ — one small file with a quick alignment check against docs/PRODUCT.md. Capture, not elaboration; the spec is written later via `feat`.
 ---
 
-Capture the idea fast and move on. Ideas are candidates, not commitments — `spec` validates lazily on pickup (pursue / defer / reject). This skill only records and sanity-checks; it never opens a spec.
+Capture the idea fast and move on. Ideas are candidates, not commitments — `feat` validates lazily on pickup (pursue / defer / reject). This skill only records and sanity-checks; it never opens a spec.
 
 Optional: if the first word of the args is `high` or `low`, treat it as the priority and strip it from the idea text (e.g. `/idea low rename cat→pet`).
 
@@ -31,13 +31,13 @@ Why it might matter; attached thinking the user provided, verbatim-ish.
 
 Don't elaborate beyond what was said. Deleting an idea is just deleting its file — the user's call, never yours.
 
-## Lifecycle (owned by `spec`, recorded here)
+## Lifecycle (owned by `feat`, recorded here)
 
-An idea is born in `docs/ideas/` and stays there, `status: open`, until picked up. Names never change: an idea keeps `idea-<slug>.md` through every folder move. `spec` records the verdict on pickup:
+An idea is born in `docs/ideas/` and stays there, `status: open`, until picked up. Names never change: an idea keeps `idea-<slug>.md` through every folder move. `feat` records the verdict on pickup:
 
 - `status: open` — captured, unvalidated. Lives in `docs/ideas/`.
 - `status: deferred` — evaluated, not now; stays in `docs/ideas/` (the live scan pool).
-- **pursued** — `spec` elaborates the idea in place into a build-ready item and moves it (same name) to `docs/ready/`, where it adopts the queue's `status:` (`ready` → `done`). The idea now flows like any queued item; `build3` executes it and archives it to `docs/done/`.
+- **pursued** — `feat` elaborates the idea in place into a build-ready item and moves it (same name) to `docs/ready/`, where it adopts the queue's `status:` (`ready` → `done`). The idea now flows like any queued item; `build3` executes it and archives it to `docs/done/`.
 - `status: rejected` — move the file to `docs/done/` so the idea is archived and not re-proposed.
 
 When status leaves `open`, set `verdict:` — the one-line rationale (quote it if it contains a colon) — and bump `updated`. On any move, `git mv` when tracked so history follows, and carry same-basename images along.
@@ -48,7 +48,7 @@ Temporary code — a feature flag, an adapter, a dual write, a compatibility shi
 
 ## Check alignment
 
-Skim `docs/PRODUCT.md`. If the idea conflicts with it or falls outside scope, tell the user in one line and record the tension in the file — still capture it. No verdict: pursue/defer/reject belongs to `spec` on pickup.
+Skim `docs/PRODUCT.md`. If the idea conflicts with it or falls outside scope, tell the user in one line and record the tension in the file — still capture it. No verdict: pursue/defer/reject belongs to `feat` on pickup.
 
 If `docs/PRODUCT.md` doesn't exist, capture without the check and say so.
 

@@ -20,6 +20,6 @@ Greenfield (empty/early repo) → define with the user. Brownfield (existing cod
 
 Scale to a small project: a quick problem/users/scope pass for product, a simple stack/components/conventions pass for architecture. Don't manufacture process the size doesn't warrant.
 
-When all are done, stop and point the user at `/spec <first feature>` as the next step.
+When all are done, stop and point the user at `/feat <first feature>` as the next step.
 
 For a larger or evolving project, prefer running `/prod` and `/arch` separately so each can be revisited on its own.

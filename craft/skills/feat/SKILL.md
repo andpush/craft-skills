@@ -1,5 +1,5 @@
 ---
-name: spec
+name: feat
 description: Use to build any non-trivial changes to the software — a feature, service, API, data model, schema, behavior change, or refactoring — to analyse user intent, discover requirements, brainstorm and plan the approach.
 ---
 
@@ -7,13 +7,13 @@ Turn an intent into a self-contained, build-ready solution spec through collabor
 
 During this collaborative session: understand context -> refine intent -> discover hidden decisions and surface tradeoffs -> define the approach -> define acceptance criteria, confirm readiness for delegated build.
 
-The spec is the deliverable, not code: don't implement during a spec session — it ends only at a spec the user has confirmed.
+The spec is the deliverable, not code: don't implement during a `feat` session — it ends only at a spec the user has confirmed.
 
 Once it's ready, the implementation is a delegated execution — via `build3` (craft's executor), `/goal`, a dispatched subagent, or any agent.
 
 ## Context gates — detect, don't dead-end
 
-`spec` builds on `docs/PRODUCT.md` and `docs/architecture.yaml`.
+`feat` builds on `docs/PRODUCT.md` and `docs/architecture.yaml`.
 
 If either is missing or placeholder-only — offer a fork:
 - **Establish now** — run `prod`/`arch3` skills in this session, then continue the spec.
@@ -51,7 +51,7 @@ Understand the ground you're building on:
 
 In touch with user, turn vague requests into concrete goals. Grasp the problem, not just gather requirements. If the request is a proposed solution, establish the motivation. Verify risky assumptions. Challenge contradictions and gaps. Push for clarity on the core value and the acceptance criteria.
 
-If the request originates as an idea (picked from `docs/ideas/` or a fresh hunch), validate it before specing: does it serve `docs/PRODUCT.md`, is it worth doing now? Recommend a verdict — **pursue**, **defer**, or **reject** — rejection is a legitimate outcome, not a failure. Record the verdict in the idea file (see Ideas below). On **pursue** you elaborate the idea itself into the build-ready item — it keeps its `idea-<slug>.md` name and moves into the queue; you don't mint a new `feat-`.
+If the request originates as an idea (picked from `docs/ideas/` or a fresh hunch), validate it before writing the spec: does it serve `docs/PRODUCT.md`, is it worth doing now? Recommend a verdict — **pursue**, **defer**, or **reject** — rejection is a legitimate outcome, not a failure. Record the verdict in the idea file (see Ideas below). On **pursue** you elaborate the idea itself into the build-ready item — it keeps its `idea-<slug>.md` name and moves into the queue; you don't mint a new `feat-`.
 
 If the request spans several independent subsystems, or assumes too many changes, confirm if the user wants to split it and suggest options.
 
@@ -63,7 +63,7 @@ As new information arises, iterate between the solution and the problem framing 
 
 ### 4. Write the spec
 
-- Use template [reference/spec-template.md](reference/spec-template.md).
+- Use template [reference/template.md](reference/template.md).
 - Lead with the **Review Brief**: the scannable decision surface a human approves from. Keep execution detail below it, and only where it's needed.
 - Be concrete, avoid prose, duplications, restatements of `docs/PRODUCT.md`/`docs/architecture.yaml` - link instead.
 - YAGNI: Focus on the core value, and defer non-essential ideas to `docs/ideas/`.
@@ -80,7 +80,7 @@ As new information arises, iterate between the solution and the problem framing 
 Don't just dump a spec with the details buried in it; present the chosen solution clearly in a way easy to grasp for a human:
 - Write the item as `status: draft` and open the spec page — Review Brief first, the component diagram with the targets highlighted, contract changes as cards, the AC table:
   ```bash
-  uv run --quiet <this-skill-dir>/scripts/spec_page.py docs/ready/<item>.md
+  uv run --quiet <this-skill-dir>/scripts/to_html.py docs/ready/<item>.md
   ```
 - For the page to lift them: frontmatter `target:` names components from `architecture.yaml`; contract changes are a nested list under `- **Contract changes:**`, one per item: `C1 <kind>: <what> — <consequence>`.
 - In the terminal, lead with what needs the human: open questions, contract changes, anything the page flags. Every item has an ID (`C1`, `AC3`) to discuss by.
@@ -88,7 +88,7 @@ Don't just dump a spec with the details buried in it; present the chosen solutio
 
 ### 6. Emit the spec
 
-Write the item into the execution queue `docs/ready/` using [reference/spec-template.md](reference/spec-template.md):
+Write the item into the execution queue `docs/ready/` using [reference/template.md](reference/template.md):
 - A fresh feature → `feat-<slug>.md`, `slug` = kebab feature name, unique across `docs/ideas/`, `docs/ready/` and `docs/done/`; `created:` = today.
 - A pursued idea → keep its `idea-<slug>.md` name (and carry its images); elaborate it in place to build-ready and move it (`git mv` when tracked) from `docs/ideas/` into `docs/ready/`.
 

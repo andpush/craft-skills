@@ -3,7 +3,7 @@ name: sa
 description: Use to design a technical solution — the architecture of a system, component, or change - decompose, weigh options, choose the tech stack and approach.
 ---
 
-Construct a solid technical solution: a chosen approach with rationale. The design is the deliverable; caller skills (`arch3`, `spec`) may decide what to document.
+Construct a solid technical solution: a chosen approach with rationale. The design is the deliverable; caller skills (`arch3`, `feat`) may decide what to document.
 
 ## Ground
 

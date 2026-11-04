@@ -1,6 +1,6 @@
 ---
 name: arch
-description: Use to define or derive project architecture — into `docs/architecture.yaml` (the model checks and pages read), `docs/ARCHITECTURE.md` (the prose) and `AGENTS.md` (what every agent loads), that `spec`, `guard` and `build3` rely on.
+description: Use to define or derive project architecture — into `docs/architecture.yaml` (the model checks and pages read), `docs/ARCHITECTURE.md` (the prose) and `AGENTS.md` (what every agent loads), that `feat`, `guard` and `build3` rely on.
 ---
 
 Establish the durable engineering context for a software project — architecture, component/module map, tech stack, and coding conventions — either by defining them with the user (greenfield) or deriving them from existing code (brownfield).
@@ -48,4 +48,4 @@ Before writing, verify the design against the `sa` skill's Verify checklist — 
 
 After writing, check the model by hand and fix every problem: see [reference/model.md](reference/model.md#check).
 
-Report what was created vs. adopted, and the next step: `guard`, to make the rules executable — then `spec <first feature>`. A few lines.
+Report what was created vs. adopted, and the next step: `guard`, to make the rules executable — then `feat <first feature>`. A few lines.

@@ -5,7 +5,7 @@
 # ///
 """Render a spec as one HTML page in a temp folder, so a human can check the plan.
 
-Usage: uv run spec_page.py docs/ready/<item>.md [--no-open] [--out FILE]
+Usage: uv run to_html.py docs/ready/<item>.md [--no-open] [--out FILE]
 """
 import argparse
 import re

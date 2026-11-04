@@ -1,6 +1,6 @@
 ---
 name: prod
-description: Use to define the product — WHAT we are building and WHY - the purpose, users, solution, value, constraints, and scope — into a durable docs/PRODUCT.md that `arch3` and `spec` rely on.
+description: Use to define the product — WHAT we are building and WHY - the purpose, users, solution, value, constraints, and scope — into a durable docs/PRODUCT.md that `arch3` and `feat` rely on.
 ---
 
 Establish the durable product context — who it's for, what it does, why it matters, what's in and out — either by defining it with the user (greenfield) or deriving it from existing material (brownfield), into a `docs/PRODUCT.md` that the rest of craft builds on.

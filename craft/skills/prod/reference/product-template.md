@@ -1,6 +1,6 @@
 <!--
 The skeleton `prod` produces at docs/PRODUCT.md — the durable "who, what, why" that
-`arch3` and `spec` build on. Keep it terse and scannable; capture intent and constraints,
+`arch3` and `feat` build on. Keep it terse and scannable; capture intent and constraints,
 not a roadmap. Omit a section only if it genuinely doesn't apply. Link out rather than restate.
 -->
 

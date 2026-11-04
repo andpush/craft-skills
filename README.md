@@ -16,7 +16,7 @@ Each skill outputs durable info to your repo, where the next skill reads it.
 
 ```text
 Once          prod → arch3 → guard
-Each change   (idea →) spec or task → build3 (runs verify and review) → merged, or waiting for your review
+Each change   (idea →) feat or task → build3 (runs verify and review) → merged, or waiting for your review
 Quick fix     fix
 Periodically  audit → decide on findings in arch3
 ```
@@ -27,7 +27,7 @@ Periodically  audit → decide on findings in arch3
 | `arch3` | Define the architecture | `architecture.yaml`, `AGENTS.md`, findings, HTML page | a product purpose; existing code if any |
 | `guard` | Enforce architecture and code quality | `verify` command with deterministic checks | `architecture.yaml` |
 | `idea <hunch>` | Capture an idea for later | `docs/ideas/idea-*.md`, checked against `PRODUCT.md` | `PRODUCT.md` |
-| `spec <feature>` | Define a feature, ready for implementation | `docs/ready/feat-*.md`: contracts, acceptance criteria, doc impact | `PRODUCT.md`, `architecture.yaml` |
+| `feat <feature>` | Define a feature, ready for implementation | `docs/ready/feat-*.md`: contracts, acceptance criteria, doc impact | `PRODUCT.md`, `architecture.yaml` |
 | `task <task>` | Same, for a small change with no contract or architecture impact | One-screen `docs/ready/task-*.md` | `architecture.yaml`, `AGENTS.md` |
 | `build3 [all\|<item>]` | Implement an item | Branch, merged or waiting for your review | `docs/ready/*.md`, `verify` |
 | `review [<item>\|<branch>\|walk]` | Show what a change did and where attention is needed | Risk tier, findings, page. Works on any branch | |
@@ -35,7 +35,7 @@ Periodically  audit → decide on findings in arch3
 | `audit` | Assess the health of the whole repo | `docs/audit-*.md`: findings, scores, actions | |
 | `whereami` | Reorient after a break | Status report and HTML dashboard: focus, parked ideas, next step | `docs/` work items |
 | `orient` | Understand an unfamiliar repo | Map of structure, architecture and dependencies, in the session | |
-| `sa` | Design a technical solution, also used by `arch3` and `spec` | Options with a recommendation; ADRs in `docs/adr/` on your yes | |
+| `sa` | Design a technical solution, also used by `arch3` and `feat` | Options with a recommendation; ADRs in `docs/adr/` on your yes | |
 | `ba` | Decompose requirements | Functional spec: epics, features, user stories with acceptance criteria | |
 
 A skill missing its input offers to run the skill that creates it, e.g. `build3` stops and offers `guard`.
@@ -56,13 +56,13 @@ Companion skills: `simplify` and `code-review`, `security-review` (used by `buil
 - **New project:** you define the product and architecture together. Rerun `guard` once there's code to check.
 - **Existing project:** Craft derives both from the code and asks only what code can't tell. `guard` freezes existing violations in a baseline, so only new ones fail and debt can only shrink.
 
-**Then:** add `verify` to your pipeline, and start with `/spec <feature>` and `/build3`.
+**Then:** add `verify` to your pipeline, and start with `/feat <feature>` and `/build3`.
 
-**Recommended LLMs:** Opus/high for `prod` and `arch3`, Opus/medium for `spec`, Opus/medium or Sonnet/high for `build3`, which runs unattended once permissions are granted.
+**Recommended LLMs:** Opus/high for `prod` and `arch3`, Opus/medium for `feat`, Opus/medium or Sonnet/high for `build3`, which runs unattended once permissions are granted.
 
 ## Making a change
 
-1. **Plan.** `spec` or `task` commits an item to `docs/ready/` on main.
+1. **Plan.** `feat` or `task` commits an item to `docs/ready/` on main.
 2. **Build.** `build3`, by hand or on a schedule, works on a `craft/<item>` branch in a sibling worktree: acceptance tests (with the code for `task` items), implementation, `verify`, independent `review`, docs, `verify` again.
 3. **Merge.** 🟢 merges to local main by itself, unless `Auto-merge: off` in `AGENTS.md`. 🟡 and 🔴 wait for you. Uncommitted changes in your main checkout also make it wait.
 4. **Sync.** No skill pulls or pushes, so deploying stays your call. Periodically run `git pull --no-rebase`, `verify`, fix anything red, `git push`. Two changes can each pass and still fail together. If both sides changed `architecture.yaml`, regenerate the gate with `validate.py --gate`.
@@ -92,7 +92,7 @@ Architecture checks fail on:
 
 `build3` runs it before every merge, agents find it in `AGENTS.md`, and you can run it anytime. Call it from CI before deploy too; it needs only your toolchain. Otherwise changes that skip `build3` go unchecked.
 
-`verify` only catches what's mechanical. For justified architecture changes or drift in meaning, use `arch3` reconcile, which `spec` runs when a change adds a component or contract. Rerun `guard` after `architecture.yaml` changes.
+`verify` only catches what's mechanical. For justified architecture changes or drift in meaning, use `arch3` reconcile, which `feat` runs when a change adds a component or contract. Rerun `guard` after `architecture.yaml` changes.
 
 ## Where you spend attention
 
@@ -100,7 +100,7 @@ Review what's expensive to undo. Agents can cheaply rewrite internals, but a bad
 
 | When | Trigger | What you do |
 | --- | --- | --- |
-| Before code | Every `spec` | Approve the plan: goal, contract changes, acceptance criteria, open questions. Your best use of time |
+| Before code | Every `feat` | Approve the plan: goal, contract changes, acceptance criteria, open questions. Your best use of time |
 | Before merge | 🟢 none of the below | Nothing |
 | | 🟡 new relation, other architecture changes, edited acceptance test, files outside the spec's target, uncovered callers, unaccepted findings, anything not checked | Skim the change page, merge |
 | | 🔴 new dependency, schema, API or event change, security or CI paths, wider exposure, new data writer, new deficiency, weakened rule, deleted or skipped test, doc edits outside the spec, deviation from the spec, confirmed high finding, failing acceptance test | `review walk`, then merge or send back fixes |

@@ -3,7 +3,7 @@ name: build3
 description: Implement a build-ready item from `docs/ready/` on its own branch — acceptance tests first, implementation, verify, independent `review`, docs closed in the same branch, then a merge to local main or a wait for the human. Use for "build", "build next", "build <item>", "build all". Replaces `build` once proven.
 ---
 
-Turn a ready item into a verified, reviewed branch that lands code, docs and the item's move to `done/` in one merge. The item is the brief: `spec` or `task` wrote it to execute from cold. If it needs a design decision, it wasn't ready — stop and send it back to `spec`.
+Turn a ready item into a verified, reviewed branch that lands code, docs and the item's move to `done/` in one merge. The item is the brief: `feat` or `task` wrote it to execute from cold. If it needs a design decision, it wasn't ready — stop and send it back to `feat`.
 
 You orchestrate; subagents write the tests and the code, and a fresh one reviews. Keep your own context for the queue, the gates and the report.
 

@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "craft",
-      "description": "SDD workflow: prod->arch->spec/task->build",
+      "description": "SDD workflow: prod->arch->feat/task->build",
       "source": "./craft",
       "category": "development"
     }
