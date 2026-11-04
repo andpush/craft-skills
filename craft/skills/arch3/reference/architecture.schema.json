@@ -68,7 +68,7 @@
           "tech": { "$ref": "#/$defs/tech" },
           "endpoints": {
             "type": "object",
-            "description": "API surfaces or channels (not single operations) that services and clients consume, keyed by id. Synchronous APIs and triggers; messaging goes to root queues. A schedule endpoint is the component's own trigger (address: cron). Protocols: http, grpc, graphql, websocket, schedule, file, ... for: component or external ids, or a short name for consumers outside the model, e.g. partner-apps.",
+            "description": "API surfaces or channels (not single operations) that services and clients consume, keyed by id. Synchronous APIs and triggers; messaging goes to root queues. A schedule endpoint is the component's own trigger (address: cron). Protocols: http, grpc, graphql, websocket, schedule, file, ... for: component or external ids, or a short name for consumers outside this file, e.g. partner-apps.",
             "propertyNames": { "$ref": "#/$defs/id" },
             "additionalProperties": { "$ref": "#/$defs/endpoint" }
           },
@@ -131,7 +131,7 @@
     },
     "notes": {
       "type": "array",
-      "description": "What a competent reader of the model and the code would still get wrong: deliberate oddities, false boundaries, effects wider than they look, shapes with a hidden reason. What must keep holding is a rule, not a note.",
+      "description": "What a competent reader of this file and the code would still get wrong: deliberate oddities, false boundaries, effects wider than they look, shapes with a hidden reason. What must keep holding is a rule, not a note.",
       "items": {
         "type": "object",
         "required": ["about", "note"],
@@ -141,7 +141,7 @@
             "type": "array",
             "minItems": 1,
             "items": { "$ref": "#/$defs/ref" },
-            "description": "Model ids it applies to: component, '<component>.<module>', '<component>.<endpoint>', datastore, queue, entity, '<entity>.<field>', external, actor. Validated, so a note can't outlive its subject."
+            "description": "Ids it applies to: component, '<component>.<module>', '<component>.<endpoint>', datastore, queue, entity, '<entity>.<field>', external, actor. Validated, so a note can't outlive its subject."
           },
           "note": { "type": "string", "minLength": 1, "maxLength": 300 }
         }

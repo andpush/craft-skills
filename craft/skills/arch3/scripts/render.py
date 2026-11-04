@@ -5,7 +5,7 @@
 """Render docs/architecture.yaml and its ADRs as one HTML page in a temp folder.
 
 Usage: uv run render.py [docs/architecture.yaml] [--no-open] [--out FILE]
-Prints the page path and the number of model problems.
+Prints the page path and the number of architecture problems.
 """
 import importlib.util
 import re
@@ -54,7 +54,7 @@ def arrow(item):
     return a, op, b, label
 
 
-class Model:
+class Architecture:
     def __init__(self, data):
         self.d = data
         self.actors = data.get("actors") or {}
@@ -229,7 +229,7 @@ def module_map(m, comp):
             labels.append(label)
 
     def peer(name):
-        """Node for something outside this component: a name not in the model draws as external."""
+        """Node for something outside this component: a name not in architecture.yaml draws as external."""
         if name in m.components:
             node, cls = nid("c_", name), "comp"
         elif name in m.actors:
@@ -418,7 +418,7 @@ def kv(rows):
 
 
 def callouts(notes, ids):
-    """Notes about any of these model ids."""
+    """Notes about any of these ids."""
     return "".join(f'<div class="note">{esc(n["note"])}</div>' for n in notes if set(n["about"]) & set(ids))
 
 
@@ -625,7 +625,7 @@ def decisions_section(adrs):
 
 def problems(path):
     if not VALIDATOR.exists():
-        return [], ["validator not found: model not checked"], [], []
+        return [], ["validator not found: architecture not checked"], [], []
     spec = importlib.util.spec_from_file_location("arch_validate", VALIDATOR)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -636,9 +636,9 @@ def problems(path):
 def render(path):
     data = yaml.safe_load(path.read_text())
     errors, warnings, deficiencies, improvements = problems(path)
-    m = Model(data)
+    m = Architecture(data)
     root = path.resolve().parent
-    if root.name == "docs":  # the model lives in docs/; its paths are relative to the repo root
+    if root.name == "docs":  # architecture.yaml lives in docs/; its paths are relative to the repo root
         root = root.parent
     adrs = load_adrs(root / (data.get("decisions") or "docs/adr"))
 
@@ -687,7 +687,7 @@ def render(path):
               f"{len(deficiencies)} deficiencies", f"{len(improvements)} improvements"]
     banner = ""
     if errors:
-        banner += (f'<div class="problems"><b>{len(errors)} model errors</b> — fix with arch3'
+        banner += (f'<div class="problems"><b>{len(errors)} architecture errors</b> — fix with arch3'
                    f'<ul>{"".join(f"<li>{esc(e)}</li>" for e in errors)}</ul></div>')
     if warnings:
         banner += (f'<div class="problems warn"><b>{len(warnings)} warnings</b>'
@@ -717,7 +717,7 @@ def main():
     title, body, errors, warnings = render(path)
     system = re.sub(r"\W+", "-", title.removesuffix(" architecture")).lower()
     write(title, body, f"arch-{system}", out, "--no-open" not in args)
-    print(f"{len(errors)} model errors, {len(warnings)} warnings")
+    print(f"{len(errors)} architecture errors, {len(warnings)} warnings")
     return 0
 
 

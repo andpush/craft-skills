@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use to review a change before it merges — a craft item's branch, any branch, or a PR. Computes the risk tier, describes contract changes (data model, API, dependencies), runs independent reviewers, turns suspicions into failing tests, and writes `<item>.review.json`. `review walk` then guides the human through what matters, in the terminal. `build3` calls it after verify.
+description: Use to review a change before it merges — a craft item's branch or any other branch. Computes the risk tier, describes contract changes (data model, API, dependencies), runs independent reviewers, turns suspicions into failing tests, and writes `<item>.review.json`. `review walk` then guides the human through what matters, in the terminal. `build3` calls it after verify.
 ---
 
 Find what a human must look at, prove what you can, and say plainly what wasn't checked. The tier is computed by a script, never chosen by you. Zero findings is a valid result; padding is not.
@@ -10,7 +10,7 @@ Find what a human must look at, prove what you can, and say plainly what wasn't 
 ## Invocation
 
 - `review` — the current branch (`craft/<item>` finds the item) against main.
-- `review <item | branch | PR#>` — for a PR, `gh pr checkout <n>` first and use its base branch.
+- `review <item | branch>` — that item or branch against main.
 - `review walk` — guide the human through an existing review (below).
 
 ## Process
@@ -21,7 +21,7 @@ Find what a human must look at, prove what you can, and say plainly what wasn't 
 uv run --quiet <this-skill-dir>/scripts/review.py [item] [--base REF] [--head REF]
 ```
 
-It writes `<item>.review.json` next to the item (no item: a temp file), with triggers from the diff and the model, new dependency edges, the tier, the AC skeleton from the spec's Acceptance table, and a `not_checked` list seeded with the reviewers and `manual` rules. It prints what is still incomplete. Rerunning keeps your fields and recomputes the rest.
+It writes `<item>.review.json` next to the item (no item: a temp file), with triggers from the diff and `architecture.yaml`, new dependency edges, the tier, the AC skeleton from the spec's Acceptance table, and a `not_checked` list seeded with the reviewers and `manual` rules. It prints what is still incomplete. Rerunning keeps your fields and recomputes the rest.
 
 ### 2. Automated reviewers
 
@@ -29,11 +29,11 @@ Run the `code-review` skill on base..head (effort `high` when red, `medium` othe
 
 ### 3. Own lenses — what those tools miss
 
-- **Spec conformance** → `deviations`: what the diff does that the spec didn't ask for, does differently, or leaves out.
-- **Contracts** → `contracts`, one per dependency/schema/api/event trigger and per model change to externals or data. Each needs `what`, `consequence`, `compat` and `migration`.
+- **Spec conformance** → `deviations`: what the diff does that the spec didn't ask for, does differently, or leaves out. An edited AC test must still check its criterion; a weakened one is a finding.
+- **Contracts** → `contracts`, one per dependency/schema/api/event trigger and per architecture change to externals or data. Each needs `what`, `consequence`, `compat` and `migration`.
   - **Schema:** read the migration whole. Check for destructive steps, NOT NULL without a default, locking index builds, backfill, and whether old code runs against the new schema.
   - **API and events:** check for removed, renamed or newly required fields, changed semantics, versioning, and consumers' idempotency and ordering.
-- **Model:** code that imports what the model's `uses` doesn't list is a deviation. A write the model's `writes` doesn't list is a high finding.
+- **Architecture:** code that imports what `uses` in `architecture.yaml` doesn't list is a deviation. A write its `writes` doesn't list is a high finding.
 - **Blast radius** → `blast`: for each changed public symbol, list the callers outside the diff (LSP references, or grep) and the tests that cover them. Stop after the five symbols with the most callers.
 - **Negative cases:** check the spec's testing approach, then the usual suspects: another user's or tenant's data, revoked rights, duplicates, reordering, concurrency, partial failure. An untested one is a suspicion.
 - **Manual rules:** check each `manual` rule in `not_checked` against the diff, then remove it. A violation becomes a finding.
@@ -92,7 +92,7 @@ The tier sets the depth:
 - **🔴 red:** a walk is required before merge.
 
 The walk ends one of two ways:
-- **All accepted:** integrate per the merge policy in `AGENTS.md`. Ask before merging, unless `build3` called you and the policy allows it.
+- **All accepted:** ask, then merge as `build3`'s Integrate step does.
 - **Any "change":** produce a fix list (ID → minimal fix).
 
 ## Re-review after a fix

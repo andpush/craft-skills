@@ -36,7 +36,7 @@ Load when a change adds or moves a component, an entity, or a boundary.
 ## State
 
 - A lifecycle that matters (payment, order, subscription) gets explicit states and transitions —
-  `states` in the model. Each transition has one owner, one trigger and a guard.
+  `states` in `architecture.yaml`. Each transition has one owner, one trigger and a guard.
 - Illegal transitions must be impossible in code, not just untested: one method per transition, no
   public setter for status.
 

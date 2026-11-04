@@ -4,7 +4,7 @@ Load when a change adds an entity, a store, a copy of data, or a second writer.
 
 ## One writer
 
-- Every entity has exactly one owner — the only component that writes it (`owner` in the model).
+- Every entity has exactly one owner — the only component that writes it (`owner` in `architecture.yaml`).
   Others read through the owner's interface, or hold a copy.
 - A second writer is a design change, not an implementation detail. If it's truly needed, move the
   entity, or split it so each part has one writer. `validate.py` reports it, and `review` treats a new one as red.
@@ -13,7 +13,7 @@ Load when a change adds an entity, a store, a copy of data, or a second writer.
 
 ## Copies
 
-Every copy of another owner's data is one of four kinds. Name it — `copies` in the model, with why.
+Every copy of another owner's data is one of four kinds. Name it — `copies` in `architecture.yaml`, with why.
 
 | Kind | Meaning | Freshness | Example |
 |---|---|---|---|

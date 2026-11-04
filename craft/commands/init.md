@@ -1,5 +1,5 @@
 ---
-description: Run `prod`, `arch3`, then `guard` to quickstart with `docs/PRODUCT.md`, the architecture model and a working `verify` gate.
+description: Run `prod`, `arch3`, then `guard` to quickstart with `docs/PRODUCT.md`, `docs/architecture.yaml` and a working `verify` gate.
 argument-hint: [one-line idea or repo note]
 ---
 # Command Instructions
@@ -16,7 +16,7 @@ Greenfield (empty/early repo) → define with the user. Brownfield (existing cod
 
 1. Run the `prod` skill to establish `docs/PRODUCT.md`.
 2. Then run the `arch3` skill to establish `docs/architecture.yaml` and `AGENTS.md`.
-3. Then run the `guard` skill to make the model executable. If the repo has no code yet, stop after `verify` and say `guard` should be rerun once there is code to check.
+3. Then run the `guard` skill to make `architecture.yaml` executable. If the repo has no code yet, stop after `verify` and say `guard` should be rerun once there is code to check.
 
 Scale to a small project: a quick problem/users/scope pass for product, a simple stack/components/conventions pass for architecture. Don't manufacture process the size doesn't warrant.
 

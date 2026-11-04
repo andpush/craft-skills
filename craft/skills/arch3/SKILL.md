@@ -17,7 +17,7 @@ The format is [reference/architecture.schema.json](reference/architecture.schema
 
 - Read the product inputs: `docs/PRODUCT.md`, `README.md`, vision, requirements and PRDs under `docs/`,
   and `docs/adr/` when present.
-- With no product purpose anywhere, offer to run `prod` first: the model needs a purpose to design against.
+- With no product purpose anywhere, offer to run `prod` first: the architecture needs a purpose to design against.
 - Pick the branch: no production code → **greenfield**; code → **brownfield**; `docs/architecture.yaml`
   already exists → **reconcile**.
 
@@ -38,7 +38,7 @@ Then design with the `sa` skill against the drivers. Each real fork (monolith vs
 private store, sync vs async, build vs buy) goes to the user as options with a recommendation;
 settled defaults go straight into the draft.
 
-## 2b. Brownfield: model the code as it is
+## 2b. Brownfield: describe the code as it is
 
 Explore with evidence. Large repo: fan out `Explore` agents by territory, each reporting the
 dimensions below with `file:line`. Small repo: one pass yourself.
@@ -56,7 +56,7 @@ dimensions below with `file:line`. Small repo: one pass yourself.
 | status enums and the code that changes them | `states` |
 | architecture tests, lint configs | `rules` with `check` |
 
-Record the relations the code actually has: the model is a true baseline, and `guard` freezes
+Record the relations the code actually has: `architecture.yaml` is a true baseline, and `guard` freezes
 existing violations. Then ask the user, in batches, only what code can't tell: actors, the purpose
 of components and externals, endpoint consumers outside the repo, which flows are the main ones,
 which lifecycles matter, which rules they intend.
@@ -64,11 +64,11 @@ which lifecycles matter, which rules they intend.
 Done when every production source directory belongs to a component and every relation in the
 draft has evidence.
 
-## 2c. Reconcile: compare the model with the code
+## 2c. Reconcile: compare `architecture.yaml` with the code
 
-Collect the same evidence as brownfield and diff it against the existing model. Each difference
+Collect the same evidence as brownfield and diff it against the existing `architecture.yaml`. Each difference
 gets one of three outcomes, chosen by the user: fix the code (park it with `idea`), fix a stale
-model line, or record an explicit decision. The model keeps its intent; code that contradicts it is
+line in it, or record an explicit decision. `architecture.yaml` keeps its intent; code that contradicts it is
 a finding, never a silent edit.
 
 ## 3. Intent
@@ -87,14 +87,14 @@ cost money or touch personal data, chatty sync calls, externals without timeout 
 at-least-once consumers without dedupe, retried non-idempotent calls, a `utils` module holding
 business logic, and in greenfield parts that no driver demands.
 
-Each finding: what, evidence (`file:line` or model line), consequence, direction. Suggest each one
-as an `idea`; the user confirms, makes it a rule, or accepts it. This skill fixes the model, not the
+Each finding: what, evidence (`file:line` or `architecture.yaml` line), consequence, direction. Suggest each one
+as an `idea`; the user confirms, makes it a rule, or accepts it. This skill fixes `architecture.yaml`, not the
 code.
 
-## 5. Write the model
+## 5. Write `architecture.yaml`
 
 `docs/architecture.yaml`. Paths inside it (`source_path`, `check`, `decisions`) stay relative to the repo root. The schema stays in this skill: don't copy it into the project
-or reference it from the model.
+or reference it from `architecture.yaml`.
 
 Every line passes one test: would a reader otherwise reconstruct it from code, and can a check
 catch it drifting?
@@ -105,7 +105,7 @@ catch it drifting?
   dependencies in or out. Leave out the rest, however cleanly they are packaged. A module lists the
   endpoints it handles in `serves`.
 - **Endpoints** are API surfaces. Each has `for`: the services and clients expected to consume it, as
-  model ids, or a short name for consumers outside the model (`partner-apps`). Each also has `auth`:
+  ids from this file, or a short name for consumers outside it (`partner-apps`). Each also has `auth`:
   protocol and providers, or `none` when it is deliberately open. Schedule endpoints have neither:
   they are the component's own trigger.
 - **Security:** `exposure` comes from the deploy config, not from `auth`. Routes that differ in
@@ -113,7 +113,7 @@ catch it drifting?
 - **UI endpoints** have the same structure, for people and agents: `for` lists actors, and `protocol`
   is the real one (`http` for a web UI). Nothing `calls` them.
 - **Relations** list everything allowed. A missing one becomes a violation later, so the list is
-  complete. A relation a listed module has goes on that module, so the model shows who works with
+  complete. A relation a listed module has goes on that module, so the file shows who works with
   each store (private ones too), queue and outside system. The component keeps only what applies to all its code or
   comes from code outside the listed modules. `uses` names only listed modules.
 - **Entities:** keys and references at minimum; other fields where the location of data matters (money, personal data).
@@ -134,11 +134,11 @@ Create it from [reference/agents-template.md](reference/agents-template.md), or 
    schema, every reference, flows against relations, states against entity fields, endpoint `for`
    against callers, `serves` against endpoints, what each note is `about`, and paths.
    Warnings need fixing or explaining; findings go to step 4.
-2. Run the `sa` skill's Verify checklist against the model.
+2. Run the `sa` skill's Verify checklist against `architecture.yaml`.
 3. Walk the user through the draft: components and their jobs, data ownership, exposure, flows, rules,
    notes, findings, open questions. Apply their changes, then re-run step 1.
 
-Done when the validator exits 0 and the user has approved the model.
+Done when the validator exits 0 and the user has approved `architecture.yaml`.
 
 ## View
 
@@ -146,7 +146,7 @@ Done when the validator exits 0 and the user has approved the model.
 uv run --quiet <this-skill-dir>/scripts/render.py [docs/architecture.yaml]
 ```
 
-Renders the model, ADRs and validator findings to `<tmp>/craft-views/arch-<system>.html` and opens it. Flags: `--no-open`, `--out <file>`. Display only: it decides nothing and has no findings of its own. A new kind of finding goes in `validate.py`. A `Diagram error` is a bug in `render.py`.
+Renders `architecture.yaml`, ADRs and validator findings to `<tmp>/craft-views/arch-<system>.html` and opens it. Flags: `--no-open`, `--out <file>`. Display only: it decides nothing and has no findings of its own. A new kind of finding goes in `validate.py`. A `Diagram error` is a bug in `render.py`.
 
 ## Report
 

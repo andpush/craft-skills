@@ -19,12 +19,11 @@ ls -1 docs/ready/*.md docs/done/*.md 2>/dev/null | sort
 grep -H '^status:\|^priority:' docs/ready/*.md 2>/dev/null
 ```
   `ready` = queued. `in-progress` is legacy `build`; with `build3` a claim is a branch.
-- Claims — branches and PRs. `craft/<item>` = claimed; its tip says how far it got:
+- Claims — branches. `craft/<item>` = claimed; its tip says how far it got:
 ```bash
 git branch -a --list '*craft/*' --format='%(refname:short) %(committerdate:relative) %(subject)'
-gh pr list --search 'head:craft/' --json number,title,headRefName,isDraft,statusCheckRollup 2>/dev/null
 ```
-  A draft PR or `status: blocked` on the branch (`git show craft/<item>:docs/ready/<item>.md | grep '^status:\|^blocked:'`) = a build failed it. An open PR = waiting for the human; its tier is in `<item>.review.json` on the branch. A branch with no PR and no recent commit = stale claim. Lead the report with blocked, then waiting-for-review, then in progress.
+  `status: blocked` on the branch (`git show craft/<item>:docs/ready/<item>.md | grep '^status:\|^blocked:'`) = a build failed it. The item in `docs/done/` on the branch (`git show craft/<item>:docs/done/<item>.review.json`) = waiting for the human; its tier is in that file. Neither, and no recent commit = stale claim. Lead the report with blocked, then waiting-for-review, then in progress.
 - Decisions (`ls -1 docs/adr/*.md 2>/dev/null | tail -5`, or legacy `ADR.md` tail) — recent architectural changes; filenames carry date + slug, open only if needed.
 - Ideas (`grep -H '^status:\|^priority:' docs/ideas/*.md 2>/dev/null`) — candidates, not commitments; report them parked, not as tasks. `open`/`deferred` here are the live pool. Weight by priority: lead with `high`, fold `low` into a count, flag ideas with no `priority` as awaiting triage.
 - Misplaced (closed but still in the queue — bookkeeping): items that finished but weren't moved to `docs/done/`:
@@ -38,7 +37,7 @@ For git repos, also check for uncommitted changes, unmerged branches, and recent
 
 - Last contribution: newest queue/done items + commits — what was being solved.
 - Stuck? A `blocked` item in WIP, dangling uncommitted edits, big unfinished refactoring, or a branch that hasn't landed in a while.
-- Next: PRs waiting for review (red first → `review walk`), `blocked` to unstick, claims to finish, `ready` to pick up, `idea-remove-*` whose condition holds, parked ideas to promote, uncommitted files.
+- Next: branches waiting for review (red first → `review walk`), `blocked` to unstick, claims to finish, `ready` to pick up, `idea-remove-*` whose condition holds, parked ideas to promote, uncommitted files.
 
 ## Report
 

@@ -182,7 +182,7 @@ flows:                             # main success paths; -> sync call, ~> async 
     - payments -> stripe: cancel payment intent
     - payments -> payments-db: release hold
 
-notes:                             # what a competent reader of model and code would still get wrong
+notes:                             # what a competent reader of this file and the code would still get wrong
   - about: [core.catalog, payments]
     note: Prices are read in core and re-sent to payments on purpose, so a later price change can't alter an order in flight. Don't "simplify" it to a lookup.
   - about: [orders]

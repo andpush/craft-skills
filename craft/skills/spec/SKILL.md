@@ -45,7 +45,7 @@ Understand the ground you're building on:
 - Read `docs/PRODUCT.md` and `docs/architecture.yaml`, including its `notes` about what the change touches.
 - Peek into dir tree, recent commit log, `docs/ideas/` and `docs/adr/` listings if warranted. Before proposing an option, grep the ADRs' `## Rejected` for it.
 - Explore additional context and zoom in as needed.
-- A change that adds a component or a contract: run `arch3` reconcile on what it touches first, so the spec doesn't build on a stale model.
+- A change that adds a component or a contract: run `arch3` reconcile on what it touches first, so the spec doesn't build on a stale `architecture.yaml`.
 
 ### 2. Frame the problem
 
@@ -70,7 +70,7 @@ As new information arises, iterate between the solution and the problem framing 
 - If the change path crosses code smells (oversized file, tangled responsibilities, unclear boundaries), fold targeted fixes into the spec — improve what you touch. Don't propose unrelated refactoring.
 - **Contract changes** go in the Review Brief, one per item with its consequence: a new or upgraded dependency, a schema change, a public API or event change, a new writer or copy of data, a new external call. They outlive the code, so they're what the human reviews first. Load the `sa` lens the change touches ([../sa/SKILL.md](../sa/SKILL.md) § Lenses).
 - **A schema or stored-format change needs a Migration plan:** expand → backfill → switch → contract, mixed-version behavior, roll-forward.
-- **Targets and the model:** `target:` lists component names from `docs/architecture.yaml`. A change that needs a new component, a new relation, a new entity, wider exposure, or a new rule says so in **Doc impact**, as an exact edit to `docs/architecture.yaml`.
+- **Targets and architecture:** `target:` lists component names from `docs/architecture.yaml`. A change that needs a new component, a new relation, a new entity, wider exposure, or a new rule says so in **Doc impact**, as an exact edit to `docs/architecture.yaml`.
 - **Doc impact** lists the exact edits to `docs/PRODUCT.md`, `AGENTS.md` and `docs/architecture.yaml`. `build3` applies only these, and `review` flags any other doc edit.
 - Define a feature-relevant testing approach following the testing pyramid, with the negative cases that apply. For UI changes, consider e2e using playwright-cli skill or similar. Gate refactoring with TDD: establish a green safety net before restructuring.
 - **Acceptance is a table of commands:** `| ID | Criterion | Command |`. Each criterion names observable behavior; its command runs exactly the tests named `AC<n>_…` (the AC command form in `AGENTS.md`). `build3` has these tests written first, by an agent that sees only the spec — so a criterion must be testable from the spec alone. A criterion no test can show is marked `(manual)` with `—` as the command; the human checks it at review. `verify` exiting 0 is always implied.
@@ -78,11 +78,11 @@ As new information arises, iterate between the solution and the problem framing 
 ### 5. Present and confirm
 
 Don't just dump a spec with the details buried in it; present the chosen solution clearly in a way easy to grasp for a human:
-- Write the item as `status: draft` and open the spec page — Review Brief first, the model's component diagram with the targets highlighted, contract changes as cards, the AC table:
+- Write the item as `status: draft` and open the spec page — Review Brief first, the component diagram with the targets highlighted, contract changes as cards, the AC table:
   ```bash
   uv run --quiet <this-skill-dir>/scripts/spec_page.py docs/ready/<item>.md
   ```
-- For the page to lift them: frontmatter `target:` names components from the model; contract changes are a nested list under `- **Contract changes:**`, one per item: `C1 <kind>: <what> — <consequence>`.
+- For the page to lift them: frontmatter `target:` names components from `architecture.yaml`; contract changes are a nested list under `- **Contract changes:**`, one per item: `C1 <kind>: <what> — <consequence>`.
 - In the terminal, lead with what needs the human: open questions, contract changes, anything the page flags. Every item has an ID (`C1`, `AC3`) to discuss by.
 - Obtain confirmation that the spec captures the intent and is ready to build. If not, iterate and re-render.
 

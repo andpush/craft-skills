@@ -1,6 +1,6 @@
 ---
 name: build3
-description: Implement a build-ready item from `docs/ready/` on its own branch — acceptance tests first, implementation, verify, independent `review`, docs closed in the same branch, then a PR or merge per the project's policy. Use for "build", "build next", "build <item>", "build all". Replaces `build` once proven.
+description: Implement a build-ready item from `docs/ready/` on its own branch — acceptance tests first, implementation, verify, independent `review`, docs closed in the same branch, then a merge to local main or a wait for the human. Use for "build", "build next", "build <item>", "build all". Replaces `build` once proven.
 ---
 
 Turn a ready item into a verified, reviewed branch that lands code, docs and the item's move to `done/` in one merge. The item is the brief: `spec` or `task` wrote it to execute from cold. If it needs a design decision, it wasn't ready — stop and send it back to `spec`.
@@ -10,8 +10,8 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 ## Before the first item
 
 - `AGENTS.md` names the `verify` command. No `verify` → stop and offer `guard`; without it there is no gate.
-- The worktree is clean, you're on main, and main is current (`git pull --ff-only` when a remote exists).
-- Read the merge policy in `AGENTS.md`: `Merge: pr | local`, `Auto-merge: off | green`. Missing: `pr` when a remote exists, else `local`; auto-merge `off`.
+- Read `Auto-merge: green | off` in `AGENTS.md`. Missing: `green`.
+- Never pull or push. Syncing with a remote is a separate routine in `AGENTS.md`, and a push may trigger a deploy.
 
 ## The queue
 
@@ -27,16 +27,17 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 
 ### 1. Pick
 
-Unclaimed = `status: ready` and no `craft/<item>` branch, local or remote (`git ls-remote --heads origin 'craft/*'`). Order: `priority: high` first, then `created`. Check it's buildable: a goal, `target:` components, an Acceptance table. If not, skip it and say why.
+Read the queue from the `main` branch, not the working tree (`git ls-tree --name-only main docs/ready/`, `git show main:docs/ready/<item>.md`). Unclaimed = `status: ready` and no `craft/<item>` branch (`git branch -a --list '*craft/<item>'`). Order: `priority: high` first, then `created`. Check it's buildable: a goal, `target:` components, an Acceptance table. If not, skip it and say why.
 
 ### 2. Claim
 
 ```bash
-git switch -c craft/<item> main
-git push -u origin craft/<item>     # when a remote exists; rejected = someone else has it, pick the next
+git worktree add ../<repo>-<item> -b craft/<item> main     # fails = another run has it, pick the next
 ```
 
-Resuming: read the branch's commits and continue from the first step not done (an AC commit means step 3 is done).
+Do everything from here on in that worktree, and give subagents its path. If this session already runs in a linked worktree, use `git switch -c craft/<item> main` there instead.
+
+Resuming: `git worktree list` finds it, or `git worktree add ../<repo>-<item> craft/<item>`. Read the branch's commits and continue from the first step not done (an AC commit means step 3 is done).
 
 ### 3. Acceptance tests first — feat and idea items
 
@@ -59,8 +60,8 @@ git commit -m "test: acceptance tests for <item>"
 
 A subagent gets the item path, `AGENTS.md`, the AC commit's file list, and these rules:
 - Stay inside the `target` components and the relations `docs/architecture.yaml` lists for them.
-- Read the model's `notes` about what you touch. If the change would make one false, stop and raise it.
-- Don't edit the AC test files. If one looks wrong, stop and report it — that's a spec question, not a code one.
+- Read the `notes` in `architecture.yaml` about what you touch. If the change would make one false, stop and raise it.
+- You may adapt an AC test to a rename or restructure, saying why in the commit. If the criterion itself looks wrong, stop and report it — that's a spec question, not a code one.
 - Don't edit `docs/architecture.yaml`, `docs/PRODUCT.md` or `AGENTS.md`: you apply the doc impact at close.
 - Commit in small commits; report what changed and anything done differently from the spec, with the reason.
 
@@ -74,7 +75,7 @@ Run the `simplify` skill on `main...HEAD` and commit its fixes. Then run `verify
 
 Spawn a fresh subagent with: "Run the `review` skill for item `docs/ready/<item>.md` on branch `craft/<item>`, base `<merge-base>`, head `<sha>`. Report the tier, the red reasons and a fix list." It writes `docs/ready/<item>.review.json` and commits its counterexample tests.
 
-Fix what has a clear fix: confirmed findings, failing ACs, deviations, model violations. Leave to the human: contract decisions, plausible findings, anything that changes the spec. When the human decides one, amend the item in the branch first — Review Brief contracts, an AC row for the new behavior — and commit (`spec: <item> — <decision>`); then it's a fix like the others. The implementer gets the fix list (ID → fix) and makes the counterexample tests green without editing them. Verify, then spawn a fresh reviewer for the fix: "Re-review item `<item>`: the reviewed head was `<sha>`." At most two fix rounds; whatever remains stays in the review for the human. Close only on a green `verify`: a confirmed finding still open after the rounds is a Fail with `blocked: <IDs> open — review walk`.
+Fix what has a clear fix: confirmed findings, failing ACs, deviations, architecture violations. Leave to the human: contract decisions, plausible findings, anything that changes the spec. When the human decides one, amend the item in the branch first — Review Brief contracts, an AC row for the new behavior — and commit (`spec: <item> — <decision>`); then it's a fix like the others. The implementer gets the fix list (ID → fix) and makes the counterexample tests green without editing them. Verify, then spawn a fresh reviewer for the fix: "Re-review item `<item>`: the reviewed head was `<sha>`." At most two fix rounds; whatever remains stays in the review for the human. Close only on a green `verify`: a confirmed finding still open after the rounds is a Fail with `blocked: <IDs> open — review walk`.
 
 ### 7. Close in the branch
 
@@ -90,26 +91,34 @@ Fix what has a clear fix: confirmed findings, failing ACs, deviations, model vio
 
 ### 8. Integrate
 
-If main moved, merge it into the branch — don't rebase: the review's refs must stay reachable. Rerun `verify`; if the merge touched the changed files, re-review.
+If main moved, merge it into the branch — don't rebase: the review's refs must stay reachable. If that merge touched the changed files, re-review.
 
-| Policy | 🟢 green with `Auto-merge: green` | otherwise |
-|---|---|---|
-| `pr` | `gh pr create`, then `gh pr merge --auto --squash` — merges when CI is green (no branch protection: `gh pr checks --watch`, then `gh pr merge --squash`) | `gh pr create`; the PR waits for the human |
-| `local` | `git switch main && git merge --ff-only craft/<item>`, delete the branch | leave the branch; the human merges |
+Then run `verify` and show the result, even if main didn't move: step 7 changed the branch since the last run. Red → back to the implementer, as in step 5.
 
-PR body, short: the goal, the tier and its reasons, the AC evidence, what wasn't checked, and the line `review: docs/done/<item>.review.json`. Then open the change page:
+Open the change page (`--no-open` on an unattended run):
 
 ```bash
 uv run --quiet <this-skill-dir>/../review/scripts/change_page.py docs/done/<item>.review.json
 ```
 
+🟢 green with `Auto-merge: green` merges now. Anything else leaves the branch and its worktree waiting for the human, who merges the same way after reviewing.
+
+The merge happens in the main checkout, the first entry of `git worktree list`. If it isn't on main or has uncommitted changes (`git -C <main checkout> status --porcelain -uno`), don't touch it: leave the branch waiting and say why. If main moved since your last `verify`, go back to the start of this step.
+
+```bash
+git -C <main checkout> merge --no-ff -m "merge: <item> (<tier>)" craft/<item>
+git worktree remove <worktree> && git branch -d craft/<item>
+```
+
+Each item is one merge commit, never squashed, so the AC commit stays reachable and `git revert -m 1` undoes the whole item.
+
 ### 9. Report
 
-Per item, at most six lines: the tier and red reasons, the PR or branch, and what needs the human — a `review walk` for red, manual ACs, what wasn't checked. For `build3 all`, end with: merged, waiting, blocked, left.
+Per item, at most six lines: the tier and red reasons, the branch and worktree, and what needs the human — a `review walk` for red, manual ACs, what wasn't checked. For `build3 all`, end with: merged, waiting, blocked, left.
 
 ## Fail
 
-Set `status: blocked` and `blocked: <one-line reason>` on the branch, commit, push, and open a draft PR when there's a remote (`gh pr create --draft`). The branch keeps the item claimed until the human clears it. Stop — `build3 all` stops here too.
+Set `status: blocked` and `blocked: <one-line reason>` on the branch and commit. The branch keeps the item claimed until the human clears it. Stop — `build3 all` stops here too.
 
 ## Notes
 

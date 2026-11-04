@@ -37,6 +37,6 @@ Load only the lens the change touches:
 - [ ] Security, deployment, testing, observability addressed where the drivers demand them.
 - [ ] Complexity matches the problem's actual scale — no speculative generality.
 
-End with the chosen approach, its rationale, and any decisions still open for the user. What happens next — a spec, the model, direct build — belongs to the caller.
+End with the chosen approach, its rationale, and any decisions still open for the user. What happens next — a spec, `architecture.yaml`, direct build — belongs to the caller.
 
 An expensive-to-reverse decision becomes an ADR only on the user's explicit yes, in the format of [reference/adr.md](reference/adr.md): written now when there's no build, or listed in the spec for `build3` to write at close.

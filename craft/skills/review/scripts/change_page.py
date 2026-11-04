@@ -243,7 +243,7 @@ def build(review, got, repo, raw, spec_path, editor):
     if raw and raw.get("components"):
         edges = [tuple(x.strip() for x in e.split("->", 1)) for e in review.get("new_edges", []) if "->" in e]
         count = f"{len(edges)} new edge{'s' * (len(edges) > 1)}" if edges else None
-        out.append(section("Architecture impact", render.mermaid(render.impact_map(render.Model(raw), got["changed"], edges))
+        out.append(section("Architecture impact", render.mermaid(render.impact_map(render.Architecture(raw), got["changed"], edges))
                            + '<div class="legend">Highlighted: components this diff touches. Red: dependencies new in this change.</div>', count))
     if review.get("evidence"):
         rows = "".join(f'<tr><td class="id">{esc(e.get("ac", ""))}</td><td>{esc(e.get("criterion", ""))}</td>'
@@ -255,7 +255,7 @@ def build(review, got, repo, raw, spec_path, editor):
     if got["files"]:
         by_comp = {}
         for status, file, comp in got["files"]:
-            by_comp.setdefault(comp or "(outside the model)", []).append((status, file))
+            by_comp.setdefault(comp or "(outside architecture.yaml)", []).append((status, file))
         body = "".join(f"<h3>{esc(c)}</h3>" + "".join(
             f'<div class="mono">{pill(s, {"A": "green", "D": "red"}.get(s, ""))} {esc(f)}</div>' for s, f in fs) for c, fs in by_comp.items())
         out.append(section("Files changed", f'<div class="card">{body}</div>', len(got["files"]), open=False))
@@ -283,7 +283,7 @@ def main():
     spec_path = Path(args.spec) if args.spec else next(
         (p for p in [path.with_name(f"{name}.md"), *repo.glob(f"docs/*/{name}.md")] if p.exists()), None)
     head = rv.resolve(repo, review.get("head")) or rv.resolve(repo, "HEAD")
-    raw = rv.raw_at(repo, head, rv.MODEL_FILE) if head else None
+    raw = rv.raw_at(repo, head, rv.ARCHITECTURE_FILE) if head else None
     item, body = build(review, gather(review, repo, raw), repo, raw, spec_path, args.editor)
     write(f"change: {item}", body, f"change-{name}", args.out, not args.no_open)
 
