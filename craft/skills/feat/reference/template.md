@@ -32,7 +32,7 @@ of an entity), `data-copy` (a new copy of another owner's data), `external-call`
 
 ### Non-goals  *[as appropriate]*
 
-*What this explicitly does not do, and briefly why. Deferred ideas go to `.craft/ideas/` at close.*
+*What this explicitly does not do, and briefly why. Deferred ideas go to `.craft/draft/` at close.*
 
 ## Solution
 

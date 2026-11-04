@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Use to capture a user idea into .craft/ideas/ — one small file with a quick alignment check against PRODUCT.md. Capture, not elaboration; the spec is written later via `feat`.
+description: Use to capture a user idea into .craft/draft/ — one small file with a quick alignment check against PRODUCT.md. Capture, not elaboration; the spec is written later via `feat`.
 ---
 
 Capture the idea fast and move on. Ideas are candidates, not commitments — `feat` validates lazily on pickup (implement / postpone / reject). This skill only records and sanity-checks; it never opens a spec.
@@ -11,7 +11,7 @@ Optional: if the first word of the args is `high` or `low`, treat it as the prio
 
 Distill the idea to one line. If it's too vague to write down, ask one clarifying question — not an interview.
 
-Write `.craft/ideas/idea-<slug>.md` — one idea per file. `slug` carries the idea and is unique across `.craft/ideas/`, `.craft/draft/`, `.craft/ready/` and `.craft/done/`. Filenames are the index — a directory listing is the scan. Format:
+Write `.craft/draft/idea-<slug>.md` — one idea per file. `slug` carries the idea and is unique across `.craft/draft/`, `.craft/ready/` and `.craft/done/`. Filenames are the index — a directory listing is the scan. Format:
 
 ```markdown
 ---
@@ -32,9 +32,9 @@ Don't elaborate beyond what was said.
 
 ## Lifecycle (owned by `feat`, recorded here)
 
-An idea is born in `.craft/ideas/` and stays there until picked up. With no `resolution:`, nobody has looked at it yet. On pickup:
+An idea is born in `.craft/draft/` and stays there until picked up. With no `resolution:`, nobody has looked at it yet. On pickup:
 
-- **Postpone** — add `resolution: postpone — <why>`; it stays in `.craft/ideas/`.
+- **Postpone** — add `resolution: postpone — <why>`; it stays in `.craft/draft/`.
 - **Reject** — add `resolution: reject — <why>` and `git mv` it, with its images, to `.craft/done/`, so it isn't proposed again.
 - **Implement** — `feat` or `task` writes a new item, carrying over anything still useful, images included. Delete the idea in the same commit that puts that item in `.craft/ready/`.
 
@@ -52,7 +52,7 @@ If `PRODUCT.md` doesn't exist, capture without the check and say so.
 
 ## Images
 
-If the user pastes an image, save it next to the idea as `.craft/ideas/idea-<slug>-<picslug>.<ext>` (idea's basename + a short pic slug) and embed it from the idea file. On implement, the new item takes over the images it needs, renamed to its basename.
+If the user pastes an image, save it next to the idea as `.craft/draft/idea-<slug>-<picslug>.<ext>` (idea's basename + a short pic slug) and embed it from the idea file. On implement, the new item takes over the images it needs, renamed to its basename.
 
 ## Report
 

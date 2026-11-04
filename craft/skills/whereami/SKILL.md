@@ -7,7 +7,7 @@ Reload the user's mental context in seconds. Read the artifacts, infer the story
 
 ## Gather (skip what's absent)
 
-Four folders under `.craft/`: `ideas/` (raw candidates), `draft/` (specs still being shaped), `ready/` (the execution queue — build-ready `feat-`/`task-` items), and `done/` (archive of shipped items and rejected ideas). `ideas/`, `draft/` and `ready/` are the live set; `done/` is the timeline, not live work. Filenames (`type-slug`) are the index — don't open files unless needed.
+Three folders under `.craft/`: `draft/` (`idea-*` raw candidates, `feat-*` specs still being shaped), `ready/` (the execution queue — build-ready `feat-`/`task-` items), and `done/` (archive of shipped items and rejected ideas). `draft/` and `ready/` are the live set; `done/` is the timeline, not live work. Filenames (`type-slug`) are the index — don't open files unless needed.
 
 - `PRODUCT.md` first lines — what this is.
 - The queue and archive, newest last:
@@ -25,7 +25,7 @@ git branch -a --list '*craft/*' --format='%(refname:short) %(committerdate:relat
 ```
   A `blocked:` line on the branch (`git show craft/<item>:.craft/ready/<item>.md | grep '^blocked:'`) = a build failed it. A review file on the branch (`git show craft/<item>:.craft/ready/<item>.review.json`) = waiting for the human; report why from that file: `tier` and `triggers`. A 🟢 waits only because the main checkout wasn't clean and on main when it tried to merge, or because the user held it. Neither, and no recent commit = stale claim. Lead the report with blocked, then waiting-for-review, then in progress.
 - Decisions (`ls -1 .craft/adr/*.md 2>/dev/null | tail -5`, or legacy `ADR.md` tail) — recent architectural changes; filenames carry date + slug, open only if needed.
-- Ideas (`grep -H '^resolution:\|^priority:' .craft/ideas/*.md 2>/dev/null`) — candidates, not commitments; report them parked, not as tasks. No `resolution:` = not looked at yet; `postpone` = looked at, not now. Weight by priority: lead with `high`, fold `low` into a count, flag ideas with no `priority` as awaiting triage.
+- Ideas (`grep -H '^resolution:\|^priority:' .craft/draft/idea-*.md 2>/dev/null`) — candidates, not commitments; report them parked, not as tasks. No `resolution:` = not looked at yet; `postpone` = looked at, not now. Weight by priority: lead with `high`, fold `low` into a count, flag ideas with no `priority` as awaiting triage.
 
 For git repos, also check for uncommitted changes, unmerged branches, and recent commits.
 
@@ -33,7 +33,7 @@ For git repos, also check for uncommitted changes, unmerged branches, and recent
 
 - Last contribution: newest queue/done items + commits — what was being solved.
 - Stuck? A `blocked` item in WIP, dangling uncommitted edits, big unfinished refactoring, or a branch that hasn't landed in a while.
-- Next: `review walk` for anything waiting, `blocked` to unstick, drafts and claims to finish, queued items to pick up, `idea-remove-*` whose condition holds, parked ideas to promote, uncommitted files.
+- Next: `review walk` for anything waiting, `blocked` to unstick, `feat-*` drafts and claims to finish, queued items to pick up, `idea-remove-*` whose condition holds, parked ideas to promote, uncommitted files.
 
 ## Report
 

@@ -23,7 +23,7 @@ CLAUDE.md contains a single line: @AGENTS.md
 
 ## Workflow
 
-- Work items: `.craft/ideas/` → `.craft/draft/` → `.craft/ready/` → `.craft/done/`, named `<type>-<slug>.md`.
+- Work items: `.craft/draft/` → `.craft/ready/` → `.craft/done/`, named `<type>-<slug>.md`.
 - One branch per item: `craft/<item>`. The branch is the claim.
 - Merge: pr          # pr | local
 

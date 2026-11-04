@@ -24,7 +24,7 @@ Ask only the sharp unknowns that change the outcome — the ones the implementor
 This is the core value: an implementor should be able to execute from the doc cold, without coming back to the user.
 
 ### 3. Write the doc
-`.craft/ready/task-<slug>.md` — `slug` is the kebab task name, unique across `.craft/ideas/`, `.craft/draft/`, `.craft/ready/` and `.craft/done/`. The filename is the index. A task doc is a brief, not a spec: aim for one screen. Keep it terse; cut any section that adds nothing. If it's growing past a screen with diagrams and layered decisions, that's the signal it wanted to be a `feat`.
+`.craft/ready/task-<slug>.md` — `slug` is the kebab task name, unique across `.craft/draft/`, `.craft/ready/` and `.craft/done/`. The filename is the index. A task doc is a brief, not a spec: aim for one screen. Keep it terse; cut any section that adds nothing. If it's growing past a screen with diagrams and layered decisions, that's the signal it wanted to be a `feat`.
 
 ```markdown
 ---

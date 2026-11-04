@@ -43,7 +43,7 @@ Be terse, pragmatic, ask only what affects the solution, no Q&A theatre. That me
 ### 1. Explore the context
 Understand the ground you're building on:
 - Read `PRODUCT.md` and `.craft/architecture.yaml`, including its `notes` about what the change touches.
-- Peek into dir tree, recent commit log, `.craft/ideas/` and `.craft/adr/` listings if warranted. Before proposing an option, grep the ADRs' `## Rejected` for it.
+- Peek into dir tree, recent commit log, `.craft/draft/` and `.craft/adr/` listings if warranted. Before proposing an option, grep the ADRs' `## Rejected` for it.
 - Explore additional context and zoom in as needed.
 - A change that adds a component or a contract: run `arch3` reconcile on what it touches first, so the spec doesn't build on a stale `architecture.yaml`.
 
@@ -51,7 +51,7 @@ Understand the ground you're building on:
 
 In touch with user, turn vague requests into concrete goals. Grasp the problem, not just gather requirements. If the request is a proposed solution, establish the motivation. Verify risky assumptions. Challenge contradictions and gaps. Push for clarity on the core value and the acceptance criteria.
 
-If the request originates as an idea (picked from `.craft/ideas/` or a fresh hunch), validate it before writing the spec: does it serve `PRODUCT.md`, is it worth doing now? Recommend **implement**, **postpone**, or **reject** — rejection is a legitimate outcome, not a failure. See Ideas below for what each one does.
+If the request originates as an idea (picked from `.craft/draft/` or a fresh hunch), validate it before writing the spec: does it serve `PRODUCT.md`, is it worth doing now? Recommend **implement**, **postpone**, or **reject** — rejection is a legitimate outcome, not a failure. See Ideas below for what each one does.
 
 If the request spans several independent subsystems, or assumes too many changes, confirm if the user wants to split it and suggest options.
 
@@ -66,7 +66,7 @@ As new information arises, iterate between the solution and the problem framing 
 - Use template [reference/template.md](reference/template.md).
 - Lead with the **Review Brief**: the scannable decision surface a human approves from. Keep execution detail below it, and only where it's needed.
 - Be concrete, avoid prose, duplications, restatements of `PRODUCT.md`/`.craft/architecture.yaml` - link instead.
-- YAGNI: Focus on the core value, and defer non-essential ideas to `.craft/ideas/`.
+- YAGNI: Focus on the core value, and defer non-essential ideas to `.craft/draft/`.
 - If the change path crosses code smells (oversized file, tangled responsibilities, unclear boundaries), fold targeted fixes into the spec — improve what you touch. Don't propose unrelated refactoring.
 - **Contract changes** go in the Review Brief, one per item with its consequence: a new or upgraded dependency, a schema change, a public API or event change, a new writer or copy of data, a new external call. They outlive the code, so they're what the human reviews first. Load the `sa` lens the change touches ([../sa/SKILL.md](../sa/SKILL.md) § Lenses).
 - **A schema or stored-format change needs a Migration plan:** expand → backfill → switch → contract, mixed-version behavior, roll-forward.
@@ -89,14 +89,14 @@ Don't just dump a spec with the details buried in it; present the chosen solutio
 ### 6. Emit the spec
 
 Items follow [reference/template.md](reference/template.md):
-- `feat-<slug>.md`, `slug` = kebab feature name, unique across `.craft/ideas/`, `.craft/draft/`, `.craft/ready/` and `.craft/done/`; `created:` = today.
+- `feat-<slug>.md`, `slug` = kebab feature name, unique across `.craft/draft/`, `.craft/ready/` and `.craft/done/`; `created:` = today.
 
 If one item splits into an ordered sequence, put a letter after the type: `feat-a-<slug>.md`, `feat-b-<slug>.md`, … Names never change afterwards; only the folder does.
 
 
 ## Ideas
 
-`.craft/ideas/` holds candidates, not commitments — filenames are the index; open a file only on pickup. The validation judgment lives in *Frame the problem*; the bookkeeping it triggers — the `resolution:` field and the file moves — is owned by the `idea` skill ([../idea/SKILL.md](../idea/SKILL.md)), so follow its Lifecycle section rather than duplicating it here. Don't open a spec for an unvalidated idea.
+`idea-*` files in `.craft/draft/` are candidates, not commitments — filenames are the index; open a file only on pickup. The validation judgment lives in *Frame the problem*; the bookkeeping it triggers — the `resolution:` field and the file moves — is owned by the `idea` skill ([../idea/SKILL.md](../idea/SKILL.md)), so follow its Lifecycle section rather than duplicating it here. Don't open a spec for an unvalidated idea.
 
 
 ## Quality checklist

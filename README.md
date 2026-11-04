@@ -26,7 +26,7 @@ Periodically  audit → decide on findings in arch3
 | `prod` | Define what we are building and why | `PRODUCT.md` |
 | `arch3` | Define the architecture; ask "show me the architecture" to view it | `architecture.yaml`, `AGENTS.md`, findings, HTML page |
 | `guard` | Enforce architecture and code quality; rerun when `architecture.yaml` changes | `verify` command with deterministic checks |
-| `idea <hunch>` | Capture an idea for later | `.craft/ideas/idea-*.md`, checked against `PRODUCT.md` |
+| `idea <hunch>` | Capture an idea for later | `.craft/draft/idea-*.md`, checked against `PRODUCT.md` |
 | `feat <feature>` | Define a feature, ready for implementation | `.craft/ready/feat-*.md`: contracts, acceptance criteria, doc impact |
 | `task <task>` | Same, for a small change with no contract or architecture impact | One-screen `.craft/ready/task-*.md` |
 | `build3 [all\|<item>]` | Implement an item | Branch, merged or waiting for `review walk` |
@@ -110,8 +110,7 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 ├── architecture.yaml            # components, relations, security, data, flows, rules, notes
 ├── architecture.gate.json       # generated; what verify reads
 ├── architecture.baseline        # frozen existing violations
-├── ideas/idea-*.md              # unvalidated backlog
-├── draft/feat-*.md              # specs still being shaped
+├── draft/{idea,feat}-*.md       # unvalidated ideas, specs still being shaped
 ├── ready/{feat,task}-*.md       # build queue
 ├── done/                        # shipped items with <item>.review.json, rejected ideas
 ├── adr/YYYY-MM-DD-*.md          # one decision per file
@@ -122,7 +121,7 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 
 **Work items** move `draft/ → ready/ → done/` and keep their `type-slug.md` name throughout. The folder is the state: tasks skip `draft/`, and anything committed in `ready/` can be built. A `craft/<item>` branch is the claim, and a failed build adds a `blocked:` line on it.
 
-**Ideas** wait in `ideas/`. A `resolution:` line records `postpone` or `reject` with the reason, and a rejected idea moves to `done/`. An idea you implement is deleted once its `feat-` or `task-` item reaches `ready/`.
+**Ideas** wait in `draft/`. A `resolution:` line records `postpone` or `reject` with the reason, and a rejected idea moves to `done/`. An idea you implement is deleted once its `feat-` or `task-` item reaches `ready/`.
 
 The queue's order is `priority: high`, then `created:`. Closed work is archived, not deleted.
 

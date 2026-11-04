@@ -83,7 +83,7 @@ Fix what has a clear fix: confirmed findings, failing ACs, deviations, architect
 1. Apply the item's **Doc impact** exactly — the only doc edits this skill makes.
    If that changed `.craft/architecture.yaml`, re-run `validate.py --gate` (see `guard`). If it refuses a new deficiency, stop and ask the user; never pass `--accept` yourself.
 2. Write the ADRs the item agreed to, in the format of [../sa/reference/adr.md](../sa/reference/adr.md).
-3. File an idea (`.craft/ideas/idea-<slug>.md`) for each piece of deferred work and each temporary flag or adapter, with its removal condition.
+3. File an idea (`.craft/draft/idea-<slug>.md`) for each piece of deferred work and each temporary flag or adapter, with its removal condition.
 4. Commit these without the review file (`docs: <item>`), then rerun the review script without `--base` so the tier covers the docs too:
    ```bash
    uv run --quiet <this-skill-dir>/../review/scripts/review.py .craft/ready/<item>.md
