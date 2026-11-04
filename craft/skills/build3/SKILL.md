@@ -14,7 +14,7 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 
 ## The queue
 
-`.craft/ready/` holds `feat-`, `task-` and promoted `idea-` items. Anything committed there on main is ready. A failed build sets `status: blocked` and `blocked: <reason>` on its branch. An item is done when it's in `.craft/done/`. The claim is the branch `craft/<item>` — there is no in-progress status and no owner field.
+`.craft/ready/` holds `feat-`, `task-` and promoted `idea-` items. Anything committed there on main is ready. A failed build adds `blocked: <reason>` on its branch. An item is done when it's in `.craft/done/`. The claim is the branch `craft/<item>` — there is no in-progress status and no owner field.
 
 ## Invocation
 
@@ -108,7 +108,7 @@ uv run --quiet <this-skill-dir>/../review/scripts/diff2html.py .craft/ready/<ite
 
 The merge happens in the main checkout, the first entry of `git worktree list`. If it isn't on main or has uncommitted changes (`git -C <main checkout> status --porcelain -uno`), don't touch it: leave the branch waiting and say why. If main moved since your last `verify`, go back to step 8.
 
-In the branch, clear any `status: blocked` and `blocked:`, set `updated:`, then `mkdir -p .craft/done`, `git mv` the item and its same-basename files (`<item>.review.json`, `<item>-*.png`) there, and commit (`done: <item>`). Then:
+In the branch, remove any `blocked:` line, set `updated:`, then `mkdir -p .craft/done`, `git mv` the item and its same-basename files (`<item>.review.json`, `<item>-*.png`) there, and commit (`done: <item>`). Then:
 
 ```bash
 git -C <main checkout> merge --no-ff -m "merge: <item> (<tier>)" craft/<item>
@@ -124,7 +124,7 @@ Per item, at most six lines: the tier and red reasons, the branch and worktree, 
 
 ## Fail
 
-Set `status: blocked` and `blocked: <one-line reason>` on the branch and commit. The branch keeps the item claimed until the human clears it. Stop — `build3 all` stops here too.
+Add `blocked: <one-line reason>` to the item on the branch and commit. The branch keeps the item claimed until the human clears it. Stop — `build3 all` stops here too.
 
 ## Notes
 

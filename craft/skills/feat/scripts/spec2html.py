@@ -24,7 +24,7 @@ ARCHITECTURE_FILE = ".craft/architecture.yaml"
 PROMOTE = re.compile(r"open questions?|migration plan|data model|api contracts?|api changes", re.I)
 OPEN = re.compile(r"verification|acceptance|open question|contract|migration", re.I)
 KEY_KINDS = {"schema", "data-writer", "data-copy", "api", "event"}
-STATUS = {"in-progress": "chip", "blocked": "red"}
+STATUS = {"in-progress": "chip"}
 CONTRACTS = re.compile(r"\s*[-*]\s+\*\*Contract changes|#{3,4}\s+Contract changes", re.I)
 CONTRACT = re.compile(r"(?:\*\*)?(C\d+)\s+([\w-]+)\s*:\s*(?:\*\*)?\s*(.*)", re.S)
 
@@ -106,6 +106,7 @@ def page_body(path):
     sections = promote_subsections(sections)
     targets = [t.strip() for t in fm.get("target", "").split(",") if t.strip()]
     meta = [pill(fm["status"], STATUS.get(fm["status"], ""))] if fm.get("status") else []
+    meta += [pill("blocked", "red")] if fm.get("blocked") else []
     meta += [pill(t, "chip") for t in targets]
     meta += [f'<span class="muted">{k} {esc(fm[k])}</span>' for k in ("created", "updated") if fm.get(k)]
     out = [f'<header class="narrow"><div class="kicker">Spec review</div><h1>{esc(title or path.name)}</h1>'

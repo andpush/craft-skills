@@ -134,7 +134,7 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 
 `guard` also adds architecture and rule tests to your suite. HTML pages go to a temp folder and are never committed.
 
-**Work items** move `ideas/ → draft/ → ready/ → done/` and keep their `type-slug.md` name throughout. The folder is the state: tasks skip `draft/`, and anything committed in `ready/` can be built. A `craft/<item>` branch is the claim, and a failed build sets `status: blocked` on it. Order is `priority: high`, then `created:`. Closed work is archived, not deleted.
+**Work items** move `ideas/ → draft/ → ready/ → done/` and keep their `type-slug.md` name throughout. The folder is the state: tasks skip `draft/`, and anything committed in `ready/` can be built. A `craft/<item>` branch is the claim, and a failed build adds a `blocked:` line on it. Order is `priority: high`, then `created:`. Closed work is archived, not deleted.
 
 ## Other skills
 
