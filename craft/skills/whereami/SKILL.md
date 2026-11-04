@@ -23,7 +23,7 @@ grep -H '^status:\|^priority:' docs/ready/*.md 2>/dev/null
 ```bash
 git branch -a --list '*craft/*' --format='%(refname:short) %(committerdate:relative) %(subject)'
 ```
-  `status: blocked` on the branch (`git show craft/<item>:docs/ready/<item>.md | grep '^status:\|^blocked:'`) = a build failed it. The item in `docs/done/` on the branch (`git show craft/<item>:docs/done/<item>.review.json`) = waiting for the human; its tier is in that file. Neither, and no recent commit = stale claim. Lead the report with blocked, then waiting-for-review, then in progress.
+  `status: blocked` on the branch (`git show craft/<item>:docs/ready/<item>.md | grep '^status:\|^blocked:'`) = a build failed it. The item in `docs/done/` on the branch (`git show craft/<item>:docs/done/<item>.review.json`) = waiting for the human; report why from that file: `tier`, the `triggers` for 🔴/🟡, `waiting` for a 🟢 that couldn't merge. Neither, and no recent commit = stale claim. Lead the report with blocked, then waiting-for-review, then in progress.
 - Decisions (`ls -1 docs/adr/*.md 2>/dev/null | tail -5`, or legacy `ADR.md` tail) — recent architectural changes; filenames carry date + slug, open only if needed.
 - Ideas (`grep -H '^status:\|^priority:' docs/ideas/*.md 2>/dev/null`) — candidates, not commitments; report them parked, not as tasks. `open`/`deferred` here are the live pool. Weight by priority: lead with `high`, fold `low` into a count, flag ideas with no `priority` as awaiting triage.
 - Misplaced (closed but still in the queue — bookkeeping): items that finished but weren't moved to `docs/done/`:

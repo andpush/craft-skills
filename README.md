@@ -64,7 +64,7 @@ Companion skills: `simplify` and `code-review`, `security-review` (used by `buil
 
 1. **Plan.** `feat` or `task` commits an item to `docs/ready/` on main.
 2. **Build.** `build3`, by hand or on a schedule, works on a `craft/<item>` branch in a sibling worktree: acceptance tests (with the code for `task` items), implementation, `verify`, independent `review`, docs, `verify` again.
-3. **Merge.** 🟢 merges to local main by itself, unless `Auto-merge: off` in `AGENTS.md`. 🟡 and 🔴 wait for you. Uncommitted changes in your main checkout also make it wait.
+3. **Merge.** 🟢 merges to local main by itself. 🟡 and 🔴 wait for you. Uncommitted changes in your main checkout also make it wait.
 4. **Sync.** No skill pulls or pushes, so deploying stays your call. Periodically run `git pull --no-rebase`, `verify`, fix anything red, `git push`. Two changes can each pass and still fail together. If both sides changed `architecture.yaml`, regenerate the gate with `validate.py --gate`.
 
 Why you can trust the result:

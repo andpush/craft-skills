@@ -10,7 +10,6 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 ## Before the first item
 
 - `AGENTS.md` names the `verify` command. No `verify` → stop and offer `guard`; without it there is no gate.
-- Read `Auto-merge: green | off` in `AGENTS.md`. Missing: `green`.
 - Never pull or push. Syncing with a remote is a separate routine in `AGENTS.md`, and a push may trigger a deploy.
 
 ## The queue
@@ -38,6 +37,8 @@ git worktree add ../<repo>-<item> -b craft/<item> main     # fails = another run
 Do everything from here on in that worktree, and give subagents its path. If this session already runs in a linked worktree, use `git switch -c craft/<item> main` there instead.
 
 Resuming: `git worktree list` finds it, or `git worktree add ../<repo>-<item> craft/<item>`. Read the branch's commits and continue from the first step not done (an AC commit means step 3 is done).
+
+A `done:` commit means the item closed and came back from a `review walk` with a fix list. It stays in `docs/done/`: make the fixes and re-review as in step 6, using that path, apply any doc impact the fixes changed, commit the review file (`docs: <item> fixes`), and go to step 8.
 
 ### 3. Acceptance tests first — feat and idea items
 
@@ -101,9 +102,9 @@ Open the changes view (`--no-open` on an unattended run):
 uv run --quiet <this-skill-dir>/../review/scripts/diff_to_html.py docs/done/<item>.review.json
 ```
 
-🟢 green with `Auto-merge: green` merges now. Anything else leaves the branch and its worktree waiting for the human, who merges the same way after reviewing.
+🟢 green merges now. 🟡 and 🔴 leave the branch and its worktree waiting for the human, who merges the same way after reviewing.
 
-The merge happens in the main checkout, the first entry of `git worktree list`. If it isn't on main or has uncommitted changes (`git -C <main checkout> status --porcelain -uno`), don't touch it: leave the branch waiting and say why. If main moved since your last `verify`, go back to the start of this step.
+The merge happens in the main checkout, the first entry of `git worktree list`. If it isn't on main or has uncommitted changes (`git -C <main checkout> status --porcelain -uno`), don't touch it: leave the branch waiting, put the reason in the review file's `waiting` field, commit it (`docs: <item> waiting`), and say why. If main moved since your last `verify`, go back to the start of this step.
 
 ```bash
 git -C <main checkout> merge --no-ff -m "merge: <item> (<tier>)" craft/<item>

@@ -68,6 +68,8 @@ Report in at most 8 lines: the tier, the red reasons, and what needs the human.
 
 ## review walk
 
+Run it from the branch's worktree: on a `craft/` branch, the review file and the verdicts live on that branch.
+
 Open the changes view, then go through the items in this order:
 
 1. data model & API contracts
@@ -91,9 +93,9 @@ The tier sets the depth:
 - **🟡 yellow:** the page is enough, unless the user wants a walk.
 - **🔴 red:** a walk is required before merge.
 
-The walk ends one of two ways:
+On a `craft/` branch, commit the verdicts when the walk ends (`docs: <item> verdicts`). It ends one of two ways:
 - **All accepted:** ask, then merge as `build3`'s Integrate step does.
-- **Any "change":** produce a fix list (ID → minimal fix).
+- **Any "change":** produce a fix list (ID → minimal fix) for `build3 <item>`.
 
 ## Re-review after a fix
 

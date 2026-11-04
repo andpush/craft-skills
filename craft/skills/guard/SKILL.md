@@ -45,18 +45,14 @@ Each violation is one stable line named after `architecture.yaml`, without line 
 
 For each check: introduce one violation, run `verify`, see it red with the expected message, revert. A check that never went red isn't one. Show the red output.
 
-## 7. Auto-merge
-
-`AGENTS.md` defaults to `Auto-merge: green`: 🟢 changes merge to local main by themselves, and everything else waits for the user. With `off`, everything waits. On a rerun, keep what's there.
-
-## 8. The project's pipeline
+## 7. The project's pipeline
 
 `verify` only needs the project's toolchain, so craft depends on no particular pipeline. Tell the user to call it from theirs, before any deploy, with no checks of its own, and offer to add it. Without one, nothing re-runs `verify` outside this machine, and changes that skip `build3` go unchecked.
 
-## 9. Protect the gate
+## 8. Protect the gate
 
 An agent must not be able to loosen its own gate. `review` turns red on changes to the gate file, the baseline, rule checks and new architecture deficiencies, and red needs a human. Add what it can't derive to `review_triggers` in `architecture.yaml`: the `verify` wiring and any pipeline config under `ci`, deploy and auth config under `security`. Then re-run step 3.
 
 ## Report
 
-At most 8 lines: the `verify` command, the checks and rules each covers, baseline size, deficiencies accepted, the auto-merge setting, whether a pipeline runs `verify`, what stays unchecked. Next step: `feat` or `task`.
+At most 8 lines: the `verify` command, the checks and rules each covers, baseline size, deficiencies accepted, whether a pipeline runs `verify`, what stays unchecked. Next step: `feat` or `task`.

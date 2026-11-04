@@ -26,7 +26,6 @@ CLAUDE.md contains a single line: @AGENTS.md
 - Work items: `docs/ideas/` → `docs/ready/` → `docs/done/`, named `<type>-<slug>.md`.
 - One branch per item: `craft/<item>`. The branch is the claim.
 - Merge: pr          # pr | local
-- Auto-merge: off    # off | green — green merges 🟢 changes by itself once CI passes
 
 ## Pointers
 
