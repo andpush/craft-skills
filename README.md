@@ -125,16 +125,20 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 ├── architecture.gate.json       # generated; what verify reads
 ├── architecture.baseline        # frozen existing violations
 ├── ideas/idea-*.md              # unvalidated backlog
-├── draft/{feat,idea}-*.md       # specs still being shaped
-├── ready/{feat,task,idea}-*.md  # build queue
-├── done/                        # shipped and rejected items, with <item>.review.json
+├── draft/feat-*.md              # specs still being shaped
+├── ready/{feat,task}-*.md       # build queue
+├── done/                        # shipped items with <item>.review.json, rejected ideas
 ├── adr/YYYY-MM-DD-*.md          # one decision per file
 └── audit-*.md                   # health snapshots
 ```
 
 `guard` also adds architecture and rule tests to your suite. HTML pages go to a temp folder and are never committed.
 
-**Work items** move `ideas/ → draft/ → ready/ → done/` and keep their `type-slug.md` name throughout. The folder is the state: tasks skip `draft/`, and anything committed in `ready/` can be built. A `craft/<item>` branch is the claim, and a failed build adds a `blocked:` line on it. Ideas also carry `status:` (`open`, `deferred`, `rejected`). Order is `priority: high`, then `created:`. Closed work is archived, not deleted.
+**Work items** move `draft/ → ready/ → done/` and keep their `type-slug.md` name throughout. The folder is the state: tasks skip `draft/`, and anything committed in `ready/` can be built. A `craft/<item>` branch is the claim, and a failed build adds a `blocked:` line on it.
+
+**Ideas** wait in `ideas/`. A `resolution:` line records `postpone` or `reject` with the reason, and a rejected idea moves to `done/`. An idea you implement is deleted once its `feat-` or `task-` item reaches `ready/`.
+
+The queue's order is `priority: high`, then `created:`. Closed work is archived, not deleted.
 
 ## Other skills
 

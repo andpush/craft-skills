@@ -3,7 +3,7 @@ name: idea
 description: Use to capture a user idea into .craft/ideas/ — one small file with a quick alignment check against PRODUCT.md. Capture, not elaboration; the spec is written later via `feat`.
 ---
 
-Capture the idea fast and move on. Ideas are candidates, not commitments — `feat` validates lazily on pickup (pursue / defer / reject). This skill only records and sanity-checks; it never opens a spec.
+Capture the idea fast and move on. Ideas are candidates, not commitments — `feat` validates lazily on pickup (implement / postpone / reject). This skill only records and sanity-checks; it never opens a spec.
 
 Optional: if the first word of the args is `high` or `low`, treat it as the priority and strip it from the idea text (e.g. `/idea low rename cat→pet`).
 
@@ -15,7 +15,6 @@ Write `.craft/ideas/idea-<slug>.md` — one idea per file. `slug` carries the id
 
 ```markdown
 ---
-status: open
 priority: high | low      # optional — omit when unset (untriaged)
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -29,18 +28,17 @@ Why it might matter; attached thinking the user provided, verbatim-ish.
 
 `priority` is optional. Set it only if the user signals one at capture ("this matters" / "minor, someday"); otherwise omit it — an unset priority means untriaged, and `whereami` will surface it for triage. It can be added or changed by hand later. `high` = pull forward, `low` = backlog.
 
-Don't elaborate beyond what was said. Deleting an idea is just deleting its file — the user's call, never yours.
+Don't elaborate beyond what was said.
 
 ## Lifecycle (owned by `feat`, recorded here)
 
-An idea is born in `.craft/ideas/` and stays there, `status: open`, until picked up. Names never change: an idea keeps `idea-<slug>.md` through every folder move. `feat` records the verdict on pickup:
+An idea is born in `.craft/ideas/` and stays there until picked up. With no `resolution:`, nobody has looked at it yet. On pickup:
 
-- `status: open` — captured, unvalidated. Lives in `.craft/ideas/`.
-- `status: deferred` — evaluated, not now; stays in `.craft/ideas/` (the live scan pool).
-- **pursued** — `feat` moves the idea (same name) to `.craft/draft/`, elaborates it into a build-ready item, then moves it to `.craft/ready/`, dropping `status:`. The idea now flows like any queued item; `build3` executes it and archives it to `.craft/done/`.
-- `status: rejected` — move the file to `.craft/done/` so the idea is archived and not re-proposed.
+- **Postpone** — add `resolution: postpone — <why>`; it stays in `.craft/ideas/`.
+- **Reject** — add `resolution: reject — <why>` and `git mv` it, with its images, to `.craft/done/`, so it isn't proposed again.
+- **Implement** — `feat` or `task` writes a new item, carrying over anything still useful, images included. Delete the idea in the same commit that puts that item in `.craft/ready/`.
 
-When status leaves `open`, set `verdict:` — the one-line rationale (quote it if it contains a colon) — and bump `updated`. On any move, `git mv` when tracked so history follows, and carry same-basename images along.
+Quote `resolution:` if the reason contains a colon, and bump `updated`. Otherwise, deleting an idea is the user's call, never yours.
 
 ## Removal ideas
 
@@ -48,13 +46,13 @@ Temporary code — a feature flag, an adapter, a dual write, a compatibility shi
 
 ## Check alignment
 
-Skim `PRODUCT.md`. If the idea conflicts with it or falls outside scope, tell the user in one line and record the tension in the file — still capture it. No verdict: pursue/defer/reject belongs to `feat` on pickup.
+Skim `PRODUCT.md`. If the idea conflicts with it or falls outside scope, tell the user in one line and record the tension in the file — still capture it. No resolution: that belongs to `feat` on pickup.
 
 If `PRODUCT.md` doesn't exist, capture without the check and say so.
 
 ## Images
 
-If the user pastes an image, save it next to the idea as `.craft/ideas/idea-<slug>-<picslug>.<ext>` (idea's basename + a short pic slug) and embed it from the idea file. On pursue, the item — and its images — move together into the queue.
+If the user pastes an image, save it next to the idea as `.craft/ideas/idea-<slug>-<picslug>.<ext>` (idea's basename + a short pic slug) and embed it from the idea file. On implement, the new item takes over the images it needs, renamed to its basename.
 
 ## Report
 

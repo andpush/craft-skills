@@ -51,7 +51,7 @@ Understand the ground you're building on:
 
 In touch with user, turn vague requests into concrete goals. Grasp the problem, not just gather requirements. If the request is a proposed solution, establish the motivation. Verify risky assumptions. Challenge contradictions and gaps. Push for clarity on the core value and the acceptance criteria.
 
-If the request originates as an idea (picked from `.craft/ideas/` or a fresh hunch), validate it before writing the spec: does it serve `PRODUCT.md`, is it worth doing now? Recommend a verdict — **pursue**, **defer**, or **reject** — rejection is a legitimate outcome, not a failure. Record the verdict in the idea file (see Ideas below). On **pursue** you elaborate the idea itself into the build-ready item — it keeps its `idea-<slug>.md` name and moves into the queue; you don't mint a new `feat-`.
+If the request originates as an idea (picked from `.craft/ideas/` or a fresh hunch), validate it before writing the spec: does it serve `PRODUCT.md`, is it worth doing now? Recommend **implement**, **postpone**, or **reject** — rejection is a legitimate outcome, not a failure. See Ideas below for what each one does.
 
 If the request spans several independent subsystems, or assumes too many changes, confirm if the user wants to split it and suggest options.
 
@@ -89,15 +89,14 @@ Don't just dump a spec with the details buried in it; present the chosen solutio
 ### 6. Emit the spec
 
 Items follow [reference/template.md](reference/template.md):
-- A fresh feature → `feat-<slug>.md`, `slug` = kebab feature name, unique across `.craft/ideas/`, `.craft/draft/`, `.craft/ready/` and `.craft/done/`; `created:` = today.
-- A pursued idea → keep its `idea-<slug>.md` name (and carry its images); move it (`git mv` when tracked) from `.craft/ideas/` into `.craft/draft/` and elaborate it there to build-ready.
+- `feat-<slug>.md`, `slug` = kebab feature name, unique across `.craft/ideas/`, `.craft/draft/`, `.craft/ready/` and `.craft/done/`; `created:` = today.
 
 If one item splits into an ordered sequence, put a letter after the type: `feat-a-<slug>.md`, `feat-b-<slug>.md`, … Names never change afterwards; only the folder does.
 
 
 ## Ideas
 
-`.craft/ideas/` holds candidates, not commitments — filenames are the index; open a file only on pickup. The validation judgment lives in *Frame the problem*; the bookkeeping it triggers — `verdict:`/`status:` fields and the pursued/deferred/rejected file moves — is owned by the `idea` skill ([../idea/SKILL.md](../idea/SKILL.md)), so follow its Lifecycle section rather than duplicating it here. Don't open a spec for an unvalidated idea; deleting idea files is the user's call, never yours.
+`.craft/ideas/` holds candidates, not commitments — filenames are the index; open a file only on pickup. The validation judgment lives in *Frame the problem*; the bookkeeping it triggers — the `resolution:` field and the file moves — is owned by the `idea` skill ([../idea/SKILL.md](../idea/SKILL.md)), so follow its Lifecycle section rather than duplicating it here. Don't open a spec for an unvalidated idea.
 
 
 ## Quality checklist
@@ -113,7 +112,7 @@ Self-review the spec with fresh eyes before declaring it ready:
 
 ## When done
 
-- if no open blockers — move the item and its images to `.craft/ready/` (it's now claimable from the queue) and commit to main; otherwise it stays in `.craft/draft/` until resolved.
+- if no open blockers — move the item and its images to `.craft/ready/` (it's now claimable from the queue), delete the idea it implements if any, and commit to main; otherwise it stays in `.craft/draft/` until resolved.
 - report it's ready to execute and give the next step: `build3 <item>`, or the goal line for a `/goal` run:
   `/goal Item .craft/ready/<item>.md built per build3: verify exited 0 with output shown, review tier reported`
   A few lines, no narrative.

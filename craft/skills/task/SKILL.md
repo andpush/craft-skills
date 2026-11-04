@@ -57,4 +57,4 @@ One or two lines: file created, plus the next step — `build3 <item>` to have c
 
 ## Lifecycle
 
-The task lands in `.craft/ready/` and is committed to main — the live execution queue. From there `build3` owns it: it claims it with a `craft/<item>` branch, implements (a task's tests come with the code — no separate acceptance-test step), verifies, reviews, and moves it to `.craft/done/` in the same branch. A failed build marks it `blocked` on its branch. `whereami` lists ready and claimed tasks as live work. Deleting a task file is the user's call, never yours.
+The task lands in `.craft/ready/` and is committed to main — the live execution queue. If it implements an idea, delete the idea in the same commit, after carrying over anything still useful. From there `build3` owns it: it claims it with a `craft/<item>` branch, implements (a task's tests come with the code — no separate acceptance-test step), verifies, reviews, and moves it to `.craft/done/` in the same branch. A failed build marks it `blocked` on its branch. `whereami` lists ready and claimed tasks as live work. Deleting a task file is the user's call, never yours.

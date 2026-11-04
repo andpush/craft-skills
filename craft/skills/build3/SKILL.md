@@ -14,7 +14,7 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 
 ## The queue
 
-`.craft/ready/` holds `feat-`, `task-` and promoted `idea-` items. Anything committed there on main is ready. A failed build adds `blocked: <reason>` on its branch. An item is done when it's in `.craft/done/`. The claim is the branch `craft/<item>` — there is no in-progress status and no owner field.
+`.craft/ready/` holds `feat-` and `task-` items. Anything committed there on main is ready. A failed build adds `blocked: <reason>` on its branch. An item is done when it's in `.craft/done/`. The claim is the branch `craft/<item>` — there is no in-progress status and no owner field.
 
 ## Invocation
 
@@ -40,7 +40,7 @@ Resuming: `git worktree list` finds it, or `git worktree add ../<repo>-<item> cr
 
 A `change` verdict in the review file means a `review walk` sent the item back. Its `fixes` field is the fix list: start at the fixes in step 6, and clear each verdict and fix as it lands.
 
-### 3. Acceptance tests first — feat and idea items
+### 3. Acceptance tests first — feat items
 
 Skip for `task` items: their tests come with the code.
 
