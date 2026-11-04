@@ -8,7 +8,7 @@ You delegate the coding, not the decisions. Craft surfaces expensive-to-undo dec
 
 **Success means** less human review effort, less architecture drift, fewer regressions and a smaller change radius.
 
-**Fits** a codebase you'll keep evolving, with agents doing most of the coding. Overkill for throwaway prototypes. Still being proven: see [Status](#status).
+**Fits** a codebase you'll keep evolving, with agents doing most of the coding. Overkill for throwaway prototypes. Still being proven: see [what has and hasn't been run](CONTRIBUTING.md#status).
 
 ## How it works
 
@@ -21,23 +21,20 @@ Quick fix     fix
 Periodically  audit → decide on findings in arch3
 ```
 
-| Skill | Goal | Output | Needs |
-| --- | --- | --- | --- |
-| `prod` | Define what we are building and why | `PRODUCT.md` | |
-| `arch3` | Define the architecture | `architecture.yaml`, `AGENTS.md`, findings, HTML page | a product purpose; existing code if any; any documents you point it to |
-| `guard` | Enforce architecture and code quality | `verify` command with deterministic checks | `architecture.yaml` |
-| `idea <hunch>` | Capture an idea for later | `.craft/ideas/idea-*.md`, checked against `PRODUCT.md` | `PRODUCT.md` |
-| `feat <feature>` | Define a feature, ready for implementation | `.craft/ready/feat-*.md`: contracts, acceptance criteria, doc impact | `PRODUCT.md`, `architecture.yaml` |
-| `task <task>` | Same, for a small change with no contract or architecture impact | One-screen `.craft/ready/task-*.md` | `architecture.yaml`, `AGENTS.md` |
-| `build3 [all\|<item>]` | Implement an item | Branch, merged or waiting for `review walk` | `.craft/ready/*.md`, `verify` |
-| `review [<item>\|<branch>]` | Show what a change did and where attention is needed | Risk tier, findings, page. Works on any branch | |
-| `review walk [<item>]` | Go through everything waiting for you | Your decisions; merges what you accept, sends the rest back | |
-| `fix` | Fix a bug surgically in this session, skipping `build3` and `review` | Minimal change with a test that was red first | |
-| `audit` | Assess the health of the whole repo | `.craft/audit-*.md`: findings, scores, actions | |
-| `whereami` | Reorient after a break | Status report and HTML dashboard: focus, what's waiting and why, parked ideas, next step | `.craft/` work items |
-| `orient` | Understand an unfamiliar repo | Map of structure, architecture and dependencies, in the session | |
-| `sa` | Design a technical solution, also used by `arch3` and `feat` | Options with a recommendation; ADRs in `.craft/adr/` on your yes | |
-| `ba` | Decompose requirements | Functional spec: epics, features, user stories with acceptance criteria | |
+| Skill | Goal | Output |
+| --- | --- | --- |
+| `prod` | Define what we are building and why | `PRODUCT.md` |
+| `arch3` | Define the architecture; ask "show me the architecture" to view it | `architecture.yaml`, `AGENTS.md`, findings, HTML page |
+| `guard` | Enforce architecture and code quality; rerun when `architecture.yaml` changes | `verify` command with deterministic checks |
+| `idea <hunch>` | Capture an idea for later | `.craft/ideas/idea-*.md`, checked against `PRODUCT.md` |
+| `feat <feature>` | Define a feature, ready for implementation | `.craft/ready/feat-*.md`: contracts, acceptance criteria, doc impact |
+| `task <task>` | Same, for a small change with no contract or architecture impact | One-screen `.craft/ready/task-*.md` |
+| `build3 [all\|<item>]` | Implement an item | Branch, merged or waiting for `review walk` |
+| `review [<item>\|<branch>]` | Show what a change did and where attention is needed | Risk tier, findings, page. Works on any branch |
+| `review walk [<item>]` | Go through everything waiting for you | Your decisions; merges what you accept, sends the rest back |
+| `fix` | Fix a bug surgically in this session, skipping `build3` and `review` | Minimal change with a test that was red first |
+| `audit` | Assess the health of the whole repo | `.craft/audit-*.md`: findings, scores, actions |
+| `whereami` | Reorient after a break | Status report and HTML dashboard: focus, what's waiting and why, parked ideas, next step |
 
 A skill missing its input offers to run the skill that creates it, e.g. `build3` stops and offers `guard`.
 
@@ -62,10 +59,21 @@ Companion skills: `simplify` and `code-review`, `security-review` (used by `buil
 
 ## Making a change
 
-1. **Plan.** `feat` shapes a spec in `.craft/draft/` and, once you approve it, commits it to `.craft/ready/` on main. `task` commits there directly.
+Spend your attention on what's expensive to undo. Agents can cheaply rewrite internals, but a bad data model, API or security decision gets costlier as code builds on it.
+
+1. **Plan.** `feat` shapes a spec in `.craft/draft/` and, once you approve it, commits it to `.craft/ready/` on main. `task` commits there directly. Approving the goal, contract changes and acceptance criteria is your best use of time.
 2. **Build.** `build3`, by hand or on a schedule, works on a `craft/<item>` branch in a sibling worktree: acceptance tests (with the code for `task` items), implementation, `verify`, independent `review`, docs, `verify` again.
-3. **Merge.** 🟢 merges to local main by itself. 🟡 and 🔴 wait for you, and so does 🟢 if your main checkout has uncommitted changes or isn't on main. Run `review walk` from your main checkout to go through everything waiting and merge what you accept.
+3. **Merge.** A script sets the tier. Run `review walk` from your main checkout to go through everything waiting. It points you to what matters, so open code only where an item sends you.
+
+   | Tier | Typical causes | What happens |
+   | --- | --- | --- |
+   | 🟢 | None of the below | Merges to local main by itself, unless your main checkout has uncommitted changes or isn't on main |
+   | 🟡 | New relation, files outside the spec's target, edited acceptance test, anything not checked | Waits: skim the changes view, then merge |
+   | 🔴 | Dependency, schema or API change, wider exposure, weakened test, deviation from the spec, confirmed high finding | Waits: decide each item, then merge or send back fixes |
+
 4. **Sync.** No skill pulls or pushes, so deploying stays your call. Periodically run `git pull --no-rebase`, `verify`, fix anything red, `git push`. Two changes can each pass and still fail together. If both sides changed `architecture.yaml`, regenerate the gate with `validate.py --gate`.
+
+**Calibrate:** skim the green items among your first 10 or so. If one should have been flagged, add a trigger. If trivial changes land on red, narrow the list.
 
 Why you can trust the result:
 
@@ -78,7 +86,7 @@ Why you can trust the result:
 
 ## The gate: `verify`
 
-One command, wired by `guard` from your existing scripts and named in `AGENTS.md`. It runs build, lint, tests and architecture checks, and fails on any failure, including a test filter that matches nothing.
+One command, wired by `guard` from your existing scripts and named in `AGENTS.md`. It runs build, lint, tests and architecture checks, and fails on any failure, including a test filter that matches nothing. `build3` runs it before every merge. Call it from CI before deploy too, or changes that skip `build3` go unchecked.
 
 Architecture checks fail on:
 
@@ -90,29 +98,7 @@ Architecture checks fail on:
 
 `guard` proves each check by planting a violation and showing it go red. Recipes cover Python, Kotlin, TypeScript/JavaScript, Go, Rust, Swift and Dart/Flutter.
 
-`build3` runs it before every merge, agents find it in `AGENTS.md`, and you can run it anytime. Call it from CI before deploy too; it needs only your toolchain. Otherwise changes that skip `build3` go unchecked.
-
-`verify` only catches what's mechanical. For justified architecture changes or drift in meaning, use `arch3` reconcile, which `feat` runs when a change adds a component or contract. Rerun `guard` after `architecture.yaml` changes.
-
-## Where you spend attention
-
-Review what's expensive to undo. Agents can cheaply rewrite internals, but a bad data model, API or security decision gets costlier as code builds on it.
-
-| When | Trigger | What you do |
-| --- | --- | --- |
-| Before code | Every `feat` | Approve the plan: goal, contract changes, acceptance criteria, open questions. Your best use of time |
-| Before merge | 🟢 none of the below | Nothing |
-| | 🟡 new relation, other architecture changes, edited acceptance test, files outside the spec's target, uncovered callers, unaccepted findings, anything not checked | `review walk`: skim the changes view, merge |
-| | 🔴 new dependency, schema, API or event change, security or CI paths, wider exposure, new data writer, new deficiency, weakened rule, deleted or skipped test, doc edits outside the spec, deviation from the spec, confirmed high finding, failing acceptance test | `review walk`: decide each item, merge or send back fixes |
-| Periodically | After a batch of items | Run `audit`, view the architecture page, decide findings in `arch3` |
-
-The changes view and `review walk` lead with the data model and API, then deviations, other contracts, findings and blast radius. Open code only where an item points you, and run manual acceptance criteria yourself.
-
-For each item, ask: Is it hard to reverse? Does it change what the system promises? Does it widen who can reach or change what? Does it match what I approved?
-
-**Calibrate:** skim the green items among your first 10 or so. If one should have been flagged, add a trigger. If trivial changes land on red, narrow the list.
-
-To see the architecture, ask "show me the architecture".
+`verify` only catches what's mechanical. For justified architecture changes or drift in meaning, use `arch3` reconcile, which `feat` runs when a change adds a component or contract.
 
 ## What Craft adds to your repo
 
@@ -144,36 +130,15 @@ The queue's order is `priority: high`, then `created:`. Closed work is archived,
 
 | Skill | Does |
 | --- | --- |
+| `orient` | map an unfamiliar repo's structure, architecture and dependencies, in the session |
+| `sa` | design a technical solution: options with a recommendation, ADRs on your yes; also used by `arch3` and `feat` |
+| `ba` | decompose requirements into epics, features and user stories with acceptance criteria |
 | `doc-refactor <in> -> <out> [goal]` | merge and dedupe docs, preserving knowledge |
 | `tests-optimizer` | prune low-value tests, prove the suite is faster and still green |
 | `compare` | compare two codebases, pick a winner |
 | `slides`, `ui-mockup`, `uiux-design`, `lit-translate` | decks, clickable mockups, UI/UX design, literary translation |
 
 Avoid `arch`, `build` and `code-reviewer`: they're being replaced by `arch3`, `build3` and `review`.
-
-## Status
-
-The `3` suffix marks new versions. It goes away once they're proven and the old skills are removed.
-
-**Proven.** On a Kotlin fixture (2026-10-28, run stopped halfway), `build3` and `review` wrote acceptance tests red first, and `review` proved a spec gap with a failing test, blocking the merge. On travelai (2026-11-02), `guard`'s Kotlin and Dart checks and deploy test went red on planted violations. Python was proven on a throwaway repo.
-
-**Not yet run.** `build3` and `review` on the current `architecture.yaml` format; the worktree flow, `review walk` and merge steps with a real item (their git steps passed on a throwaway repo); `feat`'s `draft/` flow; a full `verify` on travelai; blocked → resume; a green merge; the TypeScript, Go and Rust/Swift adapters.
-
-**Next.** Trim every skill, then a trial with planted defects: a forbidden dependency, an unauthorized writer, a consumer without dedupe.
-
-## Design principles
-
-For skill developers:
-
-- **Markdown and YAML are the source of truth;** pages are rendered by script into one logic-free template.
-- **One fact, one place.** Stable IDs (rule id, `AC2`, ADR slug, component name) tie docs to code and tests.
-- **Intent is never silently rewritten to match code.** Drift means fixing the code, fixing a stale line, or an explicit decision.
-- **Deterministic where possible;** AI writes the implementation and is verified separately.
-- **Not checked ≠ passed.** Skipped, unsupported or empty is a failure or an explicit "not checked".
-- **Depth matches risk.** Omit empty sections, keep small changes small.
-- **Derive rather than store;** anything stored must be something a check can catch drifting.
-- **No pipeline or host lock-in.** `verify` is the interface.
-- **Skills hold only what a model can't work out itself:** project facts, how skills connect, checks on the agent's own work.
 
 ## License
 

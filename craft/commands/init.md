@@ -4,7 +4,7 @@ argument-hint: [one-line idea or repo note]
 ---
 # Command Instructions
 
-Establish this project's durable context in one sitting by running two craft skills back to back. Aimed at small or fresh projects — keep both docs minimal and move fast; surface only the decisions that are expensive to reverse, don't over-elaborate.
+Establish this project's durable context in one sitting by running three craft skills back to back. Aimed at small or fresh projects — keep the docs minimal and move fast; surface only the decisions that are expensive to reverse, don't over-elaborate.
 
 ## Context
 
@@ -22,4 +22,4 @@ Scale to a small project: a quick problem/users/scope pass for product, a simple
 
 When all are done, stop and point the user at `/feat <first feature>` as the next step.
 
-For a larger or evolving project, prefer running `/prod` and `/arch` separately so each can be revisited on its own.
+For a larger or evolving project, prefer running `/prod`, `/arch3` and `/guard` separately so each can be revisited on its own.
