@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch3" / "scripts"
 import render  # noqa: E402 — the component map
 from page import esc, inline, md, pill, section, split_frontmatter, split_sections, targets_of, write  # noqa: E402
 
-MODEL_FILE = "docs/architecture.yaml"
+ARCHITECTURE_FILE = "docs/architecture.yaml"
 PROMOTE = re.compile(r"open questions?|migration plan|data model|api contracts?|api changes", re.I)
 OPEN = re.compile(r"verification|acceptance|open question|contract|migration", re.I)
 KEY_KINDS = {"schema", "data-writer", "data-copy", "api", "event"}
@@ -115,9 +115,9 @@ def page_body(path):
         rest, items = lift_contracts(brief["md"])
         out.append(f'<div class="card brief"><h2>Review brief</h2>{md(rest)}{contract_cards(items)}</div>')
 
-    model = (repo_root(path.parent) or path.parent) / MODEL_FILE
-    if model.exists():
-        m = render.Model(yaml.safe_load(model.read_text(encoding="utf-8")) or {})
+    arch_file = (repo_root(path.parent) or path.parent) / ARCHITECTURE_FILE
+    if arch_file.exists():
+        m = render.Architecture(yaml.safe_load(arch_file.read_text(encoding="utf-8")) or {})
         if m.components:
             out.append(section("Affected components", render.mermaid(render.impact_map(m, changed=targets))
                                + '<div class="legend">Highlighted: the spec\'s targets.</div>'))

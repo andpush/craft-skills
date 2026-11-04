@@ -3,13 +3,13 @@
 # requires-python = ">=3.10"
 # dependencies = ["jsonschema>=4.18", "pyyaml>=6"]
 # ///
-"""The deterministic half of a craft review: triggers, model diff, skeleton, tier.
+"""The deterministic half of a craft review: triggers, architecture diff, skeleton, tier.
 
   review.py [item.md | slug] [--base REF] [--head REF] [--ac-commit SHA] [--out FILE]
 
 Creates <item>.review.json next to the item, or updates it. The reviewer's fields (deviations,
 contracts, blast, findings, evidence results, not_checked, verdicts) are kept; triggers, new_edges
-and tier are recomputed from the diff, the model and those fields. Prints the tier, why, and what
+and tier are recomputed from the diff, architecture.yaml and those fields. Prints the tier, why, and what
 is still incomplete. Without an item it reviews the branch against main.
 """
 from __future__ import annotations
@@ -29,9 +29,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch3" / "scripts"
 import validate  # noqa: E402 — architecture findings
 from page import split_frontmatter, targets_of  # noqa: E402
 
-MODEL_FILE = "docs/architecture.yaml"
+ARCHITECTURE_FILE = "docs/architecture.yaml"
 
-# Changed paths that make a change red. A model's review_triggers add project paths to these.
+# Changed paths that make a change red. review_triggers in architecture.yaml add project paths to these.
 DEFAULT_TRIGGERS = {
     "dependency": ["package.json", "**/package.json", "*lock.json", "*lock.yaml", "yarn.lock", "**/build.gradle*",
                    "**/settings.gradle*", "**/libs.versions.toml", "**/pom.xml", "go.mod", "go.sum", "Cargo.toml",
@@ -50,7 +50,7 @@ SKIP_MARK = re.compile(r"@Disabled|@Ignore\b|\.skip\(|\bx(it|describe|test)\(|\.
                        r"|\bt\.Skip\(|#\[ignore\]")
 LOCKFILE = re.compile(r"(\.lock|-lock\.(json|yaml)|\.sum)$")
 REACH = {"local": 0, "private": 1, "internet": 2}
-DOC_FILES = {"PRODUCT.md", "AGENTS.md", "CLAUDE.md", Path(MODEL_FILE).name}
+DOC_FILES = {"PRODUCT.md", "AGENTS.md", "CLAUDE.md", Path(ARCHITECTURE_FILE).name}
 CONTRACT_TRIGGERS = ("dependency", "schema", "api", "event")
 RED_CONTRACTS = {"dependency", "schema", "api", "event", "data-writer", "data-copy", "external-call"}
 AC_COMMIT_SUBJECT = "test: acceptance tests"
@@ -172,8 +172,8 @@ def read_item(path: Path) -> dict:
             "doc_impact": impact[1] if impact else "", "acs": acs}
 
 
-def raw_at(repo: Path, ref: str, rel: str = MODEL_FILE) -> dict | None:
-    """The model at a ref; None when it isn't there or isn't this format."""
+def raw_at(repo: Path, ref: str, rel: str = ARCHITECTURE_FILE) -> dict | None:
+    """architecture.yaml at a ref; None when it isn't there or isn't this format."""
     try:
         raw = yaml.safe_load(git(repo, "show", f"{ref}:{rel}"))
     except (RuntimeError, yaml.YAMLError):
@@ -182,7 +182,7 @@ def raw_at(repo: Path, ref: str, rel: str = MODEL_FILE) -> dict | None:
 
 
 def triggers_of(raw: dict | None) -> dict[str, list[str]]:
-    """Built-in globs, the model's review_triggers, and what the model implies: API specs, store paths, rule checks."""
+    """Built-in globs, the file's review_triggers, and what it implies: API specs, store paths, rule checks."""
     out = {k: list(v) for k, v in DEFAULT_TRIGGERS.items()}
     if not raw:
         return out
@@ -257,16 +257,16 @@ def entity_owners(raw: dict) -> dict[str, str]:
 
 
 def structure_changes(old: dict | None, new: dict | None) -> tuple[list, list[str]]:
-    """Components, externals, dependencies, entities and rules between two models."""
+    """Components, externals, dependencies, entities and rules between two versions of architecture.yaml."""
     if not new:
         return [], []
     if not old:
-        return [("yellow", f"model: {MODEL_FILE} added")], []
+        return [("yellow", f"architecture: {ARCHITECTURE_FILE} added")], []
     out, new_edges = [], []
     was, now = {c["component"] for c in old["components"]}, {c["component"] for c in new["components"]}
     ext_was, ext_now = set(old.get("external") or {}), set(new.get("external") or {})
-    out += [("yellow", f"model: new component {n}") for n in sorted(now - was)]
-    out += [("yellow", f"model: component {n} removed") for n in sorted(was - now)]
+    out += [("yellow", f"architecture: new component {n}") for n in sorted(now - was)]
+    out += [("yellow", f"architecture: component {n} removed") for n in sorted(was - now)]
     out += [("red", f"external-call: new external {e}") for e in sorted(ext_now - ext_was)]
     for a, b in sorted(edges_of(new) - edges_of(old)):
         if b in ext_now:
@@ -277,11 +277,11 @@ def structure_changes(old: dict | None, new: dict | None) -> tuple[list, list[st
     before = entity_owners(old)
     for e, owner in entity_owners(new).items():
         if e not in before:
-            out.append(("yellow", f"model: new entity {e}"))
+            out.append(("yellow", f"architecture: new entity {e}"))
         elif before[e] != owner:
             out.append(("red", f"data-writer: {e} owner {before[e]} -> {owner}"))
     states = old.get("states") or {}
-    out += [("yellow", f"model: {k} lifecycle changed") for k, v in (new.get("states") or {}).items() if k in states and states[k] != v]
+    out += [("yellow", f"architecture: {k} lifecycle changed") for k, v in (new.get("states") or {}).items() if k in states and states[k] != v]
     rules = {r["rule"]: r for r in new.get("rules") or []}
     for r in old.get("rules") or []:
         n = rules.get(r["rule"])
@@ -293,7 +293,7 @@ def structure_changes(old: dict | None, new: dict | None) -> tuple[list, list[st
 
 
 def surface(raw: dict) -> dict:
-    """Network endpoints of an arch3 model: ref -> (component, exposure, spec, open)."""
+    """Network endpoints in architecture.yaml: ref -> (component, exposure, spec, open)."""
     out = {}
     for c in raw["components"]:
         for field in ("endpoints", "ui_endpoints"):
@@ -333,14 +333,14 @@ def logins(raw: dict) -> set:
 
 
 def define_changes(old: dict | None, new: dict | None) -> list:
-    """Security, data, deficiency and note changes between two models."""
+    """Security, data, deficiency and note changes between two versions of architecture.yaml."""
     if not (old and new):
         return []
     out, was, now = [], surface(old), surface(new)
     for ref, (_, exposure, spec, is_open) in now.items():
         if ref not in was:
             out.append(("red", f"security: new open endpoint {ref} on the internet") if is_open and exposure == "internet"
-                       else ("yellow", f"model: new endpoint {ref}"))
+                       else ("yellow", f"architecture: new endpoint {ref}"))
             continue
         _, before, old_spec, was_open = was[ref]
         if REACH.get(exposure, -1) > REACH.get(before, -1):
@@ -359,10 +359,10 @@ def define_changes(old: dict | None, new: dict | None) -> list:
     out += [("red", f"security: {a} and {b} now share the login {k}") for k, a, b in sorted(logins(new) - logins(old))]
     for comp, rel, target, entity in sorted(data_access(new) - data_access(old), key=str):
         what = f"{comp} {rel} {target}" + (f".{entity}" if entity else "")
-        out.append(("red", f"data-writer: {what}") if rel == "writes" else ("yellow", f"model: {what}"))
+        out.append(("red", f"data-writer: {what}") if rel == "writes" else ("yellow", f"architecture: {what}"))
     out += [("red", f"arch-check: new deficiency: {d}") for d in sorted(deficiencies_of(new) - deficiencies_of(old))]
     kept = {n["note"] for n in new.get("notes") or []}
-    out += [("yellow", f"model: note changed or removed: {n['note'][:60]}") for n in old.get("notes") or [] if n["note"] not in kept]
+    out += [("yellow", f"architecture: note changed or removed: {n['note'][:60]}") for n in old.get("notes") or [] if n["note"] not in kept]
     return out
 
 
@@ -387,8 +387,10 @@ def diff_triggers(repo: Path, base: str, head: str, raw: dict | None, item: dict
 
     if ac_commit:
         ac_files = set(git(repo, "show", "--name-only", "--format=", ac_commit).split())
-        edited = set(git(repo, "diff", "--name-only", ac_commit, head).split())
-        out += [("red", f"ac-test-edited: {p}") for p in sorted(ac_files & edited)]
+        # Renames are followed, so moving a file with a rewrite still shows as an edit; deleting one is red.
+        for status, path, *_ in (l.split("\t") for l in git(repo, "diff", "--name-status", ac_commit, head).splitlines()):
+            if path in ac_files:
+                out.append(("red", f"test-weakened: {path} deleted") if status == "D" else ("yellow", f"ac-test-edited: {path}"))
 
     if item:
         for _, path in files:
@@ -463,8 +465,8 @@ def main() -> None:
     item = read_item(item_path) if item_path else None
 
     raw, was = raw_at(repo, head), raw_at(repo, base)
-    if raw is None and MODEL_FILE in git(repo, "ls-tree", "-r", "--name-only", head).splitlines():
-        sys.exit(f"{MODEL_FILE} at {head[:8]} can't be read as a model: fix it with arch3")
+    if raw is None and ARCHITECTURE_FILE in git(repo, "ls-tree", "-r", "--name-only", head).splitlines():
+        sys.exit(f"{ARCHITECTURE_FILE} at {head[:8]} can't be read: fix it with arch3")
     changes, edges = structure_changes(was, raw)
     changes += define_changes(was, raw)
 

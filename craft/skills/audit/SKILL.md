@@ -22,11 +22,11 @@ Make sure the architecture is consistent within repo and with docs. Flag inconsi
 ### 2. Conformance — when `docs/architecture.yaml` exists
 
 Deterministic first; these findings need no judgment:
-- **Model vs code:** run `verify`, then `arch3` reconcile for what the checks can't see. Its differences are findings.
-- **Model validity:** `uv run --quiet <this-skill-dir>/../arch3/scripts/validate.py docs/architecture.yaml` prints problems and exits non-zero on errors. Its deficiencies and improvements are findings.
+- **Architecture vs code:** run `verify`, then `arch3` reconcile for what the checks can't see. Its differences are findings.
+- **Architecture validity:** `uv run --quiet <this-skill-dir>/../arch3/scripts/validate.py docs/architecture.yaml` prints problems and exits non-zero on errors. Its deficiencies and improvements are findings.
 - **Rule coverage:** every `must` rule has a `check` that exists and went red at least once (`guard` proves it). A rule without one that a tool could check is a finding.
 - **Baseline:** its size and trend (`git log` on the baseline file). A growing baseline is a finding.
-- **Doc drift:** `AGENTS.md`, `docs/PRODUCT.md` and model `notes`: claims that the code or the model contradicts. Say which side is wrong; never rewrite intent to match code.
+- **Doc drift:** `AGENTS.md`, `docs/PRODUCT.md` and the `notes` in `architecture.yaml`: claims that the code or `architecture.yaml` contradicts. Say which side is wrong; never rewrite intent to match code.
 - **Budgets:** `AGENTS.md` ≤60 lines, `docs/PRODUCT.md` ≤150.
 - **Hotspots:** churn × size. Files changed most in the last six months (`git log --since=6.months --format= --name-only | sort | uniq -c | sort -rn | head -20`), weighed by length or complexity. A big file that changes often is where the next bug is.
 

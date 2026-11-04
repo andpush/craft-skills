@@ -25,8 +25,9 @@ CLAUDE.md contains a single line: @AGENTS.md
 
 - Work items: `docs/ideas/` → `docs/ready/` → `docs/done/`, named `<type>-<slug>.md`.
 - One branch per item: `craft/<item>`. The branch is the claim.
-- Merge: pr          # pr | local
-- Auto-merge: off    # off | green — green merges 🟢 changes by itself once CI passes
+- Auto-merge: green  # green | off — green merges 🟢 changes to local main by itself; everything else waits for a human
+- History: each item is one merge commit on main; use `--first-parent` for log and bisect.
+- Sync with the remote, by a human or on request: `git pull --no-rebase`, run verify and fix anything red, `git push`.
 
 ## Pointers
 

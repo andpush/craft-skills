@@ -46,10 +46,6 @@ Load [reference/architecture-template.md](reference/architecture-template.md) as
 
 Before writing, verify the design against the `sa` skill's Verify checklist — boundaries graspable, acyclic dependencies, one owner per datum, trade-offs stated, complexity matched to scale.
 
-After writing, open the model page and fix every model problem it lists:
-
-```bash
-uv run --quiet <this-skill-dir>/../view/scripts/view.py model
-```
+After writing, check the model by hand and fix every problem: see [reference/model.md](reference/model.md#check).
 
 Report what was created vs. adopted, and the next step: `guard`, to make the rules executable — then `spec <first feature>`. A few lines.

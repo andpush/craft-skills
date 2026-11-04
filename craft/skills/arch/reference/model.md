@@ -1,6 +1,6 @@
 # docs/architecture.yaml — the model
 
-One file that checks (`guard`), pages (`view`) and review tooling (`review`) read.
+One file that describes the system for checks and review.
 `docs/ARCHITECTURE.md` explains it in prose and links to it; it never restates it.
 
 ```yaml
@@ -74,11 +74,7 @@ endpoints and secondary flows stay in code and tests.
 - Arrow items (`a -> b: label`) need quotes only when the label contains `: `.
 - Globs starting with `*` need quotes.
 
-## Validate
+## Check
 
-```bash
-uv run --quiet <arch-skill-dir>/../view/scripts/view.py model
-```
-
-Model problems show on top of the page and are printed, with a non-zero exit: unknown names, components without a path, `has` across
+No script reads this format, so check by hand: unknown names, components without a path, `has` across
 owners, flow calls `depends_on` doesn't allow, `MUST` rules without a checker. Fix them all.

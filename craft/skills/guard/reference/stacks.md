@@ -2,7 +2,7 @@
 
 Load only the section for the detected stack. Each adapter gets import edges from the tool the stack already has, and applies SKILL.md step 4 to them. Sketches show the shape: adapt names and roots, and keep the check one file. Add libraries at their current stable release, looked up in the registry.
 
-`paths` in a unit are what the model has: directories for components, directories or packages for modules (`travelai.poi.**`, `src/orders/**`). Normalize them to the stack's module names.
+`paths` in a unit are what `architecture.yaml` has: directories for components, directories or packages for modules (`travelai.poi.**`, `src/orders/**`). Normalize them to the stack's module names.
 
 ## The empty-selection trap
 
@@ -66,8 +66,8 @@ def violations():
     return bad
 
 def test_gate_is_fresh():
-    model = hashlib.sha256(pathlib.Path("docs/architecture.yaml").read_bytes()).hexdigest()
-    assert model == GATE["model_sha256"], "model changed: run validate.py --gate"
+    current = hashlib.sha256(pathlib.Path("docs/architecture.yaml").read_bytes()).hexdigest()
+    assert current == GATE["architecture_sha256"], "architecture.yaml changed: run validate.py --gate"
 
 def test_architecture():
     path = pathlib.Path("docs/architecture.baseline")
@@ -95,7 +95,7 @@ imports.forEach { imp ->
 
 - **Several builds:** one test per Gradle build, each with its `COMPONENT`, and using only the baseline lines that start with it.
 - **Libraries:** persistence `org.jdbi`, `jakarta.persistence`, `org.springframework.data`, `java.sql`, `org.jetbrains.exposed`, `org.jooq`; client `java.net.http`, `okhttp3`, `io.ktor.client`, `org.eclipse.microprofile.rest.client`, `org.springframework.web.client`, `retrofit2`, `com.google.cloud`; messaging `org.apache.kafka`, `org.springframework.kafka`, `org.springframework.amqp`; server `org.springframework.web.bind.annotation`, `io.ktor.server`. `jakarta.ws.rs` counts as server or client, since rest clients share its annotations.
-- **Gradle:** declare the model, the gate file and the baseline as inputs of the test task, or a model-only change is skipped as up to date. Set `testLogging { exceptionFormat = FULL }`, and don't prove checks with `-q`.
+- **Gradle:** declare `architecture.yaml`, the gate file and the baseline as inputs of the test task, or an architecture-only change is skipped as up to date. Set `testLogging { exceptionFormat = FULL }`, and don't prove checks with `-q`.
 
 ## TypeScript / JavaScript: dependency-cruiser
 
@@ -117,27 +117,3 @@ Make each unit a crate or target, so the compiler enforces dependencies. The tes
 ## Dart / Flutter
 
 `test/architecture_test.dart` scans `import` and `export` lines under `lib/`, resolving `package:<app>/` and relative paths to files, and matches them against the units' path globs. Add `crypto` for the hash. Run from the app directory, so the gate file is `../docs/`.
-
-## CI — GitHub Actions
-
-```yaml
-# .github/workflows/verify.yml
-name: verify
-on:
-  pull_request:
-  push:
-    branches: [main]
-jobs:
-  verify:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      # one toolchain setup step with dependency caching:
-      #   JVM: actions/setup-java (temurin) + gradle/actions/setup-gradle
-      #   TS:  pnpm/action-setup + actions/setup-node (cache: pnpm)
-      #   Py:  astral-sh/setup-uv (enable-cache: true)
-      #   Go:  actions/setup-go
-      - run: <the verify command>
-```
-
-Pin each action to its current major from the action's README.

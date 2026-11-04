@@ -6,8 +6,8 @@
 
 Usage: uv run validate.py [docs/architecture.yaml] [--skip-paths] [--gate [--accept]]
 Exit 1 on errors; warnings and findings (deficiencies, improvements) are printed but pass.
---gate also writes docs/architecture.gate.json, what `verify` enforces, flattened from the model.
-Stack checks read only that file and fail when its model_sha256 no longer matches the model.
+--gate also writes docs/architecture.gate.json, what `verify` enforces, flattened from architecture.yaml.
+Stack checks read only that file and fail when its architecture_sha256 no longer matches the file.
 A new deficiency exits 1 unless --accept; fixed ones drop out.
 """
 import hashlib
@@ -75,27 +75,27 @@ def arrow(item):
 
 
 def check(path, skip_paths=False):
-    """Validate the model at path; return (errors, warnings). Findings land in deficiencies and improvements."""
+    """Validate the architecture file at path; return (errors, warnings). Findings land in deficiencies and improvements."""
     for found in (errors, warnings, deficiencies, improvements):
         found.clear()
-    model = yaml.safe_load(Path(path).read_text())
+    arch = yaml.safe_load(Path(path).read_text())
     path = Path(path)
     root = path.resolve().parent
-    if root.name == "docs":  # the model lives in docs/; its paths are relative to the repo root
+    if root.name == "docs":  # architecture.yaml lives in docs/; its paths are relative to the repo root
         root = root.parent
 
-    schema_errors = list(jsonschema.Draft202012Validator(json.loads(SCHEMA.read_text())).iter_errors(model))
+    schema_errors = list(jsonschema.Draft202012Validator(json.loads(SCHEMA.read_text())).iter_errors(arch))
     for e in schema_errors:
         err(f"schema: {e.json_path}: {e.message}")
     if schema_errors:
         return errors, warnings
 
-    actors = model.get("actors") or {}
-    externals = model.get("external") or {}
-    components = {c["component"]: c for c in model["components"]}
-    root_modules = {m["module"]: m for m in model.get("modules") or []}
-    stores = {d["datastore"]: d for d in model.get("datastores") or []}
-    queues = {q["queue"]: q for q in model.get("queues") or []}
+    actors = arch.get("actors") or {}
+    externals = arch.get("external") or {}
+    components = {c["component"]: c for c in arch["components"]}
+    root_modules = {m["module"]: m for m in arch.get("modules") or []}
+    stores = {d["datastore"]: d for d in arch.get("datastores") or []}
+    queues = {q["queue"]: q for q in arch.get("queues") or []}
 
     # entities: name -> fields; where each lives
     entities, entity_home, messages = {}, {}, {}
@@ -206,7 +206,7 @@ def check(path, skip_paths=False):
             if "." not in c or not resolve_call(c):
                 err(f"external {x}: calls '{c}' — no such endpoint")
 
-    # endpoint audience against declared callers; names outside the model are not checked
+    # endpoint audience against declared callers; names outside architecture.yaml are not checked
     for name, c in components.items():
         for ep, spec in (c.get("endpoints") or {}).items():
             if "for" not in spec:
@@ -281,7 +281,7 @@ def check(path, skip_paths=False):
     for s in [*stores.values(), *queues.values()]:
         if not s.get("schema_owner"):
             deficiency(f"{s.get('datastore') or s.get('queue')}: shared, with no schema_owner.")
-    unchecked = [r["rule"] for r in model.get("rules") or [] if r.get("level", "must") == "must" and not r.get("check")]
+    unchecked = [r["rule"] for r in arch.get("rules") or [] if r.get("level", "must") == "must" and not r.get("check")]
     if unchecked:
         improve(f"Must rules that only review enforces: {', '.join(unchecked)}. Add a check where one is possible.")
 
@@ -293,10 +293,10 @@ def check(path, skip_paths=False):
         known |= {f"{c['component']}.{m['module']}" for m in c.get("modules") or []}
     for ent, fields in entities.items():
         known |= {f"{ent}.{f.split(' ')[0]}" for f in fields}
-    for n in model.get("notes") or []:
+    for n in arch.get("notes") or []:
         for a in n["about"]:
             if a not in known:
-                err(f"note about '{a}': no such thing in the model — {n['note'][:50]}")
+                err(f"note about '{a}': no such thing in architecture.yaml — {n['note'][:50]}")
 
     # entity references and ownership
     for name, fields in entities.items():
@@ -320,7 +320,7 @@ def check(path, skip_paths=False):
             err(f"queue {q['queue']}: schema_owner '{q['schema_owner']}' is not a component")
 
     # states
-    for key in model.get("states") or {}:
+    for key in arch.get("states") or {}:
         ent, _, field = key.partition(".")
         if ent not in entities:
             err(f"states {key}: no such entity")
@@ -340,7 +340,7 @@ def check(path, skip_paths=False):
                 return "component", c, m
         return None, p, None
 
-    for flow, steps in (model.get("flows") or {}).items():
+    for flow, steps in (arch.get("flows") or {}).items():
         for step in steps:
             a, op, b, label = arrow(step)
             (ka, ca, ma), (kb, cb, mb) = participant(a), participant(b)
@@ -379,7 +379,7 @@ def check(path, skip_paths=False):
                 err(f"{where} — not allowed by declared relations")
 
     # rules
-    for r in model.get("rules") or []:
+    for r in arch.get("rules") or []:
         sel = r.get("applies_to") or {}
         for c in as_list(sel.get("components")):
             if c not in components:
@@ -428,10 +428,10 @@ def imports(refs, comp, roots):
     return out
 
 
-def units_of(model):
-    roots = {m["module"] for m in model.get("modules") or []}
+def units_of(arch):
+    roots = {m["module"] for m in arch.get("modules") or []}
     units = {}
-    for c in model["components"]:
+    for c in arch["components"]:
         name, mods = c["component"], c.get("modules") or []
         base = io_of(c)
         owned = {"persistence"} if c.get("datastores") else set()
@@ -448,15 +448,15 @@ def units_of(model):
                 "imports": sorted(shared | imports(as_list(m.get("uses")), c, roots) | {name}),
                 "io": sorted(base | io_of(m) | ({"server"} if m.get("serves") else set())),
             }
-    for m in model.get("modules") or []:
+    for m in arch.get("modules") or []:
         units[m["module"]] = {"paths": as_list(m.get("packages")),
                               "imports": sorted(imports(as_list(m.get("uses")), None, roots)), "io": sorted(io_of(m))}
     return units
 
 
-def surface_of(model):
+def surface_of(arch):
     out = {}
-    for c in model["components"]:
+    for c in arch["components"]:
         for spec_group in ("endpoints", "ui_endpoints"):
             for ep, s in (c.get(spec_group) or {}).items():
                 if s.get("protocol") in NOT_ON_NETWORK:
@@ -470,7 +470,7 @@ def surface_of(model):
 
 
 def write_gate(path, accept):
-    """Write architecture.gate.json next to the model. Its deficiencies are a ratchet: new ones need `accept`."""
+    """Write architecture.gate.json next to architecture.yaml. Its deficiencies are a ratchet: new ones need `accept`."""
     out = path.with_name("architecture.gate.json")
     known = set(json.loads(out.read_text())["deficiencies"]) if out.exists() else None
     current = sorted(deficiencies)
@@ -479,10 +479,10 @@ def write_gate(path, accept):
         print("New deficiencies. Fix them, or ask the user whether to accept them with --accept:")
         print("\n".join(f"- {d}" for d in new))
         return 1
-    model = yaml.safe_load(path.read_text())
+    arch = yaml.safe_load(path.read_text())
     out.write_text(json.dumps({
-        "model_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-        "deficiencies": current, "units": units_of(model), "surface": surface_of(model)}, indent=1) + "\n")
+        "architecture_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "deficiencies": current, "units": units_of(arch), "surface": surface_of(arch)}, indent=1) + "\n")
     print(f"{out}: {len(current)} deficiencies, {len((known or set()) - set(current))} fixed, {len(new)} newly accepted")
     return 0
 
