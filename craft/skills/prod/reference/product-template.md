@@ -1,5 +1,5 @@
 <!--
-The skeleton `prod` produces at .craft/PRODUCT.md — the durable "who, what, why" that
+The skeleton `prod` produces at PRODUCT.md — the durable "who, what, why" that
 `arch3` and `feat` build on. Keep it terse and scannable; capture intent and constraints,
 not a roadmap. Omit a section only if it genuinely doesn't apply. Link out rather than restate.
 -->

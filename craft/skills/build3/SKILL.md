@@ -63,7 +63,7 @@ A subagent gets the item path, `AGENTS.md`, the AC commit's file list, and these
 - Stay inside the `target` components and the relations `.craft/architecture.yaml` lists for them.
 - Read the `notes` in `architecture.yaml` about what you touch. If the change would make one false, stop and raise it.
 - You may adapt an AC test to a rename or restructure, saying why in the commit. If the criterion itself looks wrong, stop and report it — that's a spec question, not a code one.
-- Don't edit `.craft/architecture.yaml`, `.craft/PRODUCT.md` or `AGENTS.md`: you apply the doc impact at close.
+- Don't edit `.craft/architecture.yaml`, `PRODUCT.md` or `AGENTS.md`: you apply the doc impact at close.
 - Commit in small commits; report what changed and anything done differently from the spec, with the reason.
 
 A small `task` item may be done inline.

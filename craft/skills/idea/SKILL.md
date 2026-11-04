@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Use to capture a user idea into .craft/ideas/ — one small file with a quick alignment check against .craft/PRODUCT.md. Capture, not elaboration; the spec is written later via `feat`.
+description: Use to capture a user idea into .craft/ideas/ — one small file with a quick alignment check against PRODUCT.md. Capture, not elaboration; the spec is written later via `feat`.
 ---
 
 Capture the idea fast and move on. Ideas are candidates, not commitments — `feat` validates lazily on pickup (pursue / defer / reject). This skill only records and sanity-checks; it never opens a spec.
@@ -48,9 +48,9 @@ Temporary code — a feature flag, an adapter, a dual write, a compatibility shi
 
 ## Check alignment
 
-Skim `.craft/PRODUCT.md`. If the idea conflicts with it or falls outside scope, tell the user in one line and record the tension in the file — still capture it. No verdict: pursue/defer/reject belongs to `feat` on pickup.
+Skim `PRODUCT.md`. If the idea conflicts with it or falls outside scope, tell the user in one line and record the tension in the file — still capture it. No verdict: pursue/defer/reject belongs to `feat` on pickup.
 
-If `.craft/PRODUCT.md` doesn't exist, capture without the check and say so.
+If `PRODUCT.md` doesn't exist, capture without the check and say so.
 
 ## Images
 

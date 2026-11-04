@@ -15,7 +15,7 @@ The format is [reference/architecture.schema.json](reference/architecture.schema
 
 ## 1. Ground
 
-- Read `.craft/PRODUCT.md` and `.craft/adr/` when present, and anything the user points you to. Don't search for other documents.
+- Read `PRODUCT.md` and `.craft/adr/` when present, and anything the user points you to. Don't search for other documents.
 - With no product purpose anywhere, offer to run `prod` first: the architecture needs a purpose to design against.
 - Pick the branch: no production code → **greenfield**; code → **brownfield**; `.craft/architecture.yaml`
   already exists → **reconcile**.

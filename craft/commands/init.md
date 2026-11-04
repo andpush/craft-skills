@@ -1,5 +1,5 @@
 ---
-description: Run `prod`, `arch3`, then `guard` to quickstart with `.craft/PRODUCT.md`, `.craft/architecture.yaml` and a working `verify` gate.
+description: Run `prod`, `arch3`, then `guard` to quickstart with `PRODUCT.md`, `.craft/architecture.yaml` and a working `verify` gate.
 argument-hint: [one-line idea or repo note]
 ---
 # Command Instructions
@@ -14,7 +14,7 @@ Greenfield (empty/early repo) → define with the user. Brownfield (existing cod
 
 ## Task
 
-1. Run the `prod` skill to establish `.craft/PRODUCT.md`.
+1. Run the `prod` skill to establish `PRODUCT.md`.
 2. Then run the `arch3` skill to establish `.craft/architecture.yaml` and `AGENTS.md`.
 3. Then run the `guard` skill to make `architecture.yaml` executable. If the repo has no code yet, stop after `verify` and say `guard` should be rerun once there is code to check.
 

@@ -119,8 +119,8 @@ To see the architecture, ask "show me the architecture".
 ```text
 AGENTS.md                        # ≤60 lines every agent loads: commands, invariants, workflow
 CLAUDE.md                        # @AGENTS.md
+PRODUCT.md                       # ≤150 lines: purpose, users, value, constraints, scope
 .craft/
-├── PRODUCT.md                   # ≤150 lines: purpose, users, value, constraints, scope
 ├── architecture.yaml            # components, relations, security, data, flows, rules, notes
 ├── architecture.gate.json       # generated; what verify reads
 ├── architecture.baseline        # frozen existing violations

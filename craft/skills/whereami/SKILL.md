@@ -9,7 +9,7 @@ Reload the user's mental context in seconds. Read the artifacts, infer the story
 
 Three folders under `.craft/`: `ideas/` (raw candidates), `ready/` (the execution queue — build-ready `feat-`/`task-`/promoted `idea-` items), and `done/` (archive of shipped + rejected items). `ideas/` + `ready/` are the live set; `done/` is the timeline, not live work. Filenames (`type-slug`) are the index — don't open files unless needed.
 
-- `.craft/PRODUCT.md` first lines — what this is.
+- `PRODUCT.md` first lines — what this is.
 - The queue and archive, newest last:
 ```bash
 ls -1 .craft/ready/*.md .craft/done/*.md 2>/dev/null | sort

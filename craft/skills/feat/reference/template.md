@@ -97,7 +97,7 @@ safety net that locks current behavior before code moves.*
 
 ### Doc impact *[if any]*
 
-*The exact edits this change makes to `.craft/PRODUCT.md`, `AGENTS.md` or
+*The exact edits this change makes to `PRODUCT.md`, `AGENTS.md` or
 `.craft/architecture.yaml` — the only doc edits `build3` may apply. "None" when none.*
 
 - `.craft/architecture.yaml`: <e.g. orders.uses += notify>

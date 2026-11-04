@@ -12,7 +12,7 @@ Produces or updates three files. Run once, or after foundations change:
 
 ## Initial context
 
-Refer to `.craft/PRODUCT.md` and root `README.md` for context on WHAT we build. If both are missing or placeholder — offer to **Establish product context now** — run `prod` skill in this session, then continue with `arch`.
+Refer to `PRODUCT.md` and root `README.md` for context on WHAT we build. If both are missing or placeholder — offer to **Establish product context now** — run `prod` skill in this session, then continue with `arch`.
 
 Never invent product purpose, users, or constraints from architecture preferences alone.
 
@@ -34,7 +34,7 @@ Load [reference/architecture-template.md](reference/architecture-template.md) as
 ## Brownfield: derive from the code, then confirm
 
 1. **Explore the codebase:**
-- Orient first (`.craft/PRODUCT.md`, `README.md`, layout, config, dir tree);
+- Orient first (`PRODUCT.md`, `README.md`, layout, config, dir tree);
 - Large repo -> fan out `Explore` agents partitioned by territory, each reports its slice along fixed dimensions — purpose, entry points & boundaries, data, external calls, conventions & tests, backed by `file:line` and snippets. Consolidate in the main context
 - Small, flat, or tangled repo -> do a single pass yourself, reading code and taking notes.
 2. Draft `.craft/architecture.yaml` from the code as it is: components from the source layout, `depends_on` from the imports that actually exist, entity owners from where the persistence code is. Existing violations are findings, not reasons to bend the model — `guard` will baseline them. Then draft `.craft/ARCHITECTURE.md` ([reference/architecture-template.md](reference/architecture-template.md)).
