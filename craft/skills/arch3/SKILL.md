@@ -1,9 +1,9 @@
 ---
 name: arch3
-description: Use to define a project's `docs/architecture.yaml` — the reference architecture and durable skeletal context for agents — designed with the user for a new project, derived from the code for an existing one, or reconciled when it has drifted; and to show it as an HTML page ("show me the architecture").
+description: Use to define a project's `.craft/architecture.yaml` — the reference architecture and durable skeletal context for agents — designed with the user for a new project, derived from the code for an existing one, or reconciled when it has drifted; and to show it as an HTML page ("show me the architecture").
 ---
 
-`docs/architecture.yaml` is the project's architecture in one file, with three jobs:
+`.craft/architecture.yaml` is the project's architecture in one file, with three jobs:
 - **Orientation:** an agent reads it first and knows the parts, their boundaries and where data lives without exploring.
 - **Drift baseline:** relations are an allowlist, so anything the code does beyond them is degradation to fix or decide on.
 - **Diagram source:** context, containers, modules, ER, lifecycles and sequences render from it.
@@ -15,10 +15,9 @@ The format is [reference/architecture.schema.json](reference/architecture.schema
 
 ## 1. Ground
 
-- Read the product inputs: `docs/PRODUCT.md`, `README.md`, vision, requirements and PRDs under `docs/`,
-  and `docs/adr/` when present.
+- Read `.craft/PRODUCT.md` and `.craft/adr/` when present, and anything the user points you to. Don't search for other documents.
 - With no product purpose anywhere, offer to run `prod` first: the architecture needs a purpose to design against.
-- Pick the branch: no production code → **greenfield**; code → **brownfield**; `docs/architecture.yaml`
+- Pick the branch: no production code → **greenfield**; code → **brownfield**; `.craft/architecture.yaml`
   already exists → **reconcile**.
 
 ## 2a. Greenfield: shared understanding, then design
@@ -93,7 +92,7 @@ code.
 
 ## 5. Write `architecture.yaml`
 
-`docs/architecture.yaml`. Paths inside it (`source_path`, `check`, `decisions`) stay relative to the repo root. The schema stays in this skill: don't copy it into the project
+`.craft/architecture.yaml`. Paths inside it (`source_path`, `check`, `decisions`) stay relative to the repo root. The schema stays in this skill: don't copy it into the project
 or reference it from `architecture.yaml`.
 
 Every line passes one test: would a reader otherwise reconstruct it from code, and can a check
@@ -130,7 +129,7 @@ Create it from [reference/agents-template.md](reference/agents-template.md), or 
 
 ## 7. Verify and confirm
 
-1. `uv run --quiet <this-skill-dir>/scripts/validate.py docs/architecture.yaml` exits 0. It checks the
+1. `uv run --quiet <this-skill-dir>/scripts/validate.py .craft/architecture.yaml` exits 0. It checks the
    schema, every reference, flows against relations, states against entity fields, endpoint `for`
    against callers, `serves` against endpoints, what each note is `about`, and paths.
    Warnings need fixing or explaining; findings go to step 4.
@@ -143,7 +142,7 @@ Done when the validator exits 0 and the user has approved `architecture.yaml`.
 ## View
 
 ```bash
-uv run --quiet <this-skill-dir>/scripts/arch2html.py [docs/architecture.yaml]
+uv run --quiet <this-skill-dir>/scripts/arch2html.py [.craft/architecture.yaml]
 ```
 
 Renders `architecture.yaml`, ADRs and validator findings to `<tmp>/craft-views/arch-<system>.html` and opens it. Flags: `--no-open`, `--out <file>`. Display only: it decides nothing and has no findings of its own. A new kind of finding goes in `validate.py`. A `Diagram error` is a bug in `arch2html.py`.

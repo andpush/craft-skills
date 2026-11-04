@@ -6,7 +6,7 @@ CLAUDE.md contains a single line: @AGENTS.md
 
 # <system>
 
-<One line: what it is and for whom. Details: docs/PRODUCT.md.>
+<One line: what it is and for whom. Details: .craft/PRODUCT.md.>
 
 ## Commands
 
@@ -23,7 +23,7 @@ CLAUDE.md contains a single line: @AGENTS.md
 
 ## Workflow
 
-- Work items: `docs/ideas/` → `docs/ready/` → `docs/done/`, named `<type>-<slug>.md`.
+- Work items: `.craft/ideas/` → `.craft/ready/` → `.craft/done/`, named `<type>-<slug>.md`.
 - One branch per item: `craft/<item>`. The branch is the claim.
 - Merge: 🟢 changes merge to local main by themselves; 🟡 and 🔴 wait for a human.
 - History: each item is one merge commit on main; use `--first-parent` for log and bisect.
@@ -31,5 +31,5 @@ CLAUDE.md contains a single line: @AGENTS.md
 
 ## Pointers
 
-- Product: docs/PRODUCT.md
-- Architecture: docs/architecture.yaml (read its `notes` before changing what they're about) · docs/adr/
+- Product: .craft/PRODUCT.md
+- Architecture: .craft/architecture.yaml (read its `notes` before changing what they're about) · .craft/adr/

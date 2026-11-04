@@ -39,7 +39,7 @@ forward only" and why.
 ## Temporary code
 
 Feature flags, adapters, dual writes and compatibility shims are debt with a due date. For each one,
-file an idea (`docs/ideas/idea-remove-<slug>.md`) with its removal condition: "remove after all
+file an idea (`.craft/ideas/idea-remove-<slug>.md`) with its removal condition: "remove after all
 clients send the key" or "after backfill is verified". `build3` files these at close.
 
 ## Questions to ask

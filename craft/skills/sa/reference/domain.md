@@ -21,7 +21,7 @@ Load when a change adds or moves a component, an entity, or a boundary.
   written in one transaction.
 - Other aggregates are referenced **by id** (`refs`), never held. Rules spanning aggregates are
   eventually consistent — say how (event, scheduled check), and what the user sees meanwhile.
-- In `docs/architecture.yaml`: `has` for parts of the aggregate (same owner), `refs` across.
+- In `.craft/architecture.yaml`: `has` for parts of the aggregate (same owner), `refs` across.
 
 ## Deep modules
 

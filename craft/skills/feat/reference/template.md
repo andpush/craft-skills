@@ -2,7 +2,7 @@
 status: draft   # draft (still shaping) | ready (claimable) — build3 owns blocked
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-target: <component names from docs/architecture.yaml, comma-separated>
+target: <component names from .craft/architecture.yaml, comma-separated>
 # priority: high   # optional; the queue takes high first, then by created
 ---
 
@@ -33,7 +33,7 @@ of an entity), `data-copy` (a new copy of another owner's data), `external-call`
 
 ### Non-goals  *[as appropriate]*
 
-*What this explicitly does not do, and briefly why. Deferred ideas go to `docs/ideas/` at close.*
+*What this explicitly does not do, and briefly why. Deferred ideas go to `.craft/ideas/` at close.*
 
 ## Solution
 
@@ -97,10 +97,10 @@ safety net that locks current behavior before code moves.*
 
 ### Doc impact *[if any]*
 
-*The exact edits this change makes to `docs/PRODUCT.md`, `AGENTS.md` or
-`docs/architecture.yaml` — the only doc edits `build3` may apply. "None" when none.*
+*The exact edits this change makes to `.craft/PRODUCT.md`, `AGENTS.md` or
+`.craft/architecture.yaml` — the only doc edits `build3` may apply. "None" when none.*
 
-- `docs/architecture.yaml`: <e.g. orders.uses += notify>
+- `.craft/architecture.yaml`: <e.g. orders.uses += notify>
 
 ### Open questions *[if any]*
 

@@ -7,8 +7,8 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 
 ## Ground
 
-- Anchor in reality: `docs/PRODUCT.md` and `docs/architecture.yaml` if present, the existing stack, the code as it is.
-- Read the decision history before proposing: `docs/adr/` titles, and grep `## Rejected` for each option you consider. A rejected option comes back only when its "revisit if" holds — say which.
+- Anchor in reality: `.craft/PRODUCT.md` and `.craft/architecture.yaml` if present, the existing stack, the code as it is.
+- Read the decision history before proposing: `.craft/adr/` titles, and grep `## Rejected` for each option you consider. A rejected option comes back only when its "revisit if" holds — say which.
 - Name the drivers before designing: core function, dominant quality attributes, hard constraints, scale. Design against them, not generic best practice.
 
 ## Shape

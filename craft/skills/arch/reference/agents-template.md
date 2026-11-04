@@ -6,7 +6,7 @@ CLAUDE.md contains a single line: @AGENTS.md
 
 # <system>
 
-<One line: what it is and for whom. Details: docs/PRODUCT.md.>
+<One line: what it is and for whom. Details: .craft/PRODUCT.md.>
 
 ## Commands
 
@@ -23,12 +23,12 @@ CLAUDE.md contains a single line: @AGENTS.md
 
 ## Workflow
 
-- Work items: `docs/ideas/` → `docs/ready/` → `docs/done/`, named `<type>-<slug>.md`.
+- Work items: `.craft/ideas/` → `.craft/ready/` → `.craft/done/`, named `<type>-<slug>.md`.
 - One branch per item: `craft/<item>`. The branch is the claim.
 - Merge: pr          # pr | local
 
 ## Pointers
 
-- Product: docs/PRODUCT.md
-- Architecture: docs/ARCHITECTURE.md (prose, glossary) · docs/architecture.yaml (the model) · docs/adr/
-- Conventions: docs/ARCHITECTURE.md § Rules and Conventions
+- Product: .craft/PRODUCT.md
+- Architecture: .craft/ARCHITECTURE.md (prose, glossary) · .craft/architecture.yaml (the model) · .craft/adr/
+- Conventions: .craft/ARCHITECTURE.md § Rules and Conventions

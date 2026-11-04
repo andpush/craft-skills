@@ -28,7 +28,7 @@ Wrap = `scripts/ac <pattern>`: runs the filter with a machine-readable reporter,
 import hashlib, json, pathlib, re
 import grimp
 
-GATE = json.loads(pathlib.Path("docs/architecture.gate.json").read_text())
+GATE = json.loads(pathlib.Path(".craft/architecture.gate.json").read_text())
 ROOT = "shop"  # top-level package
 SOURCE = pathlib.Path("src")
 LIBS = {"persistence": {"sqlalchemy", "psycopg", "django"}, "client": {"httpx", "requests", "aiohttp", "boto3"},
@@ -66,11 +66,11 @@ def violations():
     return bad
 
 def test_gate_is_fresh():
-    current = hashlib.sha256(pathlib.Path("docs/architecture.yaml").read_bytes()).hexdigest()
+    current = hashlib.sha256(pathlib.Path(".craft/architecture.yaml").read_bytes()).hexdigest()
     assert current == GATE["architecture_sha256"], "architecture.yaml changed: run validate.py --gate"
 
 def test_architecture():
-    path = pathlib.Path("docs/architecture.baseline")
+    path = pathlib.Path(".craft/architecture.baseline")
     base = set(path.read_text().splitlines()) if path.exists() else set()
     found = violations()
     assert not found - base, "new:\n" + "\n".join(sorted(found - base))
@@ -116,4 +116,4 @@ Make each unit a crate or target, so the compiler enforces dependencies. The tes
 
 ## Dart / Flutter
 
-`test/architecture_test.dart` scans `import` and `export` lines under `lib/`, resolving `package:<app>/` and relative paths to files, and matches them against the units' path globs. Add `crypto` for the hash. Run from the app directory, so the gate file is `../docs/`.
+`test/architecture_test.dart` scans `import` and `export` lines under `lib/`, resolving `package:<app>/` and relative paths to files, and matches them against the units' path globs. Add `crypto` for the hash. Run from the app directory, so the gate file is `../.craft/`.

@@ -1,7 +1,7 @@
 # ADR format
 
 An ADR records a decision that is expensive to reverse, written only after the user's explicit yes.
-One screen. `docs/adr/YYYY-MM-DD-<slug>.md`; the date comes from the filename.
+One screen. `.craft/adr/YYYY-MM-DD-<slug>.md`; the date comes from the filename.
 
 ```markdown
 ---
@@ -29,7 +29,7 @@ What gets easier, what gets harder, what to watch.
 - **Rejected** bullets: `option — why; revisit if <condition>`. The condition is what lets a rejected
   option come back; without it, say "no revisit".
 - **No other fields.** Owners, status, tags and reviewers rot; git has the author and the date.
-- Before proposing an option, grep `docs/adr/` for it under `## Rejected`. If it's there, say so and
+- Before proposing an option, grep `.craft/adr/` for it under `## Rejected`. If it's there, say so and
   check its "revisit if" before proposing it again.
 - The `arch3` page draws ADRs as a timeline: each decision a waypoint, rejected options as side branches,
   superseded ones struck through.

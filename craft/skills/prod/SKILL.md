@@ -1,15 +1,15 @@
 ---
 name: prod
-description: Use to define the product — WHAT we are building and WHY - the purpose, users, solution, value, constraints, and scope — into a durable docs/PRODUCT.md that `arch3` and `feat` rely on.
+description: Use to define the product — WHAT we are building and WHY - the purpose, users, solution, value, constraints, and scope — into a durable .craft/PRODUCT.md that `arch3` and `feat` rely on.
 ---
 
-Establish the durable product context — who it's for, what it does, why it matters, what's in and out — either by defining it with the user (greenfield) or deriving it from existing material (brownfield), into a `docs/PRODUCT.md` that the rest of craft builds on.
+Establish the durable product context — who it's for, what it does, why it matters, what's in and out — either by defining it with the user (greenfield) or deriving it from existing material (brownfield), into a `.craft/PRODUCT.md` that the rest of craft builds on.
 
 Run once at project start; again only when the product direction shifts.
 
 `prod` owns the product definition; `arch3` consumes it.
 
-If a `docs/PRODUCT.md` already exists — written by hand or generated — update and extend it.
+If a `.craft/PRODUCT.md` already exists — written by hand or generated — update and extend it.
 
 ## Discover
 
@@ -17,7 +17,7 @@ Read whatever seed material exists: brief, notes, README, docs the user points t
 
 Don't synthesize a product from nothing — interview the user to elicit the product context. If the user provides a product description in the initial request, treat it as a proposed vision to be refined.
 
-Use [reference/product-template.md](reference/product-template.md) as a guide for the content and structure of `docs/PRODUCT.md`, adapt as needed.
+Use [reference/product-template.md](reference/product-template.md) as a guide for the content and structure of `.craft/PRODUCT.md`, adapt as needed.
 
 ### Greenfield: define with the user
 
@@ -31,4 +31,4 @@ Discover requirements in a professional conversation. Reach a shared, confirmed 
 
 ## Output
 
-Write the `docs/PRODUCT.md` in a terse, pragmatic tone, at most 150 lines — every agent session may load it — link to existing docs instead of restating them, and report on the next step (`arch3`), any open product questions the user must still resolve, and whether `docs/PRODUCT.md` was created vs. adopted. A few lines, no narrative.
+Write the `.craft/PRODUCT.md` in a terse, pragmatic tone, at most 150 lines — every agent session may load it — link to existing docs instead of restating them, and report on the next step (`arch3`), any open product questions the user must still resolve, and whether `.craft/PRODUCT.md` was created vs. adopted. A few lines, no narrative.

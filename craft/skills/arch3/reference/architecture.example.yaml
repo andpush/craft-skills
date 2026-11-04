@@ -4,7 +4,7 @@ version: 1
 
 system: Shop
 summary: Online store. Modular storefront service, web frontend, payments service, shared database and order events.
-decisions: docs/adr/
+decisions: .craft/adr/
 tech:
   languages: [java, kotlin, typescript]
   deploy: [gcp, firebase]

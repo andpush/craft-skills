@@ -5,7 +5,7 @@
 # ///
 """Render a spec as one HTML page in a temp folder, so a human can check the plan.
 
-Usage: uv run spec2html.py docs/ready/<item>.md [--no-open] [--out FILE]
+Usage: uv run spec2html.py .craft/ready/<item>.md [--no-open] [--out FILE]
 """
 import argparse
 import re
@@ -20,7 +20,7 @@ import arch2html  # noqa: E402 — the component map
 from html_utils import esc, inline, md, pill, section, write  # noqa: E402
 from md_utils import split_frontmatter, split_sections  # noqa: E402
 
-ARCHITECTURE_FILE = "docs/architecture.yaml"
+ARCHITECTURE_FILE = ".craft/architecture.yaml"
 PROMOTE = re.compile(r"open questions?|migration plan|data model|api contracts?|api changes", re.I)
 OPEN = re.compile(r"verification|acceptance|open question|contract|migration", re.I)
 KEY_KINDS = {"schema", "data-writer", "data-copy", "api", "event"}

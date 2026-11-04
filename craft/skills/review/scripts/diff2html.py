@@ -282,7 +282,7 @@ def main():
         sys.exit(f"{path} is not in a git repository; pass --repo")
     name = review.get("item") or path.name.removesuffix(".review.json")
     spec_path = Path(args.spec) if args.spec else next(
-        (p for p in [path.with_name(f"{name}.md"), *repo.glob(f"docs/*/{name}.md")] if p.exists()), None)
+        (p for p in [path.with_name(f"{name}.md"), *repo.glob(f".craft/*/{name}.md")] if p.exists()), None)
     head = rv.resolve(repo, review.get("head")) or rv.resolve(repo, "HEAD")
     raw = rv.raw_at(repo, head, rv.ARCHITECTURE_FILE) if head else None
     item, body = build(review, gather(review, repo, raw), repo, raw, spec_path, args.editor)

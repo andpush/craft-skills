@@ -1,11 +1,11 @@
 ---
 name: guard
-description: Use to set up the project's gate — one `verify` command, architecture checks driven by `docs/architecture.yaml` and a baseline for existing violations, callable from any pipeline. Run once after `arch3`, and again whenever `architecture.yaml` changes. Idempotent.
+description: Use to set up the project's gate — one `verify` command, architecture checks driven by `.craft/architecture.yaml` and a baseline for existing violations, callable from any pipeline. Run once after `arch3`, and again whenever `architecture.yaml` changes. Idempotent.
 ---
 
 Put one command between the agent and main, and make `architecture.yaml` executable. The agent, the human and any pipeline all run the same `verify`; a pipeline has no checks of its own. On a rerun, fix what drifted and leave the rest.
 
-Needs `docs/architecture.yaml`; without it, offer `arch3` first. Load [reference/stacks.md](reference/stacks.md) for the detected stack only.
+Needs `.craft/architecture.yaml`; without it, offer `arch3` first. Load [reference/stacks.md](reference/stacks.md) for the detected stack only.
 
 ## 1. Detect
 
@@ -20,21 +20,21 @@ Run an AC filter that matches nothing and see it fail. If it passes, wrap it (st
 ## 3. Gate file
 
 ```bash
-uv run --quiet <arch3-dir>/scripts/validate.py docs/architecture.yaml --gate
+uv run --quiet <arch3-dir>/scripts/validate.py .craft/architecture.yaml --gate
 ```
 
-Writes `docs/architecture.gate.json`, the flat form of `architecture.yaml` that checks read, so a pipeline needs neither Python nor this plugin. It refuses new architecture deficiencies unless passed `--accept`. Only the user decides that; fixed ones drop out by themselves.
+Writes `.craft/architecture.gate.json`, the flat form of `architecture.yaml` that checks read, so a pipeline needs neither Python nor this plugin. It refuses new architecture deficiencies unless passed `--accept`. Only the user decides that; fixed ones drop out by themselves.
 
 ## 4. Architecture check
 
 One test file reads the gate file and fails on:
 
-- **Stale gate:** the SHA-256 of `docs/architecture.yaml` differs from `architecture_sha256`.
+- **Stale gate:** the SHA-256 of `.craft/architecture.yaml` differs from `architecture_sha256`.
 - **Imports:** code in a unit imports another unit not listed in its `imports`. The owner of a file is the unit with the most specific match in `paths`; third-party code is free.
 - **I/O:** a unit imports a library of a kind missing from its `io` (`persistence`, `client`, `messaging`, `server`).
 - **Unowned:** a production source file belongs to no unit.
 
-Each violation is one stable line named after `architecture.yaml`, without line numbers: `orders -> billing: import not allowed`, `catalog: persistence import`. Existing ones go in `docs/architecture.baseline`, one per line: a new line fails, and so does a baseline line that no longer occurs, so debt only shrinks. Report the baseline size.
+Each violation is one stable line named after `architecture.yaml`, without line numbers: `orders -> billing: import not allowed`, `catalog: persistence import`. Existing ones go in `.craft/architecture.baseline`, one per line: a new line fails, and so does a baseline line that no longer occurs, so debt only shrinks. Report the baseline size.
 
 ## 5. Other checks
 

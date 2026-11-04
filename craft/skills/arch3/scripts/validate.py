@@ -2,11 +2,11 @@
 # requires-python = ">=3.10"
 # dependencies = ["jsonschema>=4.18", "pyyaml>=6"]
 # ///
-"""Validate docs/architecture.yaml: schema, references, flows, states, ownership.
+"""Validate .craft/architecture.yaml: schema, references, flows, states, ownership.
 
-Usage: uv run validate.py [docs/architecture.yaml] [--skip-paths] [--gate [--accept]]
+Usage: uv run validate.py [.craft/architecture.yaml] [--skip-paths] [--gate [--accept]]
 Exit 1 on errors; warnings and findings (deficiencies, improvements) are printed but pass.
---gate also writes docs/architecture.gate.json, what `verify` enforces, flattened from architecture.yaml.
+--gate also writes .craft/architecture.gate.json, what `verify` enforces, flattened from architecture.yaml.
 Stack checks read only that file and fail when its architecture_sha256 no longer matches the file.
 A new deficiency exits 1 unless --accept; fixed ones drop out.
 """
@@ -81,7 +81,7 @@ def check(path, skip_paths=False):
     arch = yaml.safe_load(Path(path).read_text())
     path = Path(path)
     root = path.resolve().parent
-    if root.name == "docs":  # architecture.yaml lives in docs/; its paths are relative to the repo root
+    if root.name == ".craft":  # architecture.yaml lives in .craft/; its paths are relative to the repo root
         root = root.parent
 
     schema_errors = list(jsonschema.Draft202012Validator(json.loads(SCHEMA.read_text())).iter_errors(arch))
@@ -489,7 +489,7 @@ def write_gate(path, accept):
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    path = Path(args[0] if args else "docs/architecture.yaml")
+    path = Path(args[0] if args else ".craft/architecture.yaml")
     check(path, "--skip-paths" in sys.argv)
     code = report()
     return code or (write_gate(path, "--accept" in sys.argv) if "--gate" in sys.argv else 0)

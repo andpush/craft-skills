@@ -7,25 +7,25 @@ Reload the user's mental context in seconds. Read the artifacts, infer the story
 
 ## Gather (skip what's absent)
 
-Three folders under `docs/`: `ideas/` (raw candidates), `ready/` (the execution queue — build-ready `feat-`/`task-`/promoted `idea-` items), and `done/` (archive of shipped + rejected items). `ideas/` + `ready/` are the live set; `done/` is the timeline, not live work. Filenames (`type-slug`) are the index — don't open files unless needed.
+Three folders under `.craft/`: `ideas/` (raw candidates), `ready/` (the execution queue — build-ready `feat-`/`task-`/promoted `idea-` items), and `done/` (archive of shipped + rejected items). `ideas/` + `ready/` are the live set; `done/` is the timeline, not live work. Filenames (`type-slug`) are the index — don't open files unless needed.
 
-- `docs/PRODUCT.md` first lines — what this is.
+- `.craft/PRODUCT.md` first lines — what this is.
 - The queue and archive, newest last:
 ```bash
-ls -1 docs/ready/*.md docs/done/*.md 2>/dev/null | sort
+ls -1 .craft/ready/*.md .craft/done/*.md 2>/dev/null | sort
 ```
-- Queue state — what's live vs claimed vs stuck (an item's `status:` distinguishes them within `docs/ready/`):
+- Queue state — what's live vs claimed vs stuck (an item's `status:` distinguishes them within `.craft/ready/`):
 ```bash
-grep -H '^status:\|^priority:' docs/ready/*.md 2>/dev/null
+grep -H '^status:\|^priority:' .craft/ready/*.md 2>/dev/null
 ```
   `ready` = queued. `in-progress` is legacy `build`; with `build3` a claim is a branch.
 - Claims — branches. `craft/<item>` = claimed; its tip says how far it got:
 ```bash
 git branch -a --list '*craft/*' --format='%(refname:short) %(committerdate:relative) %(subject)'
 ```
-  `status: blocked` on the branch (`git show craft/<item>:docs/ready/<item>.md | grep '^status:\|^blocked:'`) = a build failed it. A review file on the branch (`git show craft/<item>:docs/ready/<item>.review.json`) = waiting for the human; report why from that file: `tier` and `triggers`. A 🟢 waits only because the main checkout wasn't clean and on main when it tried to merge, or because the user held it. Neither, and no recent commit = stale claim. Lead the report with blocked, then waiting-for-review, then in progress.
-- Decisions (`ls -1 docs/adr/*.md 2>/dev/null | tail -5`, or legacy `ADR.md` tail) — recent architectural changes; filenames carry date + slug, open only if needed.
-- Ideas (`grep -H '^status:\|^priority:' docs/ideas/*.md 2>/dev/null`) — candidates, not commitments; report them parked, not as tasks. `open`/`deferred` here are the live pool. Weight by priority: lead with `high`, fold `low` into a count, flag ideas with no `priority` as awaiting triage.
+  `status: blocked` on the branch (`git show craft/<item>:.craft/ready/<item>.md | grep '^status:\|^blocked:'`) = a build failed it. A review file on the branch (`git show craft/<item>:.craft/ready/<item>.review.json`) = waiting for the human; report why from that file: `tier` and `triggers`. A 🟢 waits only because the main checkout wasn't clean and on main when it tried to merge, or because the user held it. Neither, and no recent commit = stale claim. Lead the report with blocked, then waiting-for-review, then in progress.
+- Decisions (`ls -1 .craft/adr/*.md 2>/dev/null | tail -5`, or legacy `ADR.md` tail) — recent architectural changes; filenames carry date + slug, open only if needed.
+- Ideas (`grep -H '^status:\|^priority:' .craft/ideas/*.md 2>/dev/null`) — candidates, not commitments; report them parked, not as tasks. `open`/`deferred` here are the live pool. Weight by priority: lead with `high`, fold `low` into a count, flag ideas with no `priority` as awaiting triage.
 
 For git repos, also check for uncommitted changes, unmerged branches, and recent commits.
 

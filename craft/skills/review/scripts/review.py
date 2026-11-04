@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch3" / "scripts"
 import validate  # noqa: E402 — architecture findings
 from md_utils import split_frontmatter  # noqa: E402
 
-ARCHITECTURE_FILE = "docs/architecture.yaml"
+ARCHITECTURE_FILE = ".craft/architecture.yaml"
 
 # Changed paths that make a change red. review_triggers in architecture.yaml add project paths to these.
 DEFAULT_TRIGGERS = {
@@ -153,9 +153,9 @@ def find_item(repo: Path, arg: str | None) -> Path | None:
         if not p.exists():
             sys.exit(f"{arg} not found")
         return p.resolve()
-    hits = sorted(repo.glob(f"docs/*/{arg}.md"))
+    hits = sorted(repo.glob(f".craft/*/{arg}.md"))
     if not hits:
-        sys.exit(f"item '{arg}' not found in docs/*/")
+        sys.exit(f"item '{arg}' not found in .craft/*/")
     return hits[0]
 
 
@@ -394,7 +394,7 @@ def diff_triggers(repo: Path, base: str, head: str, raw: dict | None, item: dict
 
     if item:
         for _, path in files:
-            if (Path(path).name in DOC_FILES or path.startswith("docs/modules/")) and Path(path).name not in item["doc_impact"]:
+            if (Path(path).name in DOC_FILES or path.startswith(".craft/modules/")) and Path(path).name not in item["doc_impact"]:
                 out.append(("red", f"doc-outside-impact: {path}"))
         if item["targets"]:
             outside: dict[str, int] = {}

@@ -70,9 +70,9 @@ Report in at most 8 lines: the tier, the red reasons, and what needs the human.
 
 Works from any checkout. The human doesn't need to know about branches or worktrees.
 
-**The queue.** For each `craft/*` branch, read `git show craft/<item>:docs/ready/<item>.review.json`. No review file means it's still building: skip it. List what's left, one line each: tier, item, why (`triggers`, or `blocked:` from the item). Take 🔴 and blocked items first, then 🟡, then 🟢.
+**The queue.** For each `craft/*` branch, read `git show craft/<item>:.craft/ready/<item>.review.json`. No review file means it's still building: skip it. List what's left, one line each: tier, item, why (`triggers`, or `blocked:` from the item). Take 🔴 and blocked items first, then 🟡, then 🟢.
 
-**Each item.** Find its worktree in `git worktree list`, or `git worktree add ../<repo>-<item> craft/<item>`. Run git there with `git -C <worktree>`, and open the changes view from `<worktree>/docs/ready/<item>.review.json`. Always list the manual ACs for the human to check. Then, by tier:
+**Each item.** Find its worktree in `git worktree list`, or `git worktree add ../<repo>-<item> craft/<item>`. Run git there with `git -C <worktree>`, and open the changes view from `<worktree>/.craft/ready/<item>.review.json`. Always list the manual ACs for the human to check. Then, by tier:
 
 - **🟢 green:** say it's clean. Ask: merge / skip.
 - **🟡 yellow:** summarize the triggers and what wasn't checked in at most six lines. Ask: merge / walk through it / send back / skip.

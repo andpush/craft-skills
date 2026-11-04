@@ -2,9 +2,9 @@
 # requires-python = ">=3.10"
 # dependencies = ["jsonschema>=4.18", "pyyaml>=6"]
 # ///
-"""Render docs/architecture.yaml and its ADRs as one HTML page in a temp folder.
+"""Render .craft/architecture.yaml and its ADRs as one HTML page in a temp folder.
 
-Usage: uv run arch2html.py [docs/architecture.yaml] [--no-open] [--out FILE]
+Usage: uv run arch2html.py [.craft/architecture.yaml] [--no-open] [--out FILE]
 Prints the page path and the number of architecture problems.
 """
 import importlib.util
@@ -638,9 +638,9 @@ def render(path):
     errors, warnings, deficiencies, improvements = problems(path)
     m = Architecture(data)
     root = path.resolve().parent
-    if root.name == "docs":  # architecture.yaml lives in docs/; its paths are relative to the repo root
+    if root.name == ".craft":  # architecture.yaml lives in .craft/; its paths are relative to the repo root
         root = root.parent
-    adrs = load_adrs(root / (data.get("decisions") or "docs/adr"))
+    adrs = load_adrs(root / (data.get("decisions") or ".craft/adr"))
 
     sections = []  # (anchor, title, html)
     if m.components:
@@ -710,7 +710,7 @@ def main():
         out = Path(args[i + 1])
         del args[i:i + 2]
     files = [a for a in args if not a.startswith("--")]
-    path = Path(files[0] if files else "docs/architecture.yaml")
+    path = Path(files[0] if files else ".craft/architecture.yaml")
     if not path.exists():
         print(f"{path} not found — create it with the arch3 skill")
         return 2
