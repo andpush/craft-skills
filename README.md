@@ -71,9 +71,7 @@ Spend your attention on what's expensive to undo. Agents can cheaply rewrite int
    | 🟡 | New relation, files outside the spec's target, edited acceptance test, anything not checked | Waits: skim the changes view, then merge |
    | 🔴 | Dependency, schema or API change, wider exposure, weakened test, deviation from the spec, confirmed high finding | Waits: decide each item, then merge or send back fixes |
 
-4. **Sync.** No skill pulls or pushes, so deploying stays your call. Periodically run `git pull --no-rebase`, `verify`, fix anything red, `git push`. Two changes can each pass and still fail together. If both sides changed `architecture.yaml`, regenerate the gate with `validate.py --gate`.
-
-**Calibrate:** skim the green items among your first 10 or so. If one should have been flagged, add a trigger. If trivial changes land on red, narrow the list.
+4. **Sync.** Skills do no git pull or push on their own, so syncing stays your call. Periodically run `git pull --no-rebase`, `verify`, fix anything red, `git push`. Two changes can each pass and still fail together. If both sides changed `architecture.yaml`, regenerate the gate with `validate.py --gate`.
 
 Why you can trust the result:
 
@@ -127,11 +125,18 @@ The queue's order is `priority: high`, then `created:`. Closed work is archived,
 
 ## Other skills
 
+In the `craft` plugin:
+
+| Skill | Does |
+| --- | --- |
+| `sa` | design a technical solution: options with a recommendation, ADRs on your yes; also used by `arch3` and `feat` |
+| `ba` | decompose requirements into epics, features and user stories with acceptance criteria |
+
+Plain skills in `misc/skills/`, not installed with the plugin. To use one, copy its folder to `~/.claude/skills/`:
+
 | Skill | Does |
 | --- | --- |
 | `orient` | map an unfamiliar repo's structure, architecture and dependencies, in the session |
-| `sa` | design a technical solution: options with a recommendation, ADRs on your yes; also used by `arch3` and `feat` |
-| `ba` | decompose requirements into epics, features and user stories with acceptance criteria |
 | `doc-refactor <in> -> <out> [goal]` | merge and dedupe docs, preserving knowledge |
 | `tests-optimizer` | prune low-value tests, prove the suite is faster and still green |
 | `compare` | compare two codebases, pick a winner |

@@ -1,6 +1,5 @@
 {
   "name": "craft-skills",
-  "version": "1.0.0",
   "description": "Product development skills",
   "owner": {
     "name": "Andrei Pushkin",
@@ -9,9 +8,17 @@
   "plugins": [
     {
       "name": "craft",
-      "description": "SDD workflow: prod->arch->feat/task->build",
+      "description": "SDD workflow: prod->arch->guard->feat/task->build->review",
       "source": "./craft",
-      "category": "development"
+      "category": "engineering",
+      "keywords": [
+        "engineering",
+        "skills",
+        "sdd",
+        "architecture",
+        "arch",
+        "review"
+      ]
     }
   ]
 }

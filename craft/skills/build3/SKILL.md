@@ -10,7 +10,7 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 ## Before the first item
 
 - `AGENTS.md` names the `verify` command. No `verify` → stop and offer `guard`; without it there is no gate.
-- Never pull or push. Syncing with a remote is a separate routine in `AGENTS.md`, and a push may trigger a deploy.
+- Do not pull or push unless asked: a push may trigger a deploy.
 
 ## The queue
 
