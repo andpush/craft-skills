@@ -50,7 +50,7 @@ SKIP_MARK = re.compile(r"@Disabled|@Ignore\b|\.skip\(|\bx(it|describe|test)\(|\.
                        r"|\bt\.Skip\(|#\[ignore\]")
 LOCKFILE = re.compile(r"(\.lock|-lock\.(json|yaml)|\.sum)$")
 REACH = {"local": 0, "private": 1, "internet": 2}
-DOC_FILES = {"PRODUCT.md", "AGENTS.md", "CLAUDE.md", Path(ARCHITECTURE_FILE).name}
+DOC_FILES = {"PRODUCT.md", "README.md", "AGENTS.md", "CLAUDE.md", Path(ARCHITECTURE_FILE).name}
 CONTRACT_TRIGGERS = ("dependency", "schema", "api", "event")
 RED_CONTRACTS = {"dependency", "schema", "api", "event", "data-writer", "data-copy", "external-call"}
 AC_COMMIT_SUBJECT = "test: acceptance tests"

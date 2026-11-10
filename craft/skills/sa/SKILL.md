@@ -8,7 +8,7 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 ## Ground
 
 - Anchor in reality: `PRODUCT.md` and `.craft/architecture.yaml` if present, the existing stack, the code as it is.
-- Read the decision history before proposing: `.craft/adr/` titles, and grep `## Rejected` for each option you consider. A rejected option comes back only when its "revisit if" holds — say which.
+- Read the decision history: `.craft/adr/`
 - Name the drivers before designing: core function, dominant quality attributes, hard constraints, scale. Design against them, not generic best practice.
 
 ## Shape
@@ -23,11 +23,25 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 
 ## Lenses
 
-Load only the lens the change touches:
-- [reference/domain.md](reference/domain.md) — components, aggregates, boundaries, state
-- [reference/data.md](reference/data.md) — owners, writers, copies, stores
-- [reference/interactions.md](reference/interactions.md) — APIs, events, idempotency, externals
-- [reference/migrations.md](reference/migrations.md) — schema and contract changes, temporary code
+Consider what the change touches; decide from the use case, not by default:
+- **Boundaries:** modular monolith unless a named driver demands a split; cut around data and its rules, not layers; dependencies point toward stability, no cycles.
+- **Data:** one writer per entity, including scripts and admin tools; each copy named (snapshot, replica, projection, cache) and rebuildable from its owner; one relational store per deployable unless a query pattern demands otherwise; deleting personal data reaches every copy.
+- **State:** explicit lifecycles only where an illegal transition costs money or trust.
+- **Concurrency:** concurrent writers, lost updates, locking.
+- **Contracts:** additive vs breaking; compatibility and versioning; errors are part of the contract.
+- **Delivery:** sync vs async, retries, idempotency, ordering, timeouts, partial failure of externals.
+- **Evolution:** expand/contract, old and new versions running side by side during a deploy, roll forward; temporary code gets an `idea-remove-<slug>.md` with its removal condition.
+- **Modules:** deep over shallow; no interface without a second implementation or a test seam.
+
+## Challenge the design
+
+Answer applicable questions yourself; raise with the user only an answer that changes the design.
+- Is there a simpler cut with fewer components that meets the same drivers?
+- Will the next ordinary change touch one component or three?
+- What breaks if this component is down for ten minutes?
+- What if this message arrives twice? Out of order? Never?
+- The callee succeeded but the caller timed out: what state is left, and what does a retry do?
+- Can this deploy stop halfway without harm?
 
 ## Verify
 

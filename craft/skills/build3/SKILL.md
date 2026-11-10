@@ -9,7 +9,7 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 
 ## Before the first item
 
-- `AGENTS.md` names the `verify` command. No `verify` → stop and offer `guard`; without it there is no gate.
+- `README.md` names the `verify` command. No `verify` → stop and offer `guard`; without it there is no gate.
 - Do not pull or push unless asked: a push may trigger a deploy.
 
 ## The queue
@@ -44,7 +44,7 @@ A `change` verdict in the review file means a `review walk` sent the item back. 
 
 Skip for `task` items: their tests come with the code.
 
-A subagent gets only the item path, `AGENTS.md` and this brief:
+A subagent gets only the item path, `README.md` and this brief:
 - Write a test for each AC that has a command, named `AC<n>_<behavior>` so the command selects it.
 - Test behavior through public interfaces, as the criterion states it.
 - No production code. In a compiled language, a compile error on a symbol the spec names counts as failing.
@@ -59,11 +59,11 @@ git commit -m "test: acceptance tests for <item>"
 
 ### 4. Implement
 
-A subagent gets the item path, `AGENTS.md`, the AC commit's file list, and these rules:
+A subagent gets the item path, `README.md`, the AC commit's file list, and these rules:
 - Stay inside the `target` components and the relations `.craft/architecture.yaml` lists for them.
 - Read the `notes` in `architecture.yaml` about what you touch. If the change would make one false, stop and raise it.
 - You may adapt an AC test to a rename or restructure, saying why in the commit. If the criterion itself looks wrong, stop and report it — that's a spec question, not a code one.
-- Don't edit `.craft/architecture.yaml`, `PRODUCT.md` or `AGENTS.md`: you apply the doc impact at close.
+- Don't edit `.craft/architecture.yaml`, `PRODUCT.md`, `README.md` or `AGENTS.md`: you apply the doc impact at close.
 - Commit in small commits; report what changed and anything done differently from the spec, with the reason.
 
 A small `task` item may be done inline.

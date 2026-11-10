@@ -26,8 +26,8 @@ Deterministic first; these findings need no judgment:
 - **Architecture validity:** `uv run --quiet <this-skill-dir>/../arch3/scripts/validate.py .craft/architecture.yaml` prints problems and exits non-zero on errors. Its deficiencies and improvements are findings.
 - **Rule coverage:** every `must` rule has a `check` that exists and went red at least once (`guard` proves it). A rule without one that a tool could check is a finding.
 - **Baseline:** its size and trend (`git log` on the baseline file). A growing baseline is a finding.
-- **Doc drift:** `AGENTS.md`, `PRODUCT.md` and the `notes` in `architecture.yaml`: claims that the code or `architecture.yaml` contradicts. Say which side is wrong; never rewrite intent to match code.
-- **Budgets:** `AGENTS.md` ≤60 lines, `PRODUCT.md` ≤150.
+- **Doc drift:** `README.md`, `AGENTS.md`, `PRODUCT.md` and the `notes` in `architecture.yaml`: claims that the code or `architecture.yaml` contradicts. Say which side is wrong; never rewrite intent to match code.
+- **Budgets:** `README.md` ≤100 lines, `PRODUCT.md` ≤150; `AGENTS.md` starts with `@README.md`, `CLAUDE.md` contains `@AGENTS.md`.
 - **Hotspots:** churn × size. Files changed most in the last six months (`git log --since=6.months --format= --name-only | sort | uniq -c | sort -rn | head -20`), weighed by length or complexity. A big file that changes often is where the next bug is.
 
 ### 3. Detailed Analysis

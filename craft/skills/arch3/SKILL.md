@@ -1,41 +1,55 @@
 ---
 name: arch3
-description: Use to define a project's `.craft/architecture.yaml` — the reference architecture and durable skeletal context for agents — designed with the user for a new project, derived from the code for an existing one, or reconciled when it has drifted; and to show it as an HTML page ("show me the architecture").
+description: Define a project's `architecture.yaml` — the reference architecture.
 ---
+Establish durable engineering context:
+- `.craft/architecture.yaml` - dense architecture definition
+- `README.md` - short overview, links and rules; referenced from `AGENTS.md` and `CLAUDE.md`
+- `.craft/adr/` - important architectural decisions
 
-`.craft/architecture.yaml` is the project's architecture in one file, with three jobs:
+`architecture.yaml` has three jobs:
 - **Orientation:** an agent reads it first and knows the parts, their boundaries and where data lives without exploring.
-- **Drift baseline:** relations are an allowlist, so anything the code does beyond them is degradation to fix or decide on.
-- **Diagram source:** context, containers, modules, ER, lifecycles and sequences render from it.
+- **Drift detection:** code vs architecture. Over time accumulated changes may lead to architecture decay. `guard` detects where code goes beyond the agreed definition (e.g. new dependencies)
+- **Diagram source:** render architectural diagrams from it.
+
+The architecture can be:
+- defined with the user for a new project,
+- derived from the code for an existing one, or
+- reconciled when it has drifted.
+
+In addition, the skill presents the architecture visually, as an HTML page that is easy for a human to grasp ("show me the architecture").
 
 **To only show the architecture,** skip the rest: see [View](#view).
 
-The format is [reference/architecture.schema.json](reference/architecture.schema.json). Read it and
-[reference/architecture.example.yaml](reference/architecture.example.yaml) before drafting.
+Before drafting read:
+- [YAML format](reference/architecture.schema.json)
+- [Example](reference/architecture.example.yaml)
 
 ## 1. Ground
 
-- Read `PRODUCT.md` and `.craft/adr/` when present, and anything the user points you to. Don't search for other documents.
-- With no product purpose anywhere, offer to run `prod` first: the architecture needs a purpose to design against.
+- Read `PRODUCT.md` and `.craft/adr/` when present, and anything the user points you to.
+- With no `PRODUCT.md`, offer to run `prod` first: the architecture needs a purpose to design against.
 - Pick the branch: no production code → **greenfield**; code → **brownfield**; `.craft/architecture.yaml`
   already exists → **reconcile**.
 
 ## 2a. Greenfield: shared understanding, then design
 
 Lead the discussion: state the assumptions you draw from the inputs and let the user confirm or
-correct them. Ask in small batches, each question with a recommended answer; skip what the inputs
-already answer.
+correct them. Ask in small batches, confirm, make decisions providing user options and grounding recommendation.
 
-Done when the user has confirmed a **drivers** summary of at most ten lines:
+Done when reached shared understanding on:
 - purpose and core function; actors; external systems
 - scale: users, data volume, request and event rates, expected growth
 - dominant qualities: availability, latency, consistency, security and compliance, cost
-- team size and ops capacity; hosting; preferred or mandated stack
-- hard constraints: existing systems, budget, deadlines
+- hosting and deployment
+- hard constraints and tech stack preferences
 
-Then design with the `sa` skill against the drivers. Each real fork (monolith vs services, shared vs
+Pay attention to data ownership, scaling, failure isolation, NFRs and risks that matter.
+Design with the `sa` skill against the drivers. Each real fork (monolith vs services, shared vs
 private store, sync vs async, build vs buy) goes to the user as options with a recommendation;
 settled defaults go straight into the draft.
+
+Document decisions with reasoning in ADRs, per `sa` rules, using the [ADR template](../sa/reference/adr.md).
 
 ## 2b. Brownfield: describe the code as it is
 
@@ -58,7 +72,8 @@ dimensions below with `file:line`. Small repo: one pass yourself.
 Record the relations the code actually has: `architecture.yaml` is a true baseline, and `guard` freezes
 existing violations. Then ask the user, in batches, only what code can't tell: actors, the purpose
 of components and externals, endpoint consumers outside the repo, which flows are the main ones,
-which lifecycles matter, which rules they intend.
+which lifecycles matter, which rules they intend, and why the components are cut the way they
+are. With no ADR for the cut yet, record that answer as one, on the user's yes.
 
 Done when every production source directory belongs to a component and every relation in the
 draft has evidence.
@@ -76,7 +91,8 @@ Structure shows what exists, not what is meant. From the user, prose docs and co
 what a competent reader would still get wrong: deliberate oddities, false boundaries, effects wider
 than they look, hidden reasons. Check each against the code; a contradiction is a finding. What must
 keep holding becomes a rule, the rest a one- or two-sentence note. How-to-work content goes to
-`AGENTS.md`.
+`README.md`. Coding conventions: point to the project's existing convention files
+from README References; write new ones only if project-specific, with the user.
 
 ## 4. Findings
 
@@ -123,9 +139,25 @@ catch it drifting?
   `check` names a file that exists.
 - **Tech:** names with major versions. **Glossary:** non-obvious terms only.
 
-## 6. `AGENTS.md`
+## 6. `README.md`, `AGENTS.md`, `CLAUDE.md`
 
-Create it from [reference/agents-template.md](reference/agents-template.md), or fill what's missing in an existing one, and make `CLAUDE.md` the single line `@AGENTS.md`. At most 60 lines: commands, invariants, merge policy, pointers. Ask the user for the merge policy.
+`README.md` is the digest humans read and every agent loads, so it holds only the current, decided
+state, tersely. Write it from [reference/readme-template.md](reference/readme-template.md): vision
+from `PRODUCT.md`, the architecture digest from `architecture.yaml`, commands, prerequisites, and
+References with a "read when" for each file that exists. At most 100 lines, one line per fact.
+
+- These sections come first. An existing README keeps its wording and its other sections: add
+  what's missing, adopting a section that already says the same thing.
+- On a rerun or reconcile, don't rewrite for style. Fix only what is wrong: a contradiction with
+  `architecture.yaml` or `PRODUCT.md`, a command or prerequisite that no longer works, a reference
+  to a file that's gone or a missing one.
+- An existing README that is long or holds prose (guides, rationale, history): extract it into
+  files with speaking names (`CONTRIBUTING.md`, `docs/deployment.md`), reasons into ADRs, and link
+  them from References. Propose the split; apply it after the user confirms.
+
+`AGENTS.md` starts with the line `@README.md`, and `CLAUDE.md` contains `@AGENTS.md`, so every
+agent loads README and through its References finds the rest. Create them with just that line;
+in existing ones add only the line, and leave everything else as it is.
 
 ## 7. Verify and confirm
 
@@ -137,7 +169,8 @@ Create it from [reference/agents-template.md](reference/agents-template.md), or 
 3. Walk the user through the draft: components and their jobs, data ownership, exposure, flows, rules,
    notes, findings, open questions. Apply their changes, then re-run step 1.
 
-Done when the validator exits 0 and the user has approved `architecture.yaml`.
+Done when the validator exits 0, the user has approved `architecture.yaml`, and the README digest
+(step 6) matches it.
 
 ## View
 
@@ -149,5 +182,5 @@ Renders `architecture.yaml`, ADRs and validator findings to `<tmp>/craft-views/a
 
 ## Report
 
-In a few lines: the file written, findings and their outcomes, open questions, and the next
+In a few lines: the files written, findings and their outcomes, open questions, and the next
 step — `guard`, to turn relations and rules into checks.

@@ -72,7 +72,7 @@ state for a lifecycle, ER with owners for data.*
 ### Migration plan *[for any schema or stored-format change]*
 
 *Steps — expand → backfill → switch → contract — and which this change contains. Mixed-version
-behavior. Roll-forward or rollback per step. See `sa/reference/migrations.md`.*
+behavior. Roll-forward or rollback per step.*
 
 ### State & lifecycle  *[as appropriate]*
 
@@ -96,7 +96,7 @@ safety net that locks current behavior before code moves.*
 
 ### Doc impact *[if any]*
 
-*The exact edits this change makes to `PRODUCT.md`, `AGENTS.md` or
+*The exact edits this change makes to `PRODUCT.md`, `README.md`, `AGENTS.md` or
 `.craft/architecture.yaml` — the only doc edits `build3` may apply. "None" when none.*
 
 - `.craft/architecture.yaml`: <e.g. orders.uses += notify>
@@ -109,7 +109,7 @@ safety net that locks current behavior before code moves.*
 
 *The implementor's stop condition. Each test carries the AC ID in its name (`AC2_retryIsIdempotent`);
 the command selects exactly those tests and fails if it selects none. Use the AC command form from
-`AGENTS.md`. Always implied: `verify` exits 0.*
+`README.md`. Always implied: `verify` exits 0.*
 
 | ID | Criterion | Command |
 |---|---|---|

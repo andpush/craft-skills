@@ -24,7 +24,7 @@ Periodically  audit → decide on findings in arch3
 | Skill | Goal | Output |
 | --- | --- | --- |
 | `prod` | Define what we are building and why | `PRODUCT.md` |
-| `arch3` | Define the architecture; ask "show me the architecture" to view it | `architecture.yaml`, `AGENTS.md`, findings, HTML page |
+| `arch3` | Define the architecture; ask "show me the architecture" to view it | `architecture.yaml`, `README.md` digest, `AGENTS.md`, findings, HTML page |
 | `guard` | Enforce architecture and code quality; rerun when `architecture.yaml` changes | `verify` command with deterministic checks |
 | `idea <hunch>` | Capture an idea for later | `.craft/draft/idea-*.md`, checked against `PRODUCT.md` |
 | `feat <feature>` | Define a feature, ready for implementation | `.craft/ready/feat-*.md`: contracts, acceptance criteria, doc impact |
@@ -84,7 +84,7 @@ Why you can trust the result:
 
 ## The gate: `verify`
 
-One command, wired by `guard` from your existing scripts and named in `AGENTS.md`. It runs build, lint, tests and architecture checks, and fails on any failure, including a test filter that matches nothing. `build3` runs it before every merge. Call it from CI before deploy too, or changes that skip `build3` go unchecked.
+One command, wired by `guard` from your existing scripts and named in `README.md`. It runs build, lint, tests and architecture checks, and fails on any failure, including a test filter that matches nothing. `build3` runs it before every merge. Call it from CI before deploy too, or changes that skip `build3` go unchecked.
 
 Architecture checks fail on:
 
@@ -101,8 +101,9 @@ Architecture checks fail on:
 ## What Craft adds to your repo
 
 ```text
-AGENTS.md                        # ≤60 lines every agent loads: commands, invariants, workflow
-CLAUDE.md                        # @AGENTS.md
+README.md                        # ≤100 lines: vision, architecture digest, commands, references
+AGENTS.md                        # @README.md first; the rest is yours
+CLAUDE.md                        # @AGENTS.md; the rest is yours
 PRODUCT.md                       # ≤150 lines: purpose, users, value, constraints, scope
 .craft/
 ├── architecture.yaml            # components, relations, security, data, flows, rules, notes
@@ -115,7 +116,7 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 └── audit-*.md                   # health snapshots
 ```
 
-`guard` also adds architecture and rule tests to your suite. HTML pages go to a temp folder and are never committed.
+`guard` also adds architecture and rule tests to your suite. HTML pages go to a temp folder and are never committed. Craft writes the first sections of `README.md` and keeps them true; you can reword them and add your own.
 
 **Work items** move `draft/ → ready/ → done/` and keep their `type-slug.md` name throughout. The folder is the state: tasks skip `draft/`, and anything committed in `ready/` can be built. A `craft/<item>` branch is the claim, and a failed build adds a `blocked:` line on it.
 

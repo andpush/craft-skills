@@ -45,7 +45,7 @@ target: <component name from .craft/architecture.yaml>
 
 | ID | Criterion | Command |
 |---|---|---|
-| AC1 | <behavior> | `<AC command form from AGENTS.md, filter AC1_>` |
+| AC1 | <behavior> | `<AC command form from README.md, filter AC1_>` |
 
 **Doc impact:** the exact doc edits, if any — the only ones `build3` may apply. Omit if none.
 

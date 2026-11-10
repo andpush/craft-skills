@@ -13,7 +13,7 @@ The stack, build tool and test runner, from the manifests.
 
 ## 2. `verify`
 
-One command that runs build, lint, tests and the architecture checks, and exits non-zero on any failure. Reuse the project's scripts and add only the wiring. Record it in `AGENTS.md` under Commands: `verify: <command>` and `AC command: <runner> <filter AC1_>`.
+One command that runs build, lint, tests and the architecture checks, and exits non-zero on any failure. Reuse the project's scripts and add only the wiring. Record it under Commands in `README.md`: `verify: <command>` and `AC command: <runner> <filter AC1_>`.
 
 Run an AC filter that matches nothing and see it fail. If it passes, wrap it (stacks.md).
 
