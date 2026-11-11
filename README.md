@@ -2,7 +2,7 @@
 
 Keep a codebase healthy while agents keep changing it.
 
-Over a long run of features and fixes, agents tend to erode architecture, security, maintainability and reliability a little at a time. Craft adds what stops that: executable acceptance, enforced architecture, and visual pages that show you only what deserves your attention.
+Over a long run of features and fixes, agents tend to erode architecture, security, maintainability and reliability a little at a time. Craft adds what stops that: enforced architecture and visual pages that show you only what deserves your attention.
 
 You delegate the coding, not the decisions. Craft surfaces expensive-to-undo decisions (data model, boundaries, contracts) while they're cheap to change, recommends, and lets you steer.
 
@@ -24,7 +24,7 @@ Periodically  audit → decide on findings
 | Skill | Goal | Output |
 | --- | --- | --- |
 | `prod` | Define what we are building and why | `PRODUCT.md` |
-| `arch3` | Define the architecture; ask "show me the architecture" to view it | `architecture.yaml`, `README.md` digest, `AGENTS.md`, findings, HTML page |
+| `arch3` | Define or reconcile the architecture; show it as an HTML page | `architecture.yaml`, `README.md`, findings, ADRs, HTML page |
 | `guard` | Enforce architecture and code quality; rerun when `architecture.yaml` changes | `verify` command with deterministic checks |
 | `idea <hunch>` | Capture an idea for later | `.craft/draft/idea-*.md`, checked against `PRODUCT.md` |
 | `feat <feature>` | Define a feature, ready for implementation | `.craft/ready/feat-*.md`: contracts, acceptance criteria, doc impact |
