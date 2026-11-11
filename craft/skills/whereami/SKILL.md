@@ -27,13 +27,15 @@ git branch -a --list '*craft/*' --format='%(refname:short) %(committerdate:relat
 - Decisions (`ls -1 .craft/adr/*.md 2>/dev/null | tail -5`, or legacy `ADR.md` tail) — recent architectural changes; filenames carry date + slug, open only if needed.
 - Ideas (`grep -H '^resolution:\|^priority:' .craft/draft/idea-*.md 2>/dev/null`) — candidates, not commitments; report them parked, not as tasks. No `resolution:` = not looked at yet; `postpone` = looked at, not now. Weight by priority: lead with `high`, fold `low` into a count, flag ideas with no `priority` as awaiting triage.
 
+- Findings (`ls -1t .craft/findings/*.md 2>/dev/null | head -3`) — snapshots from `arch3`, `audit` and `review walk`; for the newest, count `high` items and questions (`grep -c '· high$\|· question$'`).
+
 For git repos, also check for uncommitted changes, unmerged branches, and recent commits.
 
 ## Infer
 
 - Last contribution: newest queue/done items + commits — what was being solved.
 - Stuck? A `blocked` item in WIP, dangling uncommitted edits, big unfinished refactoring, or a branch that hasn't landed in a while.
-- Next: `review walk` for anything waiting, `blocked` to unstick, `feat-*` drafts and claims to finish, queued items to pick up, `idea-remove-*` whose condition holds, parked ideas to promote, uncommitted files.
+- Next: `review walk` for anything waiting, `blocked` to unstick, `feat-*` drafts and claims to finish, queued items to pick up, `idea-remove-*` whose condition holds, `high` findings and questions to decide, parked ideas to promote, uncommitted files.
 
 ## Report
 

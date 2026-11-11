@@ -18,7 +18,7 @@ Each skill outputs durable info to your repo, where the next skill reads it.
 Once          prod → arch3 → guard
 Each change   (idea →) feat or task → build3 (runs verify and review) → merged, or waiting for review walk
 Quick fix     fix
-Periodically  audit → decide on findings in arch3
+Periodically  audit → decide on findings
 ```
 
 | Skill | Goal | Output |
@@ -33,7 +33,7 @@ Periodically  audit → decide on findings in arch3
 | `review [<item>\|<branch>]` | Show what a change did and where attention is needed | Risk tier, findings, page. Works on any branch |
 | `review walk [<item>]` | Go through everything waiting for you | Your decisions; merges what you accept, sends the rest back |
 | `fix` | Fix a bug surgically in this session, skipping `build3` and `review` | Minimal change with a test that was red first |
-| `audit` | Assess the health of the whole repo | `.craft/audit-*.md`: findings, scores, actions |
+| `audit` | Assess the health of the whole repo | `.craft/findings/audit-*.md`: scores, findings, fixes |
 | `whereami` | Reorient after a break | Status report and HTML dashboard: focus, what's waiting and why, parked ideas, next step |
 
 A skill missing its input offers to run the skill that creates it, e.g. `build3` stops and offers `guard`.
@@ -96,8 +96,6 @@ Architecture checks fail on:
 
 `guard` proves each check by planting a violation and showing it go red. Recipes cover Python, Kotlin, TypeScript/JavaScript, Go, Rust, Swift and Dart/Flutter.
 
-`verify` only catches what's mechanical. For justified architecture changes or drift in meaning, use `arch3` reconcile, which `feat` runs when a change adds a component or contract.
-
 ## What Craft adds to your repo
 
 ```text
@@ -113,7 +111,7 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 ├── ready/{feat,task}-*.md       # build queue
 ├── done/                        # shipped items with <item>.review.json, rejected ideas
 ├── adr/YYYY-MM-DD-*.md          # one decision per file
-└── audit-*.md                   # health snapshots
+└── findings/{arch,audit,review}-*.md  # findings and open questions, one file per run
 ```
 
 `guard` also adds architecture and rule tests to your suite. HTML pages go to a temp folder and are never committed. Craft writes the first sections of `README.md` and keeps them true; you can reword them and add your own.
@@ -121,6 +119,8 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 **Work items** move `draft/ → ready/ → done/` and keep their `type-slug.md` name throughout. The folder is the state: tasks skip `draft/`, and anything committed in `ready/` can be built. A `craft/<item>` branch is the claim, and a failed build adds a `blocked:` line on it.
 
 **Ideas** wait in `draft/`. A `resolution:` line records `postpone` or `reject` with the reason, and a rejected idea moves to `done/`. An idea you implement is deleted once its `feat-` or `task-` item reaches `ready/`.
+
+**Findings** from `arch3`, `audit` and `review walk` (accepted but unfixed) land in `.craft/findings/`, one file per run; keep, merge or delete them as you like. An architecture change you confirm in `arch3` reconcile becomes a `feat`: it edits `architecture.yaml`, writes the ADR and adjusts code and `README.md` in one reviewed merge.
 
 The queue's order is `priority: high`, then `created:`. Closed work is archived, not deleted.
 

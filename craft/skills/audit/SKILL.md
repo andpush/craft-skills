@@ -22,7 +22,7 @@ Make sure the architecture is consistent within repo and with docs. Flag inconsi
 ### 2. Conformance — when `.craft/architecture.yaml` exists
 
 Deterministic first; these findings need no judgment:
-- **Architecture vs code:** run `verify`, then `arch3` reconcile for what the checks can't see. Its differences are findings.
+- **Architecture vs code:** run `verify`, then compare the code with `architecture.yaml` for what the checks can't see. Each difference is a finding; deciding them is `arch3` reconcile, run by the user.
 - **Architecture validity:** `uv run --quiet <this-skill-dir>/../arch3/scripts/validate.py .craft/architecture.yaml` prints problems and exits non-zero on errors. Its deficiencies and improvements are findings.
 - **Rule coverage:** every `must` rule has a `check` that exists and went red at least once (`guard` proves it). A rule without one that a tool could check is a finding.
 - **Baseline:** its size and trend (`git log` on the baseline file). A growing baseline is a finding.
@@ -37,10 +37,10 @@ Perform each major component review. List findings and per-component quality sco
 
 
 ## Report
-Prioritize findings with `file:line` and a concrete minimal fix each if possible. Uncertain findings go in a separate section.
+Write `.craft/findings/audit-<YYYYMMDD>-<N>.md` ([template](../arch3/reference/findings-template.md)): quality scores first, then findings, highest severity first, each with `file:line` and a concrete minimal fix where possible. When only the user can tell whether something is a problem, record it as a `question`.
 
 Quality score 1–10 per component and overall, where 10 = nothing to fix,
 7 = minor cleanup, 5 = notable debt slowing changes, 3 = structural problems/unmaintainable/complete redesign pending.
 One sentence of justification each.
 
-Change no code; the only file you write is the report: `.craft/audit-YYYY-MM-DD.md`, unless the user specified otherwise.
+Change no code; the findings file is the only file you write, unless the user specified otherwise.
