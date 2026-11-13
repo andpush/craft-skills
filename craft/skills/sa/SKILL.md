@@ -23,7 +23,6 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 
 ## Lenses
 
-Consider what the change touches; decide from the use case, not by default:
 - **Boundaries:** modular monolith unless a named driver demands a split; cut around data and its rules, not layers; dependencies point toward stability, no cycles.
 - **Data:** one writer per entity, including scripts and admin tools; each copy named (snapshot, replica, projection, cache) and rebuildable from its owner; one relational store per deployable unless a query pattern demands otherwise; deleting personal data reaches every copy.
 - **State:** explicit lifecycles only where an illegal transition costs money or trust.
