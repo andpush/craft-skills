@@ -34,12 +34,13 @@ Establish durable engineering context:
 ## 2a. Greenfield: shared understanding, then design
 
 Lead the discussion: state the assumptions you draw from the inputs and let the user confirm or
-correct them. Ask in small batches, confirm, make decisions providing user options and grounding recommendation.
+correct them. Interview relentlessly, a few questions at a time, until no driver is a guess. For
+each decision, give options and a grounded recommendation.
 
-Done when reached shared understanding on:
-- purpose and core function; actors; external systems
+Reach shared understanding on:
+- purpose and core functions; actors; external systems
 - scale: users, data volume, request and event rates, expected growth
-- dominant qualities: availability, latency, consistency, security and compliance, cost
+- NFRs: availability, latency, consistency, security and compliance, cost
 - hosting and deployment
 - hard constraints and tech stack preferences
 
@@ -51,43 +52,35 @@ Explore with evidence: build and deploy files, imports, routes and API
 specs, clients and configured URLs, migrations and ORM mappings, topics, security config and deploy
 flags, status enums, architecture tests. Large repo: fan out `Explore` agents by territory.
 
-Record what the code has, including what you'd question, and raise that as a finding (step 4).
+Record what the code has, including what you'd question, and raise that as a finding (step 3).
 
 Ask the user only what the code can't tell and you need to know; if they don't know either, record
-it as an open question (step 4) rather than a guess.
+it as an open question (step 3) rather than a guess.
 
 Done when every production source directory belongs to a component.
 
 ## 2c. Reconcile
 
-Diff the code against `architecture.yaml` and go through each difference with the user:
-- **finding** (step 4): the code should change later;
-- **architecture change**, only on the user's yes: not applied here. Offer `feat` for it, one per
-  group of related changes; its Doc impact carries the `architecture.yaml` and `README.md` edits, the
-  ADR, and a check for any new `must` rule;
-- **open question** (step 4): the user has no clear opinion yet.
+Analyse the code against `architecture.yaml` and against itself; find contradictions. Go through
+them with the user, grounding why each matters, and settle each one:
+- **update the architecture**, on the user's yes: edit it in this session (step 4) with an ADR;
+- **change the code:** offer a `feat` for related fixes, or record a finding (step 3);
+- **open question** (step 3): the user has no clear opinion yet;
+- **skip:** the difference doesn't matter.
 
-## 3. Intent
+## 3. Findings
 
-Structure shows what exists, not what is meant. Collect what a competent reader would still get
-wrong — deliberate oddities, false boundaries, hidden reasons — and check it against the code. What
-must keep holding becomes a rule, the rest a note. Point README References to existing convention files.
+Collect findings (problems, with a direction: fix the code, change the architecture, or options) and
+open questions from step 2, plus what reading the code against the `sa` lenses
+reveals. Write them to a new `.craft/findings/arch-<YYYYMMDD>-<N>.md` ([template](reference/findings-template.md)).
 
-## 4. Findings
+## 4. Write the architecture
 
-`validate.py` reports the mechanical ones; add what reading the code against the `sa` lenses
-reveals. Write them and the open questions to a new `.craft/findings/arch-<YYYYMMDD>-<N>.md`
-([template](reference/findings-template.md)); don't consult or update older findings files. This
-skill fixes `architecture.yaml`, not the code.
+Greenfield and brownfield write it whole; reconcile applies only what the user approved (2c).
 
-## 5. Write `architecture.yaml`
-
-Every line passes one test: would a reader otherwise reconstruct it from code, and can a check catch
-it drifting? Detail follows risk: data, contracts and security in detail, stable parts coarse.
-Relations are an allowlist, so list them completely. Paths stay relative to the repo root; the
-schema stays in this skill.
-
-## 6. `README.md`, `AGENTS.md`, `CLAUDE.md`
+`architecture.yaml`: every line passes one test: would a reader otherwise reconstruct it from code,
+and can a check catch it drifting? Detail follows risk: data, contracts and security in detail,
+stable parts coarse. Relations are an allowlist, so list them completely.
 
 `README.md` is the digest every agent loads: current decided state, at most 100 lines, one line per
 fact, from [reference/readme-template.md](reference/readme-template.md). Its sections come first; an
@@ -97,7 +90,7 @@ moves to topic files (`CONTRIBUTING.md`, `docs/<topic>.md`), reasons to ADRs —
 `AGENTS.md` starts with `@README.md`; `CLAUDE.md` contains `@AGENTS.md`. Create them with just
 that line; in existing ones add only the line.
 
-## 7. Verify and confirm
+## 5. Verify and confirm
 
 1. `uv run --quiet <this-skill-dir>/scripts/validate.py .craft/architecture.yaml` exits 0; fix or
    explain warnings.
@@ -112,7 +105,7 @@ Done when the validator passes, the user approved `architecture.yaml`, and READM
 uv run --quiet <this-skill-dir>/scripts/arch2html.py [.craft/architecture.yaml]
 ```
 
-Renders `architecture.yaml`, ADRs and validator findings to `<tmp>/craft-views/arch-<system>.html` and opens it. Flags: `--no-open`, `--out <file>`. Display only: a new kind of finding goes in `validate.py`; a `Diagram error` is a bug in `arch2html.py`.
+Renders `architecture.yaml`, ADRs and validator findings to `<tmp>/craft-views/arch-<system>.html` and opens it. Flags: `--no-open`, `--out <file>`.
 
 ## Report
 

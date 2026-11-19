@@ -120,7 +120,7 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 
 **Ideas** wait in `draft/`. A `resolution:` line records `postpone` or `reject` with the reason, and a rejected idea moves to `done/`. An idea you implement is deleted once its `feat-` or `task-` item reaches `ready/`.
 
-**Findings** from `arch3`, `audit` and `review walk` (accepted but unfixed) land in `.craft/findings/`, one file per run; keep, merge or delete them as you like. An architecture change you confirm in `arch3` reconcile becomes a `feat`: it edits `architecture.yaml`, writes the ADR and adjusts code and `README.md` in one reviewed merge.
+**Findings** from `arch3`, `audit` and `review walk` (accepted but unfixed) land in `.craft/findings/`, one file per run; keep, merge or delete them as you like. In `arch3` reconcile you decide each contradiction: update `architecture.yaml` with an ADR on the spot, or change the code through a `feat`.
 
 The queue's order is `priority: high`, then `created:`. Closed work is archived, not deleted.
 
