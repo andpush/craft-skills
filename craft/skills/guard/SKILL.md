@@ -47,7 +47,7 @@ For each check: introduce one violation, run `verify`, see it red with the expec
 
 ## 7. The project's pipeline
 
-`verify` only needs the project's toolchain, so craft depends on no particular pipeline. Tell the user to call it from theirs, before any deploy, with no checks of its own, and offer to add it. Without one, nothing re-runs `verify` outside this machine, and changes that skip `build3` go unchecked.
+`verify` only needs the project's toolchain, so craft depends on no particular pipeline. Tell the user to call it from theirs, before any deploy, with no checks of its own, and offer to add it. Without one, nothing re-runs `verify` outside this machine, and changes that skip `build` go unchecked.
 
 ## 8. Protect the gate
 

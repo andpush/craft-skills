@@ -18,7 +18,7 @@ ls -1 .craft/draft/*.md .craft/ready/*.md .craft/done/*.md 2>/dev/null | sort
 ```bash
 grep -H '^status:\|^priority:' .craft/ready/*.md 2>/dev/null
 ```
-  Everything in `.craft/ready/` is queued. `in-progress` is legacy `build`; with `build3` a claim is a branch.
+  Everything in `.craft/ready/` is queued. A claim is a `craft/<item>` branch; `status: in-progress` is from the old `build`.
 - Claims — branches. `craft/<item>` = claimed; its tip says how far it got:
 ```bash
 git branch -a --list '*craft/*' --format='%(refname:short) %(committerdate:relative) %(subject)'

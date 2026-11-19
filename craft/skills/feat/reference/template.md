@@ -3,6 +3,7 @@ created: YYYY-MM-DD
 updated: YYYY-MM-DD
 target: <component names from .craft/architecture.yaml, comma-separated>
 # priority: high   # optional; the queue takes high first, then by created
+# depends_on: [feat-YYYYMMDD-<slug>]   # optional; built only after these are in .craft/done/
 ---
 
 # <Title>
@@ -52,7 +53,7 @@ state for a lifecycle, ER with owners for data.*
 ### Key decisions & rejected approaches *[if any]*
 
 *One line per decision; rejected approaches say why. Mark the ones that need an ADR —
-`ADR: <slug>` — `build3` writes them at close in the format of `sa/reference/adr.md`.*
+`ADR: <slug>` — `build` writes them at close in the format of `sa/reference/adr.md`.*
 
 ### Affected components & files
 
@@ -97,7 +98,7 @@ safety net that locks current behavior before code moves.*
 ### Doc impact *[if any]*
 
 *The exact edits this change makes to `PRODUCT.md`, `README.md`, `AGENTS.md` or
-`.craft/architecture.yaml` — the only doc edits `build3` may apply. "None" when none.*
+`.craft/architecture.yaml` — the only doc edits `build` may apply. "None" when none.*
 
 - `.craft/architecture.yaml`: <e.g. orders.uses += notify>
 

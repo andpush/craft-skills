@@ -1,9 +1,9 @@
 ---
 name: task
-description: Use to record a small, ready-to-execute task as a terse handoff doc in .craft/ready/ (task-<slug>.md) — for a focused change (typically one component) that's too concrete for `idea` and too small for a full `feat`. Explore the relevant code, confirm you understood the intent, resolve gaps, then write a self-contained brief an implementor (or `build3`) executes from cold without further questions. Use for quick fixes, scoped enhancements, chores, and "just do X" tasks.
+description: Use to record a small, ready-to-execute task as a terse handoff doc in .craft/ready/ (task-<YYYYMMDD>-<slug>.md) — for a focused change (typically one component) that's too concrete for `idea` and too small for a full `feat`. Explore the relevant code, confirm you understood the intent, resolve gaps, then write a self-contained brief an implementor (or `build`) executes from cold without further questions. Use for quick fixes, scoped enhancements, chores, and "just do X" tasks.
 ---
 
-Turn a small, concrete request into a build-ready handoff doc in the execution queue. The bet: a few minutes confirming intent and scoping the code now saves the implementor a round-trip later. The deliverable is the doc, not code — don't implement here; `build3` (or any agent) picks it up after.
+Turn a small, concrete request into a build-ready handoff doc in the execution queue. The bet: a few minutes confirming intent and scoping the code now saves the implementor a round-trip later. The deliverable is the doc, not code — don't implement here; `build` (or any agent) picks it up after.
 
 `task` sits between `idea` (unvalidated capture, no execution intent) and `feat` (non-trivial change needing architecture work). It assumes the *what* is already roughly decided and the change is small — usually one component, no architecture decisions. Its whole job is to remove ambiguity before handoff.
 
@@ -24,13 +24,14 @@ Ask only the sharp unknowns that change the outcome — the ones the implementor
 This is the core value: an implementor should be able to execute from the doc cold, without coming back to the user.
 
 ### 3. Write the doc
-`.craft/ready/task-<slug>.md` — `slug` is the kebab task name, unique across `.craft/draft/`, `.craft/ready/` and `.craft/done/`. The filename is the index. A task doc is a brief, not a spec: aim for one screen. Keep it terse; cut any section that adds nothing. If it's growing past a screen with diagrams and layered decisions, that's the signal it wanted to be a `feat`.
+`.craft/ready/task-<YYYYMMDD>-<slug>.md` — `slug` is the kebab task name; the name is unique across `.craft/draft/`, `.craft/ready/` and `.craft/done/`. The filename is the index. A task doc is a brief, not a spec: aim for one screen. Keep it terse; cut any section that adds nothing. If it's growing past a screen with diagrams and layered decisions, that's the signal it wanted to be a `feat`.
 
 ```markdown
 ---
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 target: <component name from .craft/architecture.yaml>
+# depends_on: [<item>]   # optional; built only after these are in .craft/done/
 ---
 
 # <Task in one line>
@@ -47,14 +48,14 @@ target: <component name from .craft/architecture.yaml>
 |---|---|---|
 | AC1 | <behavior> | `<AC command form from README.md, filter AC1_>` |
 
-**Doc impact:** the exact doc edits, if any — the only ones `build3` may apply. Omit if none.
+**Doc impact:** the exact doc edits, if any — the only ones `build` may apply. Omit if none.
 
 **Notes:** decisions resolved in this session and constraints the implementor must respect — one line each, the decision not the debate, so nothing has to be re-asked. Omit if none.
 ```
 
 ### 4. Report
-One or two lines: file created, plus the next step — `build3 <item>` to have craft execute it (or `/goal <file>` / a subagent). If you recommended escalating to `feat`, say that instead.
+One or two lines: file created, plus the next step — `build <item>` to have craft execute it (or `/goal <file>` / a subagent). If you recommended escalating to `feat`, say that instead.
 
 ## Lifecycle
 
-The task lands in `.craft/ready/` and is committed to main — the live execution queue. If it implements an idea, delete the idea in the same commit, after carrying over anything still useful. From there `build3` owns it: it claims it with a `craft/<item>` branch, implements (a task's tests come with the code — no separate acceptance-test step), verifies, reviews, and moves it to `.craft/done/` in the same branch. A failed build marks it `blocked` on its branch. `whereami` lists ready and claimed tasks as live work. Deleting a task file is the user's call, never yours.
+The task lands in `.craft/ready/` and is committed to main — the live execution queue. If it implements an idea, delete the idea in the same commit, after carrying over anything still useful. From there `build` owns it: it claims it with a `craft/<item>` branch, implements (a task's tests come with the code — no separate acceptance-test step), verifies, reviews, and moves it to `.craft/done/` in the same branch. A failed build marks it `blocked` on its branch. `whereami` lists ready and claimed tasks as live work. Deleting a task file is the user's call, never yours.

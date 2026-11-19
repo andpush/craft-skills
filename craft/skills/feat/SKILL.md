@@ -1,15 +1,11 @@
 ---
 name: feat
-description: Use to build any non-trivial changes to the software — a feature, service, API, data model, schema, behavior change, or refactoring — to analyse user intent, discover requirements, brainstorm and plan the approach.
+description: Use to plan a feature, service, refactoring, or any other non-trivial change: clarify intent, discover requirements, design the approach, and hand off a spec for autonomous build.
 ---
 
-Turn an intent into a self-contained, build-ready solution spec through collaborative dialogue. The spec is a handoff for a build agent, so it must be clear and concrete enough to execute from cold, without further clarifications or design decisions.
+Turn an intent, through dialogue with the user, into a build-ready spec: concrete enough for an agent to execute from cold, with no further questions or design decisions.
 
-During this collaborative session: understand context -> refine intent -> discover hidden decisions and surface tradeoffs -> define the approach -> define acceptance criteria, confirm readiness for delegated build.
-
-The spec is the deliverable, not code: don't implement during a `feat` session — it ends only at a spec the user has confirmed.
-
-Once it's ready, the implementation is a delegated execution — via `build3` (craft's executor), `/goal`, a dispatched subagent, or any agent.
+The spec is the deliverable, not code: don't implement here; the session ends at a spec the user has confirmed.
 
 ## Context gates — detect, don't dead-end
 
@@ -57,42 +53,28 @@ If the request spans several independent subsystems, or assumes too many changes
 
 ### 3. Design the solution
 
-Design the approach per the `sa` skill ([../sa/SKILL.md](../sa/SKILL.md)): start simple, options on substantial forks with a recommendation, expensive-to-reverse decisions surfaced while they're cheap to change.
-
-As new information arises, iterate between the solution and the problem framing — they shape each other. Involve the user at each fork; refer to the codebase when context is required. Follow defined rules and conventions.
+Design the approach per the `sa` skill ([../sa/SKILL.md](../sa/SKILL.md)). As new information arises, iterate between the solution and the problem framing; they shape each other.
 
 ### 4. Write the spec
 
-- Use template [reference/template.md](reference/template.md).
-- Lead with the **Review Brief**: the scannable decision surface a human approves from. Keep execution detail below it, and only where it's needed.
-- Be concrete, avoid prose, duplications, restatements of `PRODUCT.md`/`.craft/architecture.yaml` - link instead.
-- YAGNI: Focus on the core value, and defer non-essential ideas to `.craft/draft/`.
-- If the change path crosses code smells (oversized file, tangled responsibilities, unclear boundaries), fold targeted fixes into the spec — improve what you touch. Don't propose unrelated refactoring.
-- **Contract changes** go in the Review Brief, one per item with its consequence: a new or upgraded dependency, a schema change, a public API or event change, a new writer or copy of data, a new external call. They outlive the code, so they're what the human reviews first. Check it against the `sa` lenses and challenge questions ([../sa/SKILL.md](../sa/SKILL.md)).
-- **A schema or stored-format change needs a Migration plan:** expand → backfill → switch → contract, mixed-version behavior, roll-forward.
-- **Targets and architecture:** `target:` lists component names from `.craft/architecture.yaml`. A change that needs a new component, a new relation, a new entity, wider exposure, or a new rule says so in **Doc impact**, as an exact edit to `.craft/architecture.yaml`.
-- **Doc impact** lists the exact edits to `PRODUCT.md`, `README.md`, `AGENTS.md` and `.craft/architecture.yaml`. A change to what `README.md` states (components, data, stack, commands, prerequisites) includes the matching `README.md` edit. `build3` applies only these, and `review` flags any other doc edit.
-- Define a feature-relevant testing approach following the testing pyramid, with the negative cases that apply. For UI changes, consider e2e using playwright-cli skill or similar. Gate refactoring with TDD: establish a green safety net before restructuring.
-- **Acceptance is a table of commands:** `| ID | Criterion | Command |`. Each criterion names observable behavior; its command runs exactly the tests named `AC<n>_…` (the AC command form in `README.md`). `build3` has these tests written first, by an agent that sees only the spec — so a criterion must be testable from the spec alone. A criterion no test can show is marked `(manual)` with `—` as the command; the human checks it at review. `verify` exiting 0 is always implied.
+- Use [reference/template.md](reference/template.md); name it `feat-<YYYYMMDD>-<slug>.md`, unique across `.craft/draft/`, `ready/` and `done/`. Names never change; only the folder does. An item that needs another built first lists it in `depends_on:`.
+- Lead with the **Review Brief**, the surface a human approves from; execution detail below, only where needed.
+- Be concrete; link to `PRODUCT.md` and `.craft/architecture.yaml` instead of restating them.
+- YAGNI: focus on the core value; defer the rest to `.craft/draft/`.
+- Where the change path crosses code smells, fold targeted fixes in; no unrelated refactoring.
+- **Contract changes** outlive the code, so the human reviews them first; check each against the `sa` lenses and challenge questions.
+- A new component, relation, entity, wider exposure or rule, or a change to what `README.md` states, goes in **Doc impact** as an exact edit; `build` applies only those.
+- **Acceptance:** `build` has the AC tests written first by an agent that sees only the spec, so each criterion must be testable from the spec alone.
 
 ### 5. Present and confirm
 
 Don't just dump a spec with the details buried in it; present the chosen solution clearly in a way easy to grasp for a human:
-- Write the item to `.craft/draft/`, named as in step 6, and open the spec page — Review Brief first, the component diagram with the targets highlighted, contract changes as cards, the AC table:
+- Write the item to `.craft/draft/` and open the spec page — Review Brief first, the component diagram with the targets highlighted, contract changes as cards, the AC table:
   ```bash
   uv run --quiet <this-skill-dir>/scripts/spec2html.py .craft/draft/<item>.md
   ```
-- For the page to lift them: frontmatter `target:` names components from `architecture.yaml`; contract changes are a nested list under `- **Contract changes:**`, one per item: `C1 <kind>: <what> — <consequence>`.
 - In the terminal, lead with what needs the human: open questions, contract changes, anything the page flags. Every item has an ID (`C1`, `AC3`) to discuss by.
 - Obtain confirmation that the spec captures the intent and is ready to build. If not, iterate and re-render.
-
-### 6. Emit the spec
-
-Items follow [reference/template.md](reference/template.md):
-- `feat-<slug>.md`, `slug` = kebab feature name, unique across `.craft/draft/`, `.craft/ready/` and `.craft/done/`; `created:` = today.
-
-If one item splits into an ordered sequence, put a letter after the type: `feat-a-<slug>.md`, `feat-b-<slug>.md`, … Names never change afterwards; only the folder does.
-
 
 ## Ideas
 
@@ -113,8 +95,8 @@ Self-review the spec with fresh eyes before declaring it ready:
 ## When done
 
 - if no open blockers — move the item and its images to `.craft/ready/` (it's now claimable from the queue), delete the idea it implements if any, and commit to main; otherwise it stays in `.craft/draft/` until resolved.
-- report it's ready to execute and give the next step: `build3 <item>`, or the goal line for a `/goal` run:
-  `/goal Item .craft/ready/<item>.md built per build3: verify exited 0 with output shown, review tier reported`
+- report it's ready to execute and give the next step: `build <item>`, or the goal line for a `/goal` run:
+  `/goal Item .craft/ready/<item>.md built per build: verify exited 0 with output shown, review tier reported`
   A few lines, no narrative.
 
-Execution and archival are owned by `build3`: it claims the item with a `craft/<item>` branch, builds and reviews it there, and moves it — with its same-basename files — into `.craft/done/` in the same branch. You don't archive here.
+Execution and archival are owned by `build`: it claims the item with a `craft/<item>` branch, builds and reviews it there, and moves it — with its same-basename files — into `.craft/done/` in the same branch. You don't archive here.

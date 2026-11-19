@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use to review a change before it merges — a craft item's branch or any other branch. Computes the risk tier, describes contract changes (data model, API, dependencies), runs independent reviewers, turns suspicions into failing tests, and writes `<item>.review.json`. `review walk` then takes the human through every change waiting for them, in the terminal, and merges what they accept. `build3` calls it after verify.
+description: Use to review a change before it merges — a craft item's branch or any other branch. Computes the risk tier, describes contract changes (data model, API, dependencies), runs independent reviewers, turns suspicions into failing tests, and writes `<item>.review.json`. `review walk` then takes the human through every change waiting for them, in the terminal, and merges what they accept. `build` calls it after verify.
 ---
 
 Find what a human must look at, prove what you can, and say plainly what wasn't checked. The tier is computed by a script, never chosen by you. Zero findings is a valid result; padding is not.
@@ -56,7 +56,7 @@ Run every AC command and record `pass` or `fail`. Manual ACs stay `manual`, and 
 
 ### 6. Close
 
-Rerun the script, and resolve every `incomplete` line, or state why in `not_checked`. Don't fix the code: fixes belong to `build3` or the user. Then open the changes view:
+Rerun the script, and resolve every `incomplete` line, or state why in `not_checked`. Don't fix the code: fixes belong to `build` or the user. Then open the changes view:
 
 ```bash
 uv run --quiet <this-skill-dir>/scripts/diff2html.py <item>.review.json
@@ -98,11 +98,11 @@ Ask for the verdict with AskUserQuestion: accept / change / discuss. You may gro
 
 **Ending an item.** A finding accepted but not fixed is known debt, unless the human called it a false alarm: add it to `.craft/findings/review-<YYYYMMDD>-<N>.md` ([template](../arch/reference/findings-template.md)) in the worktree. Commit any verdicts and findings (`review: <item> verdicts`). Then:
 
-- **Merge, or all accepted:** run `build3`'s Integrate and Merge steps, without reopening the view. A red `verify` or a dirty main checkout leaves the item waiting: say why and move on.
-- **Send back, or any "change":** record each `change` verdict and its minimal fix in `fixes` (ID → fix), and leave the branch. That's the fix list `build3 <item>` picks up.
+- **Merge, or all accepted:** run `build`'s Integrate and Merge steps, without reopening the view. A red `verify` or a dirty main checkout leaves the item waiting: say why and move on.
+- **Send back, or any "change":** record each `change` verdict and its minimal fix in `fixes` (ID → fix), and leave the branch. That's the fix list `build <item>` picks up.
 - **Skip:** leave it waiting.
 
-After the last item, report what merged, what went back and what was skipped, and offer to run `build3 <item>` for each one sent back.
+After the last item, report what merged, what went back and what was skipped, and offer to run `build <item>` for each one sent back.
 
 **A branch outside `craft/`.** `review walk <branch>` walks only that branch. Its review file is in the temp folder, so there's nothing to commit, and merging stays with the user.
 

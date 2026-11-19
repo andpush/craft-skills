@@ -26,7 +26,7 @@ Invariants: `<rule id>` <what it forbids>; <other things no one may break, e.g. 
 
 ## Craft
 
-Work items move `.craft/draft/` → `ready/` → `done/`; `build3` builds each on a `craft/<item>` branch, merges 🟢 to local main and leaves 🟡/🔴 for `review walk`. Syncing with the remote is by hand: `git pull --no-rebase`, verify, `git push`.
+Work items move `.craft/draft/` → `ready/` → `done/`; `build` builds each on a `craft/<item>` branch, merges 🟢 to local main and leaves 🟡/🔴 for `review walk`. Syncing with the remote is by hand: `git pull --no-rebase`, verify, `git push`.
 
 ## Prerequisites
 

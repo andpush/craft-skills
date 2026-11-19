@@ -42,7 +42,7 @@ Quote `resolution:` if the reason contains a colon, and bump `updated`. Otherwis
 
 ## Removal ideas
 
-Temporary code — a feature flag, an adapter, a dual write, a compatibility shim — gets an idea when it's introduced (`build3` files these at close): `idea-remove-<slug>.md`, `priority: high`, with the removal condition as the body's first line — `Remove when: all clients send the key`. `whereami` surfaces them; they're debt with a due date, not candidates.
+Temporary code — a feature flag, an adapter, a dual write, a compatibility shim — gets an idea when it's introduced (`build` files these at close): `idea-remove-<slug>.md`, `priority: high`, with the removal condition as the body's first line — `Remove when: all clients send the key`. `whereami` surfaces them; they're debt with a due date, not candidates.
 
 ## Check alignment
 

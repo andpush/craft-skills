@@ -6,7 +6,7 @@ The `3` suffix marks new versions. It goes away once they're proven and the old 
 
 **Proven.** On a Kotlin fixture (2026-10-28, run stopped halfway), `build3` and `review` wrote acceptance tests red first, and `review` proved a spec gap with a failing test, blocking the merge. On travelai (2026-11-02), `guard`'s Kotlin and Dart checks and deploy test went red on planted violations. Python was proven on a throwaway repo.
 
-**Not yet run.** `build3` and `review` on the current `architecture.yaml` format; the worktree flow, `review walk` and merge steps with a real item (their git steps passed on a throwaway repo); `feat`'s `draft/` flow; a full `verify` on travelai; blocked → resume; a green merge; the TypeScript, Go and Rust/Swift adapters.
+**Not yet run.** `build` and `review` on the current `architecture.yaml` format; the worktree flow, `review walk` and merge steps with a real item (their git steps passed on a throwaway repo); `feat`'s `draft/` flow; a full `verify` on travelai; blocked → resume; a green merge; the TypeScript, Go and Rust/Swift adapters.
 
 **Next.** Trim every skill, then a trial with planted defects: a forbidden dependency, an unauthorized writer, a consumer without dedupe.
 

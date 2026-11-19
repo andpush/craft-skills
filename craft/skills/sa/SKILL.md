@@ -47,4 +47,4 @@ Answer applicable questions yourself; raise with the user only an answer that ch
 
 End with the chosen approach, its rationale, and any decisions still open for the user. What happens next — a spec, `architecture.yaml`, direct build — belongs to the caller.
 
-An expensive-to-reverse decision becomes an ADR only on the user's explicit yes, in the format of [reference/adr.md](reference/adr.md): written now when there's no build, or listed in the spec for `build3` to write at close.
+An expensive-to-reverse decision becomes an ADR only on the user's explicit yes, in the format of [reference/adr.md](reference/adr.md): written now when there's no build, or listed in the spec for `build` to write at close.

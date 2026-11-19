@@ -16,7 +16,7 @@ Each skill outputs durable info to your repo, where the next skill reads it.
 
 ```text
 Once          prod → arch → guard
-Each change   (idea →) feat or task → build3 (runs verify and review) → merged, or waiting for review walk
+Each change   (idea →) feat or task → build (runs verify and review) → merged, or waiting for review walk
 Quick fix     fix
 Periodically  audit → decide on findings
 ```
@@ -29,40 +29,40 @@ Periodically  audit → decide on findings
 | `idea <hunch>` | Capture an idea for later | `.craft/draft/idea-*.md`, checked against `PRODUCT.md` |
 | `feat <feature>` | Define a feature, ready for implementation | `.craft/ready/feat-*.md`: contracts, acceptance criteria, doc impact |
 | `task <task>` | Same, for a small change with no contract or architecture impact | One-screen `.craft/ready/task-*.md` |
-| `build3 [all\|<item>]` | Implement an item | Branch, merged or waiting for `review walk` |
+| `build [all\|<item>]` | Implement an item | Branch, merged or waiting for `review walk` |
 | `review [<item>\|<branch>]` | Show what a change did and where attention is needed | Risk tier, findings, page. Works on any branch |
 | `review walk [<item>]` | Go through everything waiting for you | Your decisions; merges what you accept, sends the rest back |
-| `fix` | Fix a bug surgically in this session, skipping `build3` and `review` | Minimal change with a test that was red first |
+| `fix` | Fix a bug surgically in this session, skipping `build` and `review` | Minimal change with a test that was red first |
 | `audit` | Assess the health of the whole repo | `.craft/findings/audit-*.md`: scores, findings, fixes |
 | `whereami` | Reorient after a break | Status report and HTML dashboard: focus, what's waiting and why, parked ideas, next step |
 
-A skill missing its input offers to run the skill that creates it, e.g. `build3` stops and offers `guard`.
+A skill missing its input offers to run the skill that creates it, e.g. `build` stops and offers `guard`.
 
 ## Getting started
 
-**Requires** `git`, [`uv`](https://docs.astral.sh/uv/), your project's toolchain, and Claude Code or another agent host. Any git host or CI works, or none. Without subagents, `build3` stops after `verify` for you to run `review` in a new session.
+**Requires** `git`, [`uv`](https://docs.astral.sh/uv/), your project's toolchain, and Claude Code or another agent host. Any git host or CI works, or none. Without subagents, `build` stops after `verify` for you to run `review` in a new session.
 
 ```claude
 /plugin marketplace add andpush/craft-skills
 /plugin install craft
 ```
 
-Companion skills: `simplify` and `code-review`, `security-review` (used by `build3` and `review`), `playwright-cli` (UI end-to-end tests).
+Companion skills: `simplify` and `code-review`, `security-review` (used by `build` and `review`), `playwright-cli` (UI end-to-end tests).
 
 **Onboard:** `/craft:init` for a small project, otherwise `/prod`, `/arch`, `/guard` separately. Existing files are adopted, not overwritten.
 - **New project:** you define the product and architecture together. Rerun `guard` once there's code to check.
 - **Existing project:** Craft derives both from the code and asks only what code can't tell. `guard` freezes existing violations in a baseline, so only new ones fail and debt can only shrink.
 
-**Then:** add `verify` to your pipeline, and start with `/feat <feature>` and `/build3`.
+**Then:** add `verify` to your pipeline, and start with `/feat <feature>` and `/build`.
 
-**Recommended LLMs:** Opus/high for `prod` and `arch`, Opus/medium for `feat`, Opus/medium or Sonnet/high for `build3`, which runs unattended once permissions are granted.
+**Recommended LLMs:** Opus/high for `prod` and `arch`, Opus/medium for `feat`, Opus/medium or Sonnet/high for `build`, which runs unattended once permissions are granted.
 
 ## Making a change
 
 Spend your attention on what's expensive to undo. Agents can cheaply rewrite internals, but a bad data model, API or security decision gets costlier as code builds on it.
 
 1. **Plan.** `feat` shapes a spec in `.craft/draft/` and, once you approve it, commits it to `.craft/ready/` on main. `task` commits there directly. Approving the goal, contract changes and acceptance criteria is your best use of time.
-2. **Build.** `build3`, by hand or on a schedule, works on a `craft/<item>` branch in a sibling worktree: acceptance tests (with the code for `task` items), implementation, `verify`, independent `review`, docs, `verify` again.
+2. **Build.** `build`, by hand or on a schedule, works on a `craft/<item>` branch in a sibling worktree: acceptance tests (with the code for `task` items), implementation, `verify`, independent `review`, docs, `verify` again.
 3. **Merge.** A script sets the tier. Run `review walk` from your main checkout to go through everything waiting. It points you to what matters, so open code only where an item sends you.
 
    | Tier | Typical causes | What happens |
@@ -84,7 +84,7 @@ Why you can trust the result:
 
 ## The gate: `verify`
 
-One command, wired by `guard` from your existing scripts and named in `README.md`. It runs build, lint, tests and architecture checks, and fails on any failure, including a test filter that matches nothing. `build3` runs it before every merge. Call it from CI before deploy too, or changes that skip `build3` go unchecked.
+One command, wired by `guard` from your existing scripts and named in `README.md`. It runs build, lint, tests and architecture checks, and fails on any failure, including a test filter that matches nothing. `build` runs it before every merge. Call it from CI before deploy too, or changes that skip `build` go unchecked.
 
 Architecture checks fail on:
 
@@ -143,7 +143,7 @@ Plain skills in `misc/skills/`, not installed with the plugin. To use one, copy 
 | `compare` | compare two codebases, pick a winner |
 | `slides`, `ui-mockup`, `uiux-design`, `lit-translate` | decks, clickable mockups, UI/UX design, literary translation |
 
-Avoid `build` and `code-reviewer`: they're being replaced by `build3` and `review`.
+Avoid `code-reviewer`: it is being replaced by `review`.
 
 ## License
 
