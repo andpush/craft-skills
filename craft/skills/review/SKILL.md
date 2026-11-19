@@ -96,7 +96,7 @@ For each item, at most six lines:
 
 Ask for the verdict with AskUserQuestion: accept / change / discuss. You may group up to four low-risk items in one call. On "discuss", answer and ask again. Record each verdict in `verdicts`.
 
-**Ending an item.** A finding accepted but not fixed is known debt, unless the human called it a false alarm: add it to `.craft/findings/review-<YYYYMMDD>-<N>.md` ([template](../arch3/reference/findings-template.md)) in the worktree. Commit any verdicts and findings (`review: <item> verdicts`). Then:
+**Ending an item.** A finding accepted but not fixed is known debt, unless the human called it a false alarm: add it to `.craft/findings/review-<YYYYMMDD>-<N>.md` ([template](../arch/reference/findings-template.md)) in the worktree. Commit any verdicts and findings (`review: <item> verdicts`). Then:
 
 - **Merge, or all accepted:** run `build3`'s Integrate and Merge steps, without reopening the view. A red `verify` or a dirty main checkout leaves the item waiting: say why and move on.
 - **Send back, or any "change":** record each `change` verdict and its minimal fix in `fixes` (ID → fix), and leave the branch. That's the fix list `build3 <item>` picks up.

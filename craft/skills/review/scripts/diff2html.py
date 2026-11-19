@@ -18,7 +18,7 @@ from urllib.parse import quote
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import review as rv  # noqa: E402 — git, diff, triggers
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch3" / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch" / "scripts"))
 import arch2html  # noqa: E402 — the component map
 from html_utils import esc, md, pill, section, write  # noqa: E402
 from md_utils import split_frontmatter, split_sections  # noqa: E402

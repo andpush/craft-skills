@@ -1,5 +1,5 @@
 <!--
-The skeleton `arch3` writes at the root README.md, ≤100 lines, loaded by every agent through
+The skeleton `arch` writes at the root README.md, ≤100 lines, loaded by every agent through
 CLAUDE.md → AGENTS.md → README.md. These sections come first; people may reword them and add their own after. Current,
 decided state only, one line per fact. Reasons go in ADRs, long prose in topic files under References.
 Drop any line that restates architecture.yaml or says the obvious.

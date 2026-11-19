@@ -25,7 +25,7 @@ from pathlib import Path
 
 import yaml
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch3" / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "arch" / "scripts"))
 import validate  # noqa: E402 — architecture findings
 from md_utils import split_frontmatter  # noqa: E402
 
@@ -466,7 +466,7 @@ def main() -> None:
 
     raw, was = raw_at(repo, head), raw_at(repo, base)
     if raw is None and ARCHITECTURE_FILE in git(repo, "ls-tree", "-r", "--name-only", head).splitlines():
-        sys.exit(f"{ARCHITECTURE_FILE} at {head[:8]} can't be read: fix it with arch3")
+        sys.exit(f"{ARCHITECTURE_FILE} at {head[:8]} can't be read: fix it with arch")
     changes, edges = structure_changes(was, raw)
     changes += define_changes(was, raw)
 

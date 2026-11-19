@@ -16,7 +16,7 @@ Once it's ready, the implementation is a delegated execution — via `build3` (c
 `feat` builds on `PRODUCT.md` and `.craft/architecture.yaml`.
 
 If either is missing or placeholder-only — offer a fork:
-- **Establish now** — run `prod`/`arch3` skills in this session, then continue the spec.
+- **Establish now** — run `prod`/`arch` skills in this session, then continue the spec.
 - **Defer** — name what's missing and why it matters, then stop so the user runs `/init` separately.
 
 ## Core Principles
@@ -45,7 +45,7 @@ Understand the ground you're building on:
 - Read `PRODUCT.md` and `.craft/architecture.yaml`, including its `notes` about what the change touches.
 - Peek into dir tree, recent commit log, `.craft/draft/` and `.craft/adr/` listings if warranted. Before proposing an option, grep the ADRs' `## Rejected` for it.
 - Explore additional context and zoom in as needed.
-- A change that adds a component, affects a contract or a persisted entity: check that the code it touches complies with `architecture.yaml`. If it doesn't, stop and offer `arch3` reconcile, so the spec doesn't build on a stale baseline.
+- A change that adds a component, affects a contract or a persisted entity: check that the code it touches complies with `architecture.yaml`. If it doesn't, stop and offer `arch` reconcile, so the spec doesn't build on a stale baseline.
 
 ### 2. Frame the problem
 

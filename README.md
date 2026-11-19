@@ -15,7 +15,7 @@ You delegate the coding, not the decisions. Craft surfaces expensive-to-undo dec
 Each skill outputs durable info to your repo, where the next skill reads it.
 
 ```text
-Once          prod → arch3 → guard
+Once          prod → arch → guard
 Each change   (idea →) feat or task → build3 (runs verify and review) → merged, or waiting for review walk
 Quick fix     fix
 Periodically  audit → decide on findings
@@ -24,7 +24,7 @@ Periodically  audit → decide on findings
 | Skill | Goal | Output |
 | --- | --- | --- |
 | `prod` | Define what we are building and why | `PRODUCT.md` |
-| `arch3` | Define or reconcile the architecture; show it as an HTML page | `architecture.yaml`, `README.md`, findings, ADRs, HTML page |
+| `arch` | Define or reconcile the architecture; show it as an HTML page | `architecture.yaml`, `README.md`, findings, ADRs, HTML page |
 | `guard` | Enforce architecture and code quality; rerun when `architecture.yaml` changes | `verify` command with deterministic checks |
 | `idea <hunch>` | Capture an idea for later | `.craft/draft/idea-*.md`, checked against `PRODUCT.md` |
 | `feat <feature>` | Define a feature, ready for implementation | `.craft/ready/feat-*.md`: contracts, acceptance criteria, doc impact |
@@ -49,13 +49,13 @@ A skill missing its input offers to run the skill that creates it, e.g. `build3`
 
 Companion skills: `simplify` and `code-review`, `security-review` (used by `build3` and `review`), `playwright-cli` (UI end-to-end tests).
 
-**Onboard:** `/craft:init` for a small project, otherwise `/prod`, `/arch3`, `/guard` separately. Existing files are adopted, not overwritten.
+**Onboard:** `/craft:init` for a small project, otherwise `/prod`, `/arch`, `/guard` separately. Existing files are adopted, not overwritten.
 - **New project:** you define the product and architecture together. Rerun `guard` once there's code to check.
 - **Existing project:** Craft derives both from the code and asks only what code can't tell. `guard` freezes existing violations in a baseline, so only new ones fail and debt can only shrink.
 
 **Then:** add `verify` to your pipeline, and start with `/feat <feature>` and `/build3`.
 
-**Recommended LLMs:** Opus/high for `prod` and `arch3`, Opus/medium for `feat`, Opus/medium or Sonnet/high for `build3`, which runs unattended once permissions are granted.
+**Recommended LLMs:** Opus/high for `prod` and `arch`, Opus/medium for `feat`, Opus/medium or Sonnet/high for `build3`, which runs unattended once permissions are granted.
 
 ## Making a change
 
@@ -120,7 +120,7 @@ PRODUCT.md                       # ≤150 lines: purpose, users, value, constrai
 
 **Ideas** wait in `draft/`. A `resolution:` line records `postpone` or `reject` with the reason, and a rejected idea moves to `done/`. An idea you implement is deleted once its `feat-` or `task-` item reaches `ready/`.
 
-**Findings** from `arch3`, `audit` and `review walk` (accepted but unfixed) land in `.craft/findings/`, one file per run; keep, merge or delete them as you like. In `arch3` reconcile you decide each contradiction: update `architecture.yaml` with an ADR on the spot, or change the code through a `feat`.
+**Findings** from `arch`, `audit` and `review walk` (accepted but unfixed) land in `.craft/findings/`, one file per run; keep, merge or delete them as you like. In `arch` reconcile you decide each contradiction: update `architecture.yaml` with an ADR on the spot, or change the code through a `feat`.
 
 The queue's order is `priority: high`, then `created:`. Closed work is archived, not deleted.
 
@@ -130,7 +130,7 @@ In the `craft` plugin:
 
 | Skill | Does |
 | --- | --- |
-| `sa` | design a technical solution: options with a recommendation, ADRs on your yes; also used by `arch3` and `feat` |
+| `sa` | design a technical solution: options with a recommendation, ADRs on your yes; also used by `arch` and `feat` |
 | `ba` | decompose requirements into epics, features and user stories with acceptance criteria |
 
 Plain skills in `misc/skills/`, not installed with the plugin. To use one, copy its folder to `~/.claude/skills/`:

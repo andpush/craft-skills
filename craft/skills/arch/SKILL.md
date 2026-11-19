@@ -1,5 +1,5 @@
 ---
-name: arch3
+name: arch
 description: Define, derive, reconcile or show the project architecture in `architecture.yaml`.
 ---
 Establish durable engineering context:

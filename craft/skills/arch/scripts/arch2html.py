@@ -687,7 +687,7 @@ def render(path):
               f"{len(deficiencies)} deficiencies", f"{len(improvements)} improvements"]
     banner = ""
     if errors:
-        banner += (f'<div class="problems"><b>{len(errors)} architecture errors</b> — fix with arch3'
+        banner += (f'<div class="problems"><b>{len(errors)} architecture errors</b> — fix with arch'
                    f'<ul>{"".join(f"<li>{esc(e)}</li>" for e in errors)}</ul></div>')
     if warnings:
         banner += (f'<div class="problems warn"><b>{len(warnings)} warnings</b>'
@@ -712,7 +712,7 @@ def main():
     files = [a for a in args if not a.startswith("--")]
     path = Path(files[0] if files else ".craft/architecture.yaml")
     if not path.exists():
-        print(f"{path} not found — create it with the arch3 skill")
+        print(f"{path} not found — create it with the arch skill")
         return 2
     title, body, errors, warnings = render(path)
     system = re.sub(r"\W+", "-", title.removesuffix(" architecture")).lower()

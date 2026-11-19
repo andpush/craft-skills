@@ -1,13 +1,13 @@
 ---
 name: prod
-description: Use to define the product — WHAT we are building and WHY - the purpose, users, solution, value, constraints, and scope — into a durable PRODUCT.md that `arch3` and `feat` rely on.
+description: Use to define the product — WHAT we are building and WHY - the purpose, users, solution, value, constraints, and scope — into a durable PRODUCT.md that `arch` and `feat` rely on.
 ---
 
 Establish the durable product context — who it's for, what it does, why it matters, what's in and out — either by defining it with the user (greenfield) or deriving it from existing material (brownfield), into a `PRODUCT.md` that the rest of craft builds on.
 
 Run once at project start; again only when the product direction shifts.
 
-`prod` owns the product definition; `arch3` consumes it.
+`prod` owns the product definition; `arch` consumes it.
 
 If a `PRODUCT.md` already exists — written by hand or generated — update and extend it.
 
@@ -31,4 +31,4 @@ Discover requirements in a professional conversation. Reach a shared, confirmed 
 
 ## Output
 
-Write the `PRODUCT.md` in a terse, pragmatic tone, at most 150 lines — every agent session may load it — link to existing docs instead of restating them, and report on the next step (`arch3`), any open product questions the user must still resolve, and whether `PRODUCT.md` was created vs. adopted. A few lines, no narrative.
+Write the `PRODUCT.md` in a terse, pragmatic tone, at most 150 lines — every agent session may load it — link to existing docs instead of restating them, and report on the next step (`arch`), any open product questions the user must still resolve, and whether `PRODUCT.md` was created vs. adopted. A few lines, no narrative.

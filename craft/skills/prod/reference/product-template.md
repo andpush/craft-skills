@@ -1,6 +1,6 @@
 <!--
 The skeleton `prod` produces at PRODUCT.md — the durable "who, what, why" that
-`arch3` and `feat` build on. Keep it terse and scannable; capture intent and constraints,
+`arch` and `feat` build on. Keep it terse and scannable; capture intent and constraints,
 not a roadmap. Omit a section only if it genuinely doesn't apply. Link out rather than restate.
 -->
 
@@ -36,7 +36,7 @@ The hard limits that shape the build: timeline, compliance/regulatory, accessibi
 
 ## Non-functional targets
 
-Only what's known and business-driven: performance, availability/SLA, scale, required integrations. Don't invent numbers; `arch3` translates these into architecture drivers.
+Only what's known and business-driven: performance, availability/SLA, scale, required integrations. Don't invent numbers; `arch` translates these into architecture drivers.
 
 ## Scope
 
