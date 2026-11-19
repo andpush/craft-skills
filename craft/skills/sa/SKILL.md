@@ -15,18 +15,16 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 
 - Start simple. Every component, store, queue, or indirection layer must earn its place against a named driver.
 - Architecture and stack shape each other — iterate both to coherence: propose components with preliminary tech, validate the tech against the components, refine.
-- Draw component boundaries by data ownership, dependencies, lifecycle, and independent scaling needs.
-- Give the data layer extra care: entities, relations, and a store choice justified by query patterns, consistency needs, and volume.
 - On a substantial fork, produce 2–3 genuinely different options — include one simpler than feels comfortable and, when useful, one non-obvious. Consider build vs. buy vs. integrate for substantial pieces. Recommend one option and say why it beats the others.
-- Pull expensive-to-reverse decisions forward: data ownership and source of truth, component boundaries and contracts, state and lifecycle, consistency model, sync vs. async. Cheap-to-change details can wait.
+- Pull expensive-to-reverse decisions forward (boundaries, data ownership, contracts, consistency); cheap details can wait.
 - Surface what wasn't asked: edge cases, failure modes, cheap-now/expensive-later choices.
 
 ## Lenses
 
-- **Boundaries:** modular monolith unless a named driver demands a split; cut around data and its rules, not layers; dependencies point toward stability, no cycles.
-- **Data:** one writer per entity, including scripts and admin tools; each copy named (snapshot, replica, projection, cache) and rebuildable from its owner; one relational store per deployable unless a query pattern demands otherwise; deleting personal data reaches every copy.
+- **Boundaries:** along bounded contexts (DDD): data ownership, dependencies, lifecycle, independent scaling needs, not technical layers; dependencies point toward stability (SDP).
+- **Data** (needs special care): shape entities and relations based on query patterns, consistency and concurrency needs, future growth. Prefer one writer per entity.
+- **Privacy:** which personal data, where every copy lives, retention and deletion, applicable regulation and residency.
 - **State:** explicit lifecycles only where an illegal transition costs money or trust.
-- **Concurrency:** concurrent writers, lost updates, locking.
 - **Contracts:** additive vs breaking; compatibility and versioning; errors are part of the contract.
 - **Delivery:** sync vs async, retries, idempotency, ordering, timeouts, partial failure of externals.
 - **Evolution:** expand/contract, old and new versions running side by side during a deploy, roll forward; temporary code gets an `idea-remove-<slug>.md` with its removal condition.
