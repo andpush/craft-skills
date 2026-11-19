@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "craft",
-      "description": "SDD workflow: prod->arch->guard->feat/task->build->review",
+      "description": "SDD workflow: prod->arch3->guard->feat/task->build3->review",
       "source": "./craft",
       "category": "engineering",
       "keywords": [

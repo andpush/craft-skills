@@ -143,7 +143,7 @@ Plain skills in `misc/skills/`, not installed with the plugin. To use one, copy 
 | `compare` | compare two codebases, pick a winner |
 | `slides`, `ui-mockup`, `uiux-design`, `lit-translate` | decks, clickable mockups, UI/UX design, literary translation |
 
-Avoid `arch`, `build` and `code-reviewer`: they're being replaced by `arch3`, `build3` and `review`.
+Avoid `build` and `code-reviewer`: they're being replaced by `build3` and `review`.
 
 ## License
 
