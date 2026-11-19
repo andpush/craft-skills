@@ -1,6 +1,6 @@
 ---
 name: arch3
-description: Define a project's `architecture.yaml` — the reference architecture.
+description: Define, derive, reconcile or show the project architecture in `architecture.yaml`.
 ---
 Establish durable engineering context:
 - `.craft/architecture.yaml` - dense architecture definition
@@ -9,27 +9,27 @@ Establish durable engineering context:
 
 `architecture.yaml` has three jobs:
 - **Orientation:** an agent reads it first and knows the parts, their boundaries and where data lives without exploring.
-- **Drift detection:** code vs architecture. Over time accumulated changes may lead to architecture decay. `guard` detects where code goes beyond the agreed definition (e.g. new dependencies)
+- **Drift detection:** code <=> architecture. Over time changes add up to architecture decay. `guard` detects where code goes beyond it (e.g. an undeclared dependency).
 - **Diagram source:** render architectural diagrams from it.
 
-The architecture can be:
-- defined with the user for a new project,
-- derived from the code for an existing one, or
-- reconciled when it has drifted.
+**To only show the architecture** ("show me the architecture"), skip the rest: see [View](#view).
 
-In addition, the skill presents the architecture visually, as an HTML page that is easy for a human to grasp ("show me the architecture").
 
-**To only show the architecture,** skip the rest: see [View](#view).
-
-Before drafting read:
-- [YAML format](reference/architecture.schema.json)
-- [Example](reference/architecture.example.yaml)
 
 ## 1. Ground
 
-- Read `PRODUCT.md` and `.craft/adr/` when present, and anything the user points you to.
-- With no `PRODUCT.md`, offer to run `prod` first: the architecture needs a purpose to design against.
-- No production code → **greenfield**; code → **brownfield**; `.craft/architecture.yaml` exists → **reconcile**.
+- Goals:
+  - Read `PRODUCT.md` and `.craft/adr/` when present, and anything the user points you to.
+  - With no `PRODUCT.md`, offer to run `prod` first: the architecture needs a purpose to design against.
+
+- Mode:
+  - `.craft/architecture.yaml` exists → **reconcile**
+  - production code → **brownfield**
+  - otherwise → **greenfield**
+
+- Before drafting read:
+  - [YAML format](reference/architecture.schema.json)
+  - [Example](reference/architecture.example.yaml)
 
 ## 2a. Greenfield: shared understanding, then design
 

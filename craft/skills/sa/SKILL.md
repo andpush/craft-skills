@@ -15,7 +15,7 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 
 - Start simple. Every component, store, queue, or indirection layer must earn its place against a named driver.
 - Architecture and stack shape each other — iterate both to coherence: propose components with preliminary tech, validate the tech against the components, refine.
-- On a substantial fork, produce 2–3 genuinely different options — include one simpler than feels comfortable and, when useful, one non-obvious. Consider build vs. buy vs. integrate for substantial pieces. Recommend one option and say why it beats the others.
+- On a substantial fork (monolith vs. services, build vs. buy, relational vs. document, queue vs. database, persistent vs. in-memory), produce 2–3 genuinely different options, including one simpler than feels comfortable and, when useful, one non-obvious. Recommend one and say why it beats the others. Don't reopen settled defaults.
 - Pull expensive-to-reverse decisions forward (boundaries, data ownership, contracts, consistency); cheap details can wait.
 - Surface what wasn't asked: edge cases, failure modes, cheap-now/expensive-later choices.
 
