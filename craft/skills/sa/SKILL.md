@@ -24,11 +24,8 @@ Construct a solid technical solution: a chosen approach with rationale. The desi
 - **Boundaries:** along bounded contexts (DDD): data ownership, dependencies, lifecycle, independent scaling needs, not technical layers; dependencies point toward stability (SDP).
 - **Data** (needs special care): shape entities and relations based on query patterns, consistency and concurrency needs, future growth. Prefer one writer per entity.
 - **Privacy:** which personal data, where every copy lives, retention and deletion, applicable regulation and residency.
-- **State:** explicit lifecycles only where an illegal transition costs money or trust.
-- **Contracts:** additive vs breaking; compatibility and versioning; errors are part of the contract.
-- **Delivery:** sync vs async, retries, idempotency, ordering, timeouts, partial failure of externals.
-- **Evolution:** expand/contract, old and new versions running side by side during a deploy, roll forward; temporary code gets an `idea-remove-<slug>.md` with its removal condition.
-- **Modules:** deep over shallow; no interface without a second implementation or a test seam.
+- **State:** minimize the state space: derive rather than store, make illegal states unrepresentable; model state machines where a wrong transition is costly.
+- **Contracts:** additive vs breaking; compatibility and versioning; errors; sync vs async, retries, idempotency, ordering, timeouts, partial failure of externals.
 
 ## Challenge the design
 
