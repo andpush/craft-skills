@@ -48,9 +48,8 @@ Then design per the `sa` skill against these drivers.
 
 ## 2b. Brownfield: describe the code as it is
 
-Explore with evidence: build and deploy files, imports, routes and API
-specs, clients and configured URLs, migrations and ORM mappings, topics, security config and deploy
-flags, status enums, architecture tests. Large repo: fan out `Explore` agents by territory.
+Explore with evidence: build and deploy files, imports, routes, migrations, config. Large repo: fan
+out `Explore` agents by territory.
 
 Record what the code has, including what you'd question, and raise that as a finding (step 3).
 
@@ -82,10 +81,9 @@ Greenfield and brownfield write it whole; reconcile applies only what the user a
 and can a check catch it drifting? Detail follows risk: data, contracts and security in detail,
 stable parts coarse. Relations are an allowlist, so list them completely.
 
-`README.md` is the digest every agent loads: current decided state, at most 100 lines, one line per
-fact, from [reference/readme-template.md](reference/readme-template.md). Its sections come first; an
-existing README keeps its wording and other sections. On a rerun, fix only what is wrong. Long prose
-moves to topic files (`CONTRIBUTING.md`, `docs/<topic>.md`), reasons to ADRs — after the user confirms.
+`README.md` is the digest every agent loads, per [reference/readme-template.md](reference/readme-template.md).
+An existing README keeps its wording and other sections; on a rerun, fix only what is wrong. Move
+long prose and reasons out only after the user confirms.
 
 `AGENTS.md` starts with `@README.md`; `CLAUDE.md` contains `@AGENTS.md`. Create them with just
 that line; in existing ones add only the line.
@@ -93,7 +91,7 @@ that line; in existing ones add only the line.
 ## 5. Verify and confirm
 
 1. `uv run --quiet <this-skill-dir>/scripts/validate.py .craft/architecture.yaml` exits 0; fix or
-   explain warnings.
+   explain warnings. In reconcile, only if `architecture.yaml` changed.
 2. Run the `sa` Verify checklist.
 3. Walk the user through the draft and findings; apply their changes and re-validate.
 
