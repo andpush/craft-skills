@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use to review a change before it merges — a craft item's branch or any other branch. Computes the risk tier, describes contract changes (data model, API, dependencies), runs independent reviewers, turns suspicions into failing tests, and writes `<item>.review.json`. `review walk` then takes the human through every change waiting for them, in the terminal, and merges what they accept. `build` calls it after verify.
+description: Review a change before it merges (a craft item's branch or any branch): risk tier, contract changes, independent reviewers, suspicions proven by failing tests. `review walk` takes the human through what's waiting and merges what they accept.
 ---
 
 Find what a human must look at, prove what you can, and say plainly what wasn't checked. The tier is computed by a script, never chosen by you. Zero findings is a valid result; padding is not.
@@ -62,7 +62,7 @@ Rerun the script, and resolve every `incomplete` line, or state why in `not_chec
 uv run --quiet <this-skill-dir>/scripts/diff2html.py <item>.review.json
 ```
 
-Excerpts come from the real diff, so each `where` must be `path:line` or `path:start-end` at head. Flags: `--editor vscode|cursor|idea|none` (default `$CRAFT_EDITOR` or `vscode`), `--spec`, `--repo`, `--no-open`, `--out`.
+Flags: `--help`.
 
 Report in at most 8 lines: the tier, the red reasons, and what needs the human.
 
@@ -78,15 +78,7 @@ Works from any checkout. The human doesn't need to know about branches or worktr
 - **🟡 yellow:** summarize the triggers and what wasn't checked in at most six lines. Ask: merge / walk through it / send back / skip.
 - **🔴 red, or blocked:** give the `blocked:` reason if any, then walk through it.
 
-**Walking through an item.** Go through these in order:
-
-1. data model & API contracts
-2. deviations
-3. other contracts
-4. confirmed findings
-5. blast radius (uncovered first)
-6. plausible findings
-7. manual ACs
+**Walking through an item.** In order: data model & API contracts → deviations → other contracts → confirmed findings → blast radius (uncovered first) → plausible findings → manual ACs.
 
 For each item, at most six lines:
 - the ID and a clickable `path:line`;
@@ -126,4 +118,4 @@ Read only the fix diff (`git diff <reviewed head>..HEAD`). Rerun each finding's 
 "fixes":      {"H1": "minimal fix for a `change` verdict"}
 ```
 
-`where` is at head. The changes view uses it to cut the real diff hunk, so it must be precise. The script owns `item`, `base`, `head`, `tier`, `triggers` and `new_edges`.
+`where` is `path:line` or `path:start-end` at head. The changes view uses it to cut the real diff hunk, so it must be precise. The script owns `item`, `base`, `head`, `tier`, `triggers` and `new_edges`.
