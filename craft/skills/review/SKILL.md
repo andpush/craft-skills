@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review a change before it merges (a craft item's branch or any branch): risk tier, contract changes, independent reviewers, suspicions proven by failing tests. `review walk` takes the human through what's waiting and merges what they accept.
+description: Review a change before merge; `review walk` takes the human through what's waiting and merges what they accept.
 ---
 
 Find what a human must look at, prove what you can, and say plainly what wasn't checked. The tier is computed by a script, never chosen by you. Zero findings is a valid result; padding is not.
