@@ -1,11 +1,9 @@
 ---
 name: task
-description: Use to record a small, ready-to-execute task as a terse handoff doc in .craft/ready/ (task-<YYYYMMDD>-<slug>.md) — for a focused change (typically one component) that's too concrete for `idea` and too small for a full `feat`. Explore the relevant code, confirm you understood the intent, resolve gaps, then write a self-contained brief an implementor (or `build`) executes from cold without further questions. Use for quick fixes, scoped enhancements, chores, and "just do X" tasks.
+description: Record a small, focused change as a ready-to-build brief in `.craft/ready/`: too concrete for `idea`, too small for `feat`.
 ---
 
-Turn a small, concrete request into a build-ready handoff doc in the execution queue. The bet: a few minutes confirming intent and scoping the code now saves the implementor a round-trip later. The deliverable is the doc, not code — don't implement here; `build` (or any agent) picks it up after.
-
-`task` sits between `idea` (unvalidated capture, no execution intent) and `feat` (non-trivial change needing architecture work). It assumes the *what* is already roughly decided and the change is small — usually one component, no architecture decisions. Its whole job is to remove ambiguity before handoff.
+Turn a small, concrete request into a brief an implementor executes from cold, without coming back to the user. The deliverable is the doc, not code. The *what* is roughly decided and the change is usually one component, with no architecture decisions.
 
 ## When to escalate to `feat`
 
@@ -13,18 +11,14 @@ If exploration reveals the task spans several components, forces an architecture
 
 ## Process
 
-Keep it tight — this is a quick exchange, not a `feat` session.
-
 ### 1. Frame & explore
 Reflect the request back in one line. Locate the affected component and read the relevant code — enough to ground the task in real files and names, no more. Note what already exists that the implementor will touch or follow.
 
 ### 2. Confirm & close gaps
-Ask only the sharp unknowns that change the outcome — the ones the implementor would otherwise have to stop and ask. Surface anything ambiguous, then state your understanding and the gaps you spotted. Bring a recommendation to each open point; don't make the user author from scratch. Get the nod before writing.
-
-This is the core value: an implementor should be able to execute from the doc cold, without coming back to the user.
+Ask only the unknowns the implementor would otherwise stop on, with a recommendation for each. State your understanding and get the nod before writing.
 
 ### 3. Write the doc
-`.craft/ready/task-<YYYYMMDD>-<slug>.md` — `slug` is the kebab task name; the name is unique across `.craft/draft/`, `.craft/ready/` and `.craft/done/`. The filename is the index. A task doc is a brief, not a spec: aim for one screen. Keep it terse; cut any section that adds nothing. If it's growing past a screen with diagrams and layered decisions, that's the signal it wanted to be a `feat`.
+`.craft/ready/task-<YYYYMMDD>-<slug>.md`, with a name unique across `draft/`, `ready/` and `done/`. A brief, not a spec: one screen, and cut any section that adds nothing.
 
 ```markdown
 ---
@@ -58,4 +52,4 @@ One or two lines: file created, plus the next step — `build <item>` to have cr
 
 ## Lifecycle
 
-The task lands in `.craft/ready/` and is committed to main — the live execution queue. If it implements an idea, delete the idea in the same commit, after carrying over anything still useful. From there `build` owns it: it claims it with a `craft/<item>` branch, implements (a task's tests come with the code — no separate acceptance-test step), verifies, reviews, and moves it to `.craft/done/` in the same branch. A failed build marks it `blocked` on its branch. `whereami` lists ready and claimed tasks as live work. Deleting a task file is the user's call, never yours.
+Commit it to main; it's now in the queue. If it implements an idea, delete the idea in the same commit, after carrying over anything useful. Deleting a task is the user's call.
