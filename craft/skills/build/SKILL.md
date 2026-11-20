@@ -18,9 +18,7 @@ You orchestrate; subagents write the tests and the code, and a fresh one reviews
 
 ## Invocation
 
-- `build` — the next item, then stop.
-- `build <item>` — that item; resumes its branch if it exists.
-- `build all` — item after item until the queue is empty or one fails.
+`build` — the next item · `build <item>` — that item, resuming its branch if it exists · `build all` — until the queue is empty or one fails.
 
 ## Process
 
@@ -64,7 +62,7 @@ A subagent gets the item path, `README.md`, the AC commit's file list, and these
 - Read the `notes` in `architecture.yaml` about what you touch. If the change would make one false, stop and raise it.
 - You may adapt an AC test to a rename or restructure, saying why in the commit. If the criterion itself looks wrong, stop and report it — that's a spec question, not a code one.
 - Don't edit `.craft/architecture.yaml`, `PRODUCT.md`, `README.md` or `AGENTS.md`: you apply the doc impact at close.
-- Commit in small commits; report what changed and anything done differently from the spec, with the reason.
+- Report what changed and anything done differently from the spec, with the reason.
 
 A small `task` item may be done inline.
 
@@ -122,7 +120,7 @@ Each item is one merge commit, never squashed, so the AC commit stays reachable 
 
 ### 10. Report
 
-Per item, at most six lines: the tier and red reasons, the branch and worktree, and what needs the human — `review walk` if it's waiting, what wasn't checked. For `build all`, end with: merged, waiting, blocked, left.
+Per item: the tier and red reasons, the branch and worktree, and what needs the human — `review walk` if it's waiting, what wasn't checked. For `build all`, end with: merged, waiting, blocked, left.
 
 ## Fail
 

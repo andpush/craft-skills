@@ -30,7 +30,7 @@ Why it might matter; attached thinking the user provided, verbatim-ish.
 
 Don't elaborate beyond what was said.
 
-## Lifecycle (owned by `feat`, recorded here)
+## Lifecycle (owned here; `feat` decides the outcome)
 
 An idea is born in `.craft/draft/` and stays there until picked up. With no `resolution:`, nobody has looked at it yet. On pickup:
 
